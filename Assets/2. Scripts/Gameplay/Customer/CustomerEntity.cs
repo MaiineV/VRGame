@@ -5,6 +5,7 @@ using Gameplay.Interactions;
 using Gameplay.Liquid;
 using HSM.Core.State;
 using HSM.Events;
+using HSM.Extensions;
 using Services;
 using Services.Recipe;
 using Services.UpdateService;

@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Services/ServiceLocator.cs' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Services/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Services/ServiceLocator.cs.meta' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Services/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Services/UpdateService/*.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Services/UpdateService/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Utilities/MyLogger.cs' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Utilities/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Utilities/MyLogger.cs.meta' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Utilities/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/HSM/Core/State/*.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/HSM/Core/State/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/HSM/Core/Event/*.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/HSM/Core/Event/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/HSM/Extensions/*.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/HSM/Extensions/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/HSM/Utilities/*.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/HSM/Utilities/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/HSM/Events/GameEvent.cs' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/HSM/Events/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Data/SceneLoadSO.cs' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Data/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Data/SceneLoadSO.cs.meta' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Data/')",
+      "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/UI/Loading/LoadingController.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/UI/Loading/')",
+      "Bash(mkdir -p Demo)",
+      "Bash(mv Editor/DemoAutoSetup.cs Demo/DemoAutoSetup.cs)"
+    ]
+  }
+}
