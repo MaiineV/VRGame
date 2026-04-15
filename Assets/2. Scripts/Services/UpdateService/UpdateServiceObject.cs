@@ -7,21 +7,27 @@ namespace Services.UpdateService
     [DefaultExecutionOrder(-5000)]
     public class UpdateServiceObject : MonoBehaviour
     {
-        private static IUpdateService UpdateService => ServiceLocator.Get<IUpdateService>();
-        
+        private IUpdateService _service;
+
+        private bool TryGetService()
+        {
+            if (_service != null) return true;
+            return ServiceLocator.TryGet<IUpdateService>(out _service);
+        }
+
         private void Update()
         {
-            UpdateService.MyUpdate();
+            if (TryGetService()) _service.MyUpdate();
         }
 
         private void FixedUpdate()
         {
-            UpdateService.MyFixedUpdate();
+            if (TryGetService()) _service.MyFixedUpdate();
         }
 
         private void LateUpdate()
         {
-            UpdateService.MyLateUpdate();
+            if (TryGetService()) _service.MyLateUpdate();
         }
     }
 }

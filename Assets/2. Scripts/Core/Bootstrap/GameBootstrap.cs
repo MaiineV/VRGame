@@ -43,6 +43,8 @@ namespace Core
             _instance = this;
             DontDestroyOnLoad(gameObject);
 
+            ConfigurePhysicsLayers();
+
             ServiceLocator.Initialize();
             RegisterServices();
             InitializeCriticalServices();
@@ -104,6 +106,12 @@ namespace Core
             ServiceLocator.Register<IGameStateService, GameStateService>(mImmediateInit: true);
             // TODO: registrar progresivamente segun se implementen
             //   IUIService
+        }
+
+        private static void ConfigurePhysicsLayers()
+        {
+            int hand = LayerMask.NameToLayer("Hand");
+            if (hand >= 0) Physics.IgnoreLayerCollision(hand, hand, true);
         }
 
         private void InitializeCriticalServices()

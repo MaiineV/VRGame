@@ -15,7 +15,25 @@
       "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/Data/SceneLoadSO.cs.meta' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/Data/')",
       "Bash(cp 'C:/Users/Educabot/Unity/Projects/Proyect_T/Assets/2. Scripts/UI/Loading/LoadingController.cs*' 'C:/Users/Educabot/Unity/VRGame/Assets/2. Scripts/UI/Loading/')",
       "Bash(mkdir -p Demo)",
-      "Bash(mv Editor/DemoAutoSetup.cs Demo/DemoAutoSetup.cs)"
+      "Bash(mv Editor/DemoAutoSetup.cs Demo/DemoAutoSetup.cs)",
+      "Bash(claude mcp *)",
+      "mcp__mcp-unity__get_scene_info",
+      "mcp__mcp-unity__recompile_scripts",
+      "mcp__mcp-unity__execute_menu_item",
+      "mcp__mcp-unity__get_console_logs",
+      "mcp__mcp-unity__load_scene",
+      "mcp__mcp-unity__get_gameobject",
+      "mcp__mcp-unity__add_asset_to_scene",
+      "mcp__mcp-unity__delete_gameobject",
+      "mcp__mcp-unity__update_gameobject",
+      "mcp__mcp-unity__reparent_gameobject",
+      "mcp__mcp-unity__set_transform",
+      "mcp__mcp-unity__update_component",
+      "mcp__mcp-unity__save_scene",
+      "Bash(awk '{print length\\($2\\)}')"
     ]
-  }
+  },
+  "disabledMcpjsonServers": [
+    "mcp-unity"
+  ]
 }

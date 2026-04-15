@@ -98,9 +98,9 @@ namespace PourDecisions.EditorTools
             var path = Root + "/Ingredients/" + name + ".asset";
             var so = LoadOrCreate<IngredientSO>(path);
             var s = new SerializedObject(so);
-            s.FindProperty("_id").enumValueIndex = (int)id;
+            s.FindProperty("_id").enumValueIndex = EnumIndex<IngredientId>(id);
             s.FindProperty("_displayName").stringValue = name;
-            s.FindProperty("_type").enumValueIndex = (int)type;
+            s.FindProperty("_type").enumValueIndex = EnumIndex<IngredientType>(type);
             s.FindProperty("_liquidColor").colorValue = color;
             s.FindProperty("_pourRateMlPerSec").floatValue = pourRate;
             s.FindProperty("_unitCost").intValue = unitCost;
