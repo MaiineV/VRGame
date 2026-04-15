@@ -1,5 +1,6 @@
 using System.Reflection;
 using Data.Enums;
+using UnityEngine.InputSystem;
 using Data.SO;
 using Gameplay.Interactions;
 using Gameplay.Liquid;
@@ -60,6 +61,10 @@ namespace Demo
             _state = ServiceLocator.Get<IGameStateService>();
             _economy = ServiceLocator.Get<IEconomyService>();
             _save = ServiceLocator.Get<ISaveService>();
+
+            // NightClipboard.OnEnable fired before _config was wired via reflection,
+            // so SetPendingConfig was never called. Set it explicitly here.
+            _state.SetPendingConfig(_nightConfig);
 
             Debug.Log("[DemoAutoSetup] Scene ready. Use the on-screen panel to drive the flow.");
         }
@@ -358,21 +363,26 @@ namespace Demo
 
         void Update()
         {
-            if (Input.GetMouseButton(1))
+            var mouse = Mouse.current;
+            var kb    = Keyboard.current;
+            if (mouse != null && mouse.rightButton.isPressed)
             {
-                _yaw += Input.GetAxis("Mouse X") * LookSpeed;
-                _pitch -= Input.GetAxis("Mouse Y") * LookSpeed;
-                _pitch = Mathf.Clamp(_pitch, -80f, 80f);
+                _yaw   += mouse.delta.x.ReadValue() * LookSpeed * 0.1f;
+                _pitch -= mouse.delta.y.ReadValue() * LookSpeed * 0.1f;
+                _pitch  = Mathf.Clamp(_pitch, -80f, 80f);
                 transform.rotation = Quaternion.Euler(_pitch, _yaw, 0f);
             }
 
             var v = Vector3.zero;
-            if (Input.GetKey(KeyCode.W)) v += transform.forward;
-            if (Input.GetKey(KeyCode.S)) v -= transform.forward;
-            if (Input.GetKey(KeyCode.A)) v -= transform.right;
-            if (Input.GetKey(KeyCode.D)) v += transform.right;
-            if (Input.GetKey(KeyCode.E)) v += Vector3.up;
-            if (Input.GetKey(KeyCode.Q)) v -= Vector3.up;
+            if (kb != null)
+            {
+                if (kb.wKey.isPressed) v += transform.forward;
+                if (kb.sKey.isPressed) v -= transform.forward;
+                if (kb.aKey.isPressed) v -= transform.right;
+                if (kb.dKey.isPressed) v += transform.right;
+                if (kb.eKey.isPressed) v += Vector3.up;
+                if (kb.qKey.isPressed) v -= Vector3.up;
+            }
             transform.position += v * Speed * Time.deltaTime;
         }
     }
@@ -386,10 +396,14 @@ namespace Demo
         void Update()
         {
             if (Camera == null) return;
-            float d = Distance + Input.mouseScrollDelta.y * 0.05f;
-            Distance = Mathf.Clamp(d, 0.2f, 2f);
-            var ray = Camera.ScreenPointToRay(Input.mousePosition);
-            transform.position = ray.origin + ray.direction * Distance;
+            var mouse = Mouse.current;
+            if (mouse != null)
+            {
+                float scroll = mouse.scroll.ReadValue().y;
+                Distance = Mathf.Clamp(Distance + scroll * 0.0005f, 0.2f, 2f);
+                var ray = Camera.ScreenPointToRay(mouse.position.ReadValue());
+                transform.position = ray.origin + ray.direction * Distance;
+            }
         }
     }
 }
