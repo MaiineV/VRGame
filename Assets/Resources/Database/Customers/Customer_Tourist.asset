@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Customer_Tourist
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.CustomerSO
   _displayName: Tourist
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 710579741521488924, guid: 5ee0c19961c4afa46a89490e7e57c3b9, type: 3}
   _walkSpeed: 1.2
   _patienceSeconds: 60
   _drinkSeconds: 5

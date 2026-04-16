@@ -30,7 +30,12 @@
       "mcp__mcp-unity__set_transform",
       "mcp__mcp-unity__update_component",
       "mcp__mcp-unity__save_scene",
-      "Bash(awk '{print length\\($2\\)}')"
+      "Bash(awk '{print length\\($2\\)}')",
+      "Bash(grep -v \"m_Name: *$\")",
+      "mcp__mcp-unity__batch_execute",
+      "Bash(cat)",
+      "Bash(bash /tmp/analyze_bar.sh)",
+      "Bash(wc *)"
     ]
   },
   "disabledMcpjsonServers": [

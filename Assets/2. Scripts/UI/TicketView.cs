@@ -23,11 +23,24 @@ namespace UI
         [SerializeField] private bool _hideWhenEmpty = true;
         [SerializeField] private string _emptyLabel = "—";
 
+        [Header("Serve Feedback")]
+        [SerializeField] private Color _correctColor = new Color(0.2f, 1f, 0.3f, 0.85f);
+        [SerializeField] private Color _wrongColor = new Color(1f, 0.3f, 0.2f, 0.85f);
+        [SerializeField] private float _flashDuration = 1.5f;
+
         private CustomerEntity _customer;
         private bool _registered;
+        private Image _background;
+        private Color _defaultBgColor;
+        private float _flashTimer;
 
         void OnEnable()
         {
+            if (_root != null)
+            {
+                _background = _root.GetComponentInChildren<Image>();
+                if (_background != null) _defaultBgColor = _background.color;
+            }
             if (_seat == null) return;
             _seat.CustomerBound += HandleBound;
             _seat.CustomerCleared += HandleCleared;
@@ -43,6 +56,7 @@ namespace UI
                 _seat.CustomerCleared -= HandleCleared;
             }
             UnregisterTick();
+            if (_customer != null) _customer.Served -= HandleServed;
             _customer = null;
         }
 
@@ -51,11 +65,18 @@ namespace UI
             if (_customer == null || _patienceFill == null) return;
             float max = _customer.So != null ? _customer.So.PatienceSeconds : 0f;
             _patienceFill.fillAmount = max > 0f ? Mathf.Clamp01(_customer.WaitTimer / max) : 0f;
+
+            if (_flashTimer > 0f)
+            {
+                _flashTimer -= Time.deltaTime;
+                if (_flashTimer <= 0f && _background != null) _background.color = _defaultBgColor;
+            }
         }
 
         private void HandleBound(CustomerEntity c)
         {
             _customer = c;
+            _customer.Served += HandleServed;
             SetRecipeLabel(c.TargetRecipe);
             if (_patienceFill != null) _patienceFill.fillAmount = 1f;
             SetRootActive(true);
@@ -64,11 +85,21 @@ namespace UI
 
         private void HandleCleared()
         {
+            if (_customer != null) _customer.Served -= HandleServed;
             _customer = null;
             UnregisterTick();
             if (_recipeLabel != null) _recipeLabel.text = _emptyLabel;
             if (_patienceFill != null) _patienceFill.fillAmount = 0f;
+            if (_background != null) _background.color = _defaultBgColor;
+            _flashTimer = 0f;
             SetRootActive(!_hideWhenEmpty);
+        }
+
+        private void HandleServed(CustomerEntity entity, Data.Enums.RecipeId recipe, float score, bool isExact)
+        {
+            if (_background == null) return;
+            _background.color = isExact ? _correctColor : _wrongColor;
+            _flashTimer = _flashDuration;
         }
 
         private void SetRecipeLabel(Data.Enums.RecipeId id)
