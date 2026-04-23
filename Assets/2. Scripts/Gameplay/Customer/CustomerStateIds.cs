@@ -1,10 +1,10 @@
 namespace Gameplay.Customer
 {
-    public static class CustomerStateIds
+    public enum CustomerStateId
     {
-        public const string Approaching = "Customer.Approaching";
-        public const string Waiting = "Customer.Waiting";
-        public const string Drinking = "Customer.Drinking";
-        public const string Leaving = "Customer.Leaving";
+        Approaching = 10,
+        Waiting = 20,
+        Drinking = 30,
+        Leaving = 40
     }
 }

@@ -1,22 +1,17 @@
-using HSM.Core.State;
-using HSM.Events;
+using Core.FSM;
 
 namespace Gameplay.Customer.States
 {
-    public sealed class ApproachingState : BaseState
+    public sealed class ApproachingState : IState<CustomerEntity>
     {
-        public override string StateId => CustomerStateIds.Approaching;
+        public void Enter(CustomerEntity c) { }
 
-        protected override void OnUpdate(IStateContext context)
+        public void Update(CustomerEntity c)
         {
-            var c = context.GetService<CustomerEntity>();
-            if (c == null) return;
-
             if (c.MoveTowards(c.Seat.transform.position))
-            {
-                PublishEvent(new CustomerOrderPlacedEvent(c.Seat.Index, c.TargetRecipe));
-                context.StateMachine.TransitionTo(CustomerStateIds.Waiting);
-            }
+                c.Machine.TransitionTo(CustomerStateId.Waiting);
         }
+
+        public void Exit(CustomerEntity c) { }
     }
 }

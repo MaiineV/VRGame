@@ -1,34 +1,29 @@
-using HSM.Core.State;
-using HSM.Events;
+using Core.FSM;
 using Services;
 using Services.Night;
 using UnityEngine;
 
 namespace Gameplay.Customer.States
 {
-    public sealed class LeavingState : BaseState
+    public sealed class LeavingState : IState<CustomerEntity>
     {
-        public override string StateId => CustomerStateIds.Leaving;
-
         private bool _published;
         private float _wobbleTime;
 
-        protected override void OnEnter(IStateContext context)
+        public void Enter(CustomerEntity c)
         {
             _published = false;
             _wobbleTime = 0f;
         }
 
-        protected override void OnUpdate(IStateContext context)
+        public void Update(CustomerEntity c)
         {
-            var c = context.GetService<CustomerEntity>();
-            if (c == null || c.ExitPoint == null) { c?.DespawnNow(); return; }
+            if (c.ExitPoint == null) { c.DespawnNow(); return; }
 
             if (!_published)
             {
-                bool happy = c.DrinkTimer < c.So.DrinkSeconds; // entered Drinking → consumed timer
+                bool happy = c.DrinkTimer < c.So.DrinkSeconds;
                 c.RaiseLeft(happy);
-                PublishEvent(new CustomerLeftEvent(c.Seat.Index, happy));
                 _published = true;
             }
 
@@ -39,6 +34,8 @@ namespace Gameplay.Customer.States
                 c.DespawnNow();
         }
 
+        public void Exit(CustomerEntity c) { }
+
         private Vector3 ComputeWobble(CustomerEntity c)
         {
             if (c.Drunkenness <= 0.01f) return Vector3.zero;
@@ -47,7 +44,8 @@ namespace Gameplay.Customer.States
             if (cfg == null) return Vector3.zero;
 
             _wobbleTime += Time.deltaTime;
-            var dir = (c.ExitPoint.position - c.transform.position); dir.y = 0f;
+            var dir = c.ExitPoint.position - c.transform.position;
+            dir.y = 0f;
             if (dir.sqrMagnitude < 0.0001f) return Vector3.zero;
             var right = Vector3.Cross(Vector3.up, dir.normalized);
 

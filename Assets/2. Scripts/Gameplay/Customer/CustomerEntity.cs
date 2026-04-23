@@ -1,11 +1,8 @@
+using Core.FSM;
 using Data.Enums;
 using Data.SO;
 using Gameplay.Customer.States;
-using Gameplay.Interactions;
 using Gameplay.Liquid;
-using HSM.Core.State;
-using HSM.Events;
-using HSM.Extensions;
 using Services;
 using Services.Recipe;
 using Services.UpdateService;
@@ -14,22 +11,17 @@ using Utilities;
 
 namespace Gameplay.Customer
 {
-    /// <summary>
-    /// MonoBehaviour shell wrapping a per-customer HSM. Movement, animation hooks and seat
-    /// occupancy live here; state transitions live in the State classes.
-    /// Ticks via IUpdateListener — no Unity Update.
-    /// </summary>
     public sealed class CustomerEntity : MonoBehaviour, IUpdateListener
     {
         public CustomerSO So { get; private set; }
         public CustomerSeatPoint Seat { get; private set; }
         public RecipeId TargetRecipe { get; private set; }
         public Transform ExitPoint { get; private set; }
-        public IStateMachine Machine { get; private set; }
+        public StateMachine<CustomerStateId, CustomerEntity> Machine { get; private set; }
 
-        public float WaitTimer; // seconds remaining of patience
+        public float WaitTimer;
         public float DrinkTimer;
-        public float Drunkenness; // 0..1, set when served
+        public float Drunkenness;
 
         public event System.Action<CustomerEntity, RecipeId, float, bool> Served;
         public event System.Action<CustomerEntity, bool> Left;
@@ -49,14 +41,12 @@ namespace Gameplay.Customer
             WaitTimer = so.PatienceSeconds;
             DrinkTimer = so.DrinkSeconds;
 
-            Machine = StateMachineBuilder.Create();
-            Machine.Context.RegisterService(this);
-            Machine.AddState(new ApproachingState());
-            Machine.AddState(new WaitingState());
-            Machine.AddState(new DrinkingState());
-            Machine.AddState(new LeavingState());
-            Machine.Initialize();
-            Machine.TransitionTo(CustomerStateIds.Approaching);
+            Machine = new StateMachine<CustomerStateId, CustomerEntity>(this);
+            Machine.AddState(CustomerStateId.Approaching, new ApproachingState());
+            Machine.AddState(CustomerStateId.Waiting, new WaitingState());
+            Machine.AddState(CustomerStateId.Drinking, new DrinkingState());
+            Machine.AddState(CustomerStateId.Leaving, new LeavingState());
+            Machine.Start(CustomerStateId.Approaching);
 
             _initialized = true;
             RegisterTick();

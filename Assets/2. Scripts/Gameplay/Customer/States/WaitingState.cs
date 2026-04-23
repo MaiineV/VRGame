@@ -1,9 +1,8 @@
+using Core.FSM;
 using Data.Enums;
 using Data.SO;
 using Gameplay.Interactions;
 using Gameplay.Liquid;
-using HSM.Core.State;
-using HSM.Events;
 using Services;
 using Services.Database;
 using Services.Night;
@@ -12,56 +11,44 @@ using UnityEngine;
 
 namespace Gameplay.Customer.States
 {
-    public sealed class WaitingState : BaseState
+    public sealed class WaitingState : IState<CustomerEntity>
     {
-        public override string StateId => CustomerStateIds.Waiting;
-
-        private CustomerEntity _customer;
         private ServeSocket _socket;
         private RecipeMatch _pendingMatch;
         private LiquidMix _pendingMix;
         private bool _hasMatch;
 
-        protected override void OnEnter(IStateContext context)
+        public void Enter(CustomerEntity c)
         {
-            _customer = context.GetService<CustomerEntity>();
-            if (_customer == null) return;
-
-            _socket = _customer.Seat.ServeSocket;
+            _socket = c.Seat.ServeSocket;
             if (_socket != null) _socket.Served += HandleServed;
         }
 
-        protected override void OnUpdate(IStateContext context)
+        public void Update(CustomerEntity c)
         {
-            if (_customer == null) return;
-
             if (_hasMatch)
             {
                 _hasMatch = false;
-                _customer.Drunkenness = ComputeDrunkenness(_pendingMix);
+                c.Drunkenness = ComputeDrunkenness(_pendingMix);
                 _pendingMix = null;
-                _customer.RaiseServed(_customer.TargetRecipe, _pendingMatch.Score, _pendingMatch.IsExact);
-                PublishEvent(new CustomerServedEvent(
-                    _customer.Seat.Index, _customer.TargetRecipe,
-                    _pendingMatch.Score, _pendingMatch.IsExact));
+                c.RaiseServed(c.TargetRecipe, _pendingMatch.Score, _pendingMatch.IsExact);
 
                 if (_pendingMatch.IsExact)
-                    context.StateMachine.TransitionTo(CustomerStateIds.Drinking);
+                    c.Machine.TransitionTo(CustomerStateId.Drinking);
                 else
-                    context.StateMachine.TransitionTo(CustomerStateIds.Leaving);
+                    c.Machine.TransitionTo(CustomerStateId.Leaving);
                 return;
             }
 
-            _customer.WaitTimer -= Time.deltaTime;
-            if (_customer.WaitTimer <= 0f)
-                context.StateMachine.TransitionTo(CustomerStateIds.Leaving);
+            c.WaitTimer -= Time.deltaTime;
+            if (c.WaitTimer <= 0f)
+                c.Machine.TransitionTo(CustomerStateId.Leaving);
         }
 
-        protected override void OnExit(IStateContext context)
+        public void Exit(CustomerEntity c)
         {
             if (_socket != null) _socket.Served -= HandleServed;
             _socket = null;
-            _customer = null;
         }
 
         private void HandleServed(Glass glass, RecipeMatch match)
