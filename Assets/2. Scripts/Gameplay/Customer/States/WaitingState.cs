@@ -4,6 +4,7 @@ using Data.SO;
 using Gameplay.Interactions;
 using Gameplay.Liquid;
 using Services;
+using Services.Audio;
 using Services.Database;
 using Services.Night;
 using Services.Recipe;
@@ -32,6 +33,12 @@ namespace Gameplay.Customer.States
                 c.Drunkenness = ComputeDrunkenness(_pendingMix);
                 _pendingMix = null;
                 c.RaiseServed(c.TargetRecipe, _pendingMatch.Score, _pendingMatch.IsExact);
+
+                if (ServiceLocator.TryGet<IAudioService>(out var audio))
+                {
+                    var sfx = _pendingMatch.IsExact ? SfxId.CustomerServed : SfxId.CustomerLeft;
+                    audio.PlayOneShot(sfx, c.transform.position);
+                }
 
                 if (_pendingMatch.IsExact)
                     c.Machine.TransitionTo(CustomerStateId.Drinking);

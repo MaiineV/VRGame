@@ -13,5 +13,7 @@ namespace Data.Enums
         NightStart      = 50,
         NightEnd        = 51,
         ButtonPress     = 60,
+        MusicIdle       = 120,
+        MusicNight      = 130,
     }
 }
