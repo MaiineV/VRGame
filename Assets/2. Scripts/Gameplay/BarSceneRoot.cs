@@ -1,4 +1,6 @@
 using Gameplay.Customer;
+using Services;
+using Services.GameState;
 using UnityEngine;
 using Utilities;
 
@@ -24,6 +26,10 @@ namespace Gameplay
         [Header("Cash register")]
         [SerializeField] private Transform _cashRegisterAnchor;
 
+        [Header("Debug")]
+        [Tooltip("If true, BeginNight() is called on Start (skips the clipboard). Use only to verify the NPC/spawn flow when interactions are broken.")]
+        [SerializeField] private bool _autoStartNight;
+
         public Transform PlayerAnchor => _playerAnchor;
         public CustomerSeatPoint[] Seats => _seats;
         public Transform CustomerSpawnPoint => _customerSpawnPoint;
@@ -40,6 +46,21 @@ namespace Gameplay
                 return;
             }
             Instance = this;
+        }
+
+        void Start()
+        {
+            if (!_autoStartNight) return;
+
+            if (ServiceLocator.TryGet<IGameStateService>(out var state))
+            {
+                MyLogger.LogInfo("[BarSceneRoot] _autoStartNight=true → calling BeginNight().");
+                state.BeginNight();
+            }
+            else
+            {
+                MyLogger.LogWarning("[BarSceneRoot] _autoStartNight=true but IGameStateService not registered.");
+            }
         }
 
         void OnDestroy()
