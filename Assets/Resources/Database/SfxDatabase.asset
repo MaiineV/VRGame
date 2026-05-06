@@ -54,7 +54,7 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 0
   - id: 40
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 28cde229658c81240aab6bd92fa3d7f2, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
@@ -62,7 +62,7 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 0
   - id: 41
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 7375cbd050c91fb438a8292d26344b6c, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
@@ -70,21 +70,37 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 0
   - id: 50
-    clip: {fileID: 0}
-    volume: 0.8
+    clip: {fileID: 8300000, guid: af23d93ef2beb4e4a8364a9de7f775c2, type: 3}
+    volume: 0.7
     pitchMin: 0.95
     pitchMax: 1.05
-    spatialBlend: 1
+    spatialBlend: 0
     minRetriggerInterval: 0
     loop: 0
   - id: 51
-    clip: {fileID: 0}
-    volume: 0.8
+    clip: {fileID: 8300000, guid: 6c7150aada6990541b8125e75e979f0c, type: 3}
+    volume: 0.7
     pitchMin: 0.95
     pitchMax: 1.05
-    spatialBlend: 1
+    spatialBlend: 0
     minRetriggerInterval: 0
     loop: 0
+  - id: 120
+    clip: {fileID: 8300000, guid: 694417a59d5e27641ac884864a69c729, type: 3}
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1
+  - id: 130
+    clip: {fileID: 8300000, guid: 3e16d7a876afd2148bc9fd2d726d1136, type: 3}
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1
   - id: 60
     clip: {fileID: 0}
     volume: 0.8
