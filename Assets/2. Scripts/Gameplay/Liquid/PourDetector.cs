@@ -4,6 +4,7 @@ using Services;
 using Services.Audio;
 using Services.UpdateService;
 using UnityEngine;
+using Utilities;
 
 namespace Gameplay.Liquid
 {
@@ -57,7 +58,14 @@ namespace Gameplay.Liquid
             StopPouring();
         }
 
-        private void HandleGrabbed() => RegisterForTick();
+        private void HandleGrabbed()
+        {
+            if (_bottle.SO == null)
+                MyLogger.LogWarning($"[PourDetector:{name}] BottleSO is null — assign it on the Bottle component in the inspector.");
+            if (_bottle.SO != null && _bottle.SO.Ingredient == null)
+                MyLogger.LogWarning($"[PourDetector:{name}] IngredientSO is null on {_bottle.SO.name}.");
+            RegisterForTick();
+        }
 
         private void HandleReleased()
         {

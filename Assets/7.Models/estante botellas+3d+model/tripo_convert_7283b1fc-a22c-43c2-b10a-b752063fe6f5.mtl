@@ -1,0 +1,16 @@
+# Blender 5.0.1 MTL File: 'None'
+# www.blender.org
+
+newmtl tripo_mat_7283b1fc-a22c-43c2-b10a-b752063fe6f5
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd woodenbookshelf3dmodel_basecolor.JPEG
+map_Ns woodenbookshelf3dmodel_roughness.JPEG
+map_Pr woodenbookshelf3dmodel_roughness.JPEG
+map_refl woodenbookshelf3dmodel_metallic.JPEG
+map_Pm woodenbookshelf3dmodel_metallic.JPEG
+map_Bump -bm 1.000000 woodenbookshelf3dmodel_normal.JPEG

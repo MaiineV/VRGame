@@ -18,6 +18,8 @@ namespace Gameplay.Interactions
         private Rigidbody _heldRb;
         private Transform _heldOriginalParent;
         private bool _heldWasKinematic;
+        private Collider[] _heldColliders;
+        private bool[] _heldOriginalTriggerStates;
 
         private readonly Collider[] _hits = new Collider[16];
 
@@ -103,6 +105,14 @@ namespace Gameplay.Interactions
                 _heldRb.linearVelocity = Vector3.zero;
                 _heldRb.angularVelocity = Vector3.zero;
             }
+            _heldColliders = best.GetComponentsInChildren<Collider>();
+            _heldOriginalTriggerStates = new bool[_heldColliders.Length];
+            for (int i = 0; i < _heldColliders.Length; i++)
+            {
+                _heldOriginalTriggerStates[i] = _heldColliders[i].isTrigger;
+                _heldColliders[i].isTrigger = true;
+            }
+
             _held.SetHeld(true);
         }
 
@@ -110,6 +120,18 @@ namespace Gameplay.Interactions
         {
             if (_held == null) return;
             _held.transform.SetParent(_heldOriginalParent, true);
+
+            if (_heldColliders != null)
+            {
+                for (int i = 0; i < _heldColliders.Length; i++)
+                {
+                    if (_heldColliders[i] != null)
+                        _heldColliders[i].isTrigger = _heldOriginalTriggerStates[i];
+                }
+                _heldColliders = null;
+                _heldOriginalTriggerStates = null;
+            }
+
             if (_heldRb != null)
             {
                 _heldRb.isKinematic = _heldWasKinematic;
