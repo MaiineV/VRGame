@@ -12,11 +12,40 @@ namespace Gameplay.Interactions
         public int Id => _id;
         public Rigidbody Body { get; private set; }
 
+        /// <summary>Pool bucket this instance was spawned from; set by IGlassPoolService.</summary>
+        public GameObject SourcePrefab { get; set; }
+
         protected override void Awake()
         {
             base.Awake();
             Body = GetComponent<Rigidbody>();
             Body.interpolation = RigidbodyInterpolation.Interpolate;
+            // Keep the glass upright when set down: a low, explicit centre of mass plus
+            // extra angular damping makes it self-right instead of tipping over. Paired
+            // with the flat-bottomed BoxCollider on the prefab (a CapsuleCollider's rounded
+            // base balances on a point and tips).
+            Body.centerOfMass = new Vector3(0f, 0.02f, 0f);
+            Body.angularDamping = 0.6f;
+        }
+
+        /// <summary>
+        /// Restore a recycled glass to a clean state before re-use: empty the liquid, drop any
+        /// held flag, and zero physics so it doesn't inherit the velocity it had when pooled.
+        /// </summary>
+        public void ResetForPool()
+        {
+            Empty();
+
+            if (Body != null)
+            {
+                Body.isKinematic = false;
+                Body.useGravity = true;
+                Body.linearVelocity = Vector3.zero;
+                Body.angularVelocity = Vector3.zero;
+            }
+
+            var grab = GetComponent<GrabBridge>();
+            if (grab != null) grab.SetHeld(false);
         }
     }
 }

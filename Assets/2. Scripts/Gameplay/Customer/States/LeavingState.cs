@@ -1,4 +1,6 @@
 using Core.FSM;
+using Gameplay.Interactions;
+using Gameplay.Systems;
 using Services;
 using Services.Night;
 using UnityEngine;
@@ -12,8 +14,25 @@ namespace Gameplay.Customer.States
 
         public void Enter(CustomerEntity c)
         {
+            c.Stand();
             _published = false;
             _wobbleTime = 0f;
+
+            // The customer takes their glass with them: recycle it as they leave.
+            // Return to the pool when possible; only Destroy as a fallback.
+            if (c.ServedGlass != null)
+            {
+                if (c.ServedGlass is Glass glass &&
+                    ServiceLocator.TryGet<IGlassPoolService>(out var pool))
+                {
+                    pool.Return(glass);
+                }
+                else
+                {
+                    Object.Destroy(c.ServedGlass.gameObject);
+                }
+                c.ServedGlass = null;
+            }
         }
 
         public void Update(CustomerEntity c)

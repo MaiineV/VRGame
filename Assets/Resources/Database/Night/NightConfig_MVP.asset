@@ -14,10 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.NightConfigSO
   _durationSeconds: 180
   _spawnIntervalSeconds: 8
-  _maxSimultaneous: 3
+  _maxSimultaneous: 2
   _customerPool:
   - {fileID: 11400000, guid: b40825e98e2ad874f8b5493b953d729c, type: 2}
   - {fileID: 11400000, guid: 5deb5bc57371c724fa9c4f47c0964934, type: 2}
   - {fileID: 11400000, guid: 4dab26017d9b22e4d9a05ab3c51348f9, type: 2}
-  _recipePool: 0a00000014000000
+  _recipePool:
+  - 5
   _drunkennessConfig: {fileID: 11400000, guid: f9801fafb4e5db74c84872243b80dadd, type: 2}

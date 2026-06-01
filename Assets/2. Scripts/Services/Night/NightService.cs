@@ -3,6 +3,7 @@ using Data.Enums;
 using Data.SO;
 using Gameplay;
 using Gameplay.Customer;
+using Gameplay.Systems;
 using Services.Economy;
 using Services.UpdateService;
 using UnityEngine;
@@ -103,28 +104,42 @@ namespace Services.Night
             var seat = root.GetFreeSeat();
             if (seat == null) return;
 
-            var pool = _config.CustomerPool;
+            var customerPool = _config.CustomerPool;
             var recipes = _config.RecipePool;
-            if (pool == null || pool.Length == 0 || recipes == null || recipes.Length == 0) return;
+            if (customerPool == null || customerPool.Length == 0 || recipes == null || recipes.Length == 0) return;
 
-            var so = pool[Random.Range(0, pool.Length)];
+            var so = customerPool[Random.Range(0, customerPool.Length)];
             var recipe = recipes[Random.Range(0, recipes.Length)];
             if (so == null || so.Prefab == null || recipe == RecipeId.None) return;
 
-            var spawn = root.CustomerSpawnPoint != null ? root.CustomerSpawnPoint.position : Vector3.zero;
-            var go = Object.Instantiate(so.Prefab, spawn, Quaternion.identity);
-            var entity = go.GetComponent<CustomerEntity>();
-            if (entity == null)
+            // Serve mini-game: each customer wants one discrete fill level (30/50/70/100%).
+            int targetLevel = Random.Range(0, Gameplay.Liquid.FillLevels.Count);
+
+            if (!ServiceLocator.TryGet<ICustomerPoolService>(out var pool))
             {
-                MyLogger.LogError("[NightService] Customer prefab missing CustomerEntity.");
-                Object.Destroy(go);
+                MyLogger.LogError("[NightService] ICustomerPoolService not found.");
                 return;
             }
 
-            if (seat.ServeSocket != null) seat.ServeSocket.TargetRecipe = recipe;
+            var spawn = root.CustomerSpawnPoint != null ? root.CustomerSpawnPoint.position : Vector3.zero;
+            var entity = pool.Spawn(so.Prefab, spawn, Quaternion.identity);
+            if (entity == null)
+            {
+                MyLogger.LogError("[NightService] CustomerPoolService returned null entity.");
+                return;
+            }
+
+            if (seat.ServeSocket != null)
+            {
+                seat.ServeSocket.TargetRecipe = recipe;
+                seat.ServeSocket.TargetLevel = targetLevel;
+            }
+            // Subscribe AFTER pool.Spawn (which activates the GO) so OnEnable cannot
+            // race with event wiring. Init sets up the FSM and registers the tick.
             entity.Served += HandleCustomerServed;
             entity.Left += HandleCustomerLeft;
             entity.Init(so, seat, recipe, root.CustomerExitPoint);
+            entity.TargetLevel = targetLevel;
             seat.Bind(entity);
             _active.Add(entity);
         }
@@ -141,9 +156,13 @@ namespace Services.Night
 
         private void HandleCustomerLeft(CustomerEntity c, bool happy)
         {
+            // Unsubscribe before DespawnNow so the pooled entity carries no stale delegates.
             c.Served -= HandleCustomerServed;
             c.Left -= HandleCustomerLeft;
+            // Seat.Clear() is also called inside DespawnNow; this is a belt-and-suspenders
+            // guard in case the seat was already released by something else.
             if (c.Seat != null) c.Seat.Clear();
+            _active.Remove(c);
             if (!happy) _economy.RegisterFailure(c.TargetRecipe);
         }
     }

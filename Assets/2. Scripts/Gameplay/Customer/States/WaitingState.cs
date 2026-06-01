@@ -7,7 +7,6 @@ using Services;
 using Services.Audio;
 using Services.Database;
 using Services.Night;
-using Services.Recipe;
 using UnityEngine;
 
 namespace Gameplay.Customer.States
@@ -15,12 +14,14 @@ namespace Gameplay.Customer.States
     public sealed class WaitingState : IState<CustomerEntity>
     {
         private ServeSocket _socket;
-        private RecipeMatch _pendingMatch;
+        private bool _pendingOk;
         private LiquidMix _pendingMix;
+        private Glass _pendingGlass;
         private bool _hasMatch;
 
         public void Enter(CustomerEntity c)
         {
+            c.Sit();
             _socket = c.Seat.ServeSocket;
             if (_socket != null) _socket.Served += HandleServed;
         }
@@ -32,15 +33,17 @@ namespace Gameplay.Customer.States
                 _hasMatch = false;
                 c.Drunkenness = ComputeDrunkenness(_pendingMix);
                 _pendingMix = null;
-                c.RaiseServed(c.TargetRecipe, _pendingMatch.Score, _pendingMatch.IsExact);
+                c.ServedGlass = _pendingGlass;   // despawned when the customer leaves
+                _pendingGlass = null;
+                c.RaiseServed(c.TargetRecipe, _pendingOk ? 1f : 0f, _pendingOk);
 
                 if (ServiceLocator.TryGet<IAudioService>(out var audio))
                 {
-                    var sfx = _pendingMatch.IsExact ? SfxId.CustomerServed : SfxId.CustomerLeft;
+                    var sfx = _pendingOk ? SfxId.CustomerServed : SfxId.CustomerLeft;
                     audio.PlayOneShot(sfx, c.transform.position);
                 }
 
-                if (_pendingMatch.IsExact)
+                if (_pendingOk)
                     c.Machine.TransitionTo(CustomerStateId.Drinking);
                 else
                     c.Machine.TransitionTo(CustomerStateId.Leaving);
@@ -58,10 +61,11 @@ namespace Gameplay.Customer.States
             _socket = null;
         }
 
-        private void HandleServed(Glass glass, RecipeMatch match)
+        private void HandleServed(Glass glass, bool ok)
         {
-            _pendingMatch = match;
+            _pendingOk = ok;
             _pendingMix = glass != null ? glass.Mix : null;
+            _pendingGlass = glass;
             _hasMatch = true;
         }
 

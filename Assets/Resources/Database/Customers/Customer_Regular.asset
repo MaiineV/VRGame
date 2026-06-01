@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Customer_Regular
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.CustomerSO
   _displayName: Regular
-  _prefab: {fileID: 710579741521488924, guid: 5ee0c19961c4afa46a89490e7e57c3b9, type: 3}
+  _prefab: {fileID: 451239037055270922, guid: 3e5b9c3360a4d27448582d81c9c766c4, type: 3}
   _walkSpeed: 1.4
   _patienceSeconds: 45
   _drinkSeconds: 4

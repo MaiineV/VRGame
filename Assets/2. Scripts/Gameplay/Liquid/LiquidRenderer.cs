@@ -17,6 +17,8 @@ namespace Gameplay.Liquid
         private static readonly int WobbleVelocityId = Shader.PropertyToID("_WobbleVelocity");
 
         [SerializeField] private IngredientPalette _palette;
+        [Tooltip("Tint the liquid by its discrete fill level (green/yellow/orange/red) so the glass colour matches the customer's order. Off = blend by ingredient.")]
+        [SerializeField] private bool _colorByFillLevel = true;
 
         private Renderer _renderer;
         private MaterialPropertyBlock _block;
@@ -33,7 +35,9 @@ namespace Gameplay.Liquid
         {
             if (_renderer == null || _block == null) return;
 
-            var color = container.Mix.BlendColor(_resolve);
+            var color = _colorByFillLevel
+                ? FillLevels.ColorForRatio(container.FillRatio)
+                : container.Mix.BlendColor(_resolve);
             _renderer.GetPropertyBlock(_block);
             _block.SetFloat(FillAmountId, container.FillRatio);
             _block.SetColor(LiquidColorId, color);

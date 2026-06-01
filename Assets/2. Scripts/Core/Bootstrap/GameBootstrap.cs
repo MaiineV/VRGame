@@ -101,6 +101,8 @@ namespace Core
             ServiceLocator.Register<IRecipeService, RecipeService>(mImmediateInit: true);
             ServiceLocator.Register<IEconomyService, EconomyService>(mImmediateInit: true);
             ServiceLocator.Register<IBreakablePoolService, BreakablePoolService>(mImmediateInit: true);
+            ServiceLocator.Register<ICustomerPoolService, CustomerPoolService>(mImmediateInit: true);
+            ServiceLocator.Register<IGlassPoolService, GlassPoolService>(mImmediateInit: true);
             ServiceLocator.Register<IAudioService, AudioService>(mImmediateInit: true);
             ServiceLocator.Register<INightService, NightService>(mImmediateInit: true);
             ServiceLocator.Register<IGameStateService, GameStateService>(mImmediateInit: true);

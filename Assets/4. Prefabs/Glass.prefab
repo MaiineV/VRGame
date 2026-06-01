@@ -114,6 +114,7 @@ GameObject:
   - component: {fileID: 1408992535288394263}
   - component: {fileID: 8691968254005586611}
   - component: {fileID: 5508913471856123406}
+  - component: {fileID: 6279201188148791753}
   m_Layer: 0
   m_Name: LiquidMesh
   m_TagString: Untagged
@@ -169,7 +170,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: a75e1baa2b71e3343913fc825475a0e0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -193,6 +194,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6279201188148791753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3073410081878650129}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f06c9dc28b21c1f4e8b7700888e46348, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Liquid.LiquidRenderer
+  _palette: {fileID: 11400000, guid: a4df680e6bd58484c90485aa31ab0f75, type: 2}
 --- !u!1 &3330438658124137410
 GameObject:
   m_ObjectHideFlags: 0
@@ -383,8 +397,8 @@ Transform:
   - {fileID: 6726927879211104344}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!136 &1161894274220015858
-CapsuleCollider:
+--- !u!65 &1161894274220015858
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -401,10 +415,8 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.035
-  m_Height: 0.12
-  m_Direction: 1
+  serializedVersion: 3
+  m_Size: {x: 0.07, y: 0.12, z: 0.07}
   m_Center: {x: 0, y: 0.06, z: 0}
 --- !u!54 &4948269203344175589
 Rigidbody:
@@ -499,7 +511,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.Glass
   _capacityMl: 300
-  _renderer: {fileID: 0}
+  _renderer: {fileID: 6279201188148791753}
   _refreshEpsilon: 0.01
   _id: 0
 --- !u!1001 &3114098014550056162

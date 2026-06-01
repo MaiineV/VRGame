@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
@@ -15,7 +16,7 @@ namespace VRGame.EditorTools
     public static class QuestBuilder
     {
         private const string OutputDir = "Builds";
-        private const string ApkName = "VRGame.apk";
+        private const string ApkName = "Pour Decisions.apk";
 
         [MenuItem("Build/Build Quest APK %#b")]
         public static void BuildQuestAPK()

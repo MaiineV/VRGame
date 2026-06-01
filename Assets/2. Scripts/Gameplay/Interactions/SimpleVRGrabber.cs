@@ -135,6 +135,13 @@ namespace Gameplay.Interactions
             if (_heldRb != null)
             {
                 _heldRb.isKinematic = _heldWasKinematic;
+                // Zero out any residual velocity from the kinematic follow so the object
+                // settles where it's released instead of flying or bouncing off the bar.
+                if (!_heldRb.isKinematic)
+                {
+                    _heldRb.linearVelocity = Vector3.zero;
+                    _heldRb.angularVelocity = Vector3.zero;
+                }
             }
             _held.SetHeld(false);
             _held = null;

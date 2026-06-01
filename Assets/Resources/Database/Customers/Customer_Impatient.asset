@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Customer_Impatient
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.CustomerSO
   _displayName: Impatient
-  _prefab: {fileID: 710579741521488924, guid: 5ee0c19961c4afa46a89490e7e57c3b9, type: 3}
+  _prefab: {fileID: 6753822472143942800, guid: 818a24a5859e3d04194d7fcd4138867b, type: 3}
   _walkSpeed: 1.6
   _patienceSeconds: 25
   _drinkSeconds: 3
