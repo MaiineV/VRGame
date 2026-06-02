@@ -3694,6 +3694,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.QuestPerformance
   _targetHz: 72
+  _enableFoveatedRendering: 1
+  _foveationLevel: 3
 --- !u!1 &748750975
 GameObject:
   m_ObjectHideFlags: 0
@@ -7132,8 +7134,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d1fb05572f7661b4684e1e64db815a9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.ThumbstickLocomotion
-  _mode: 0
-  _speed: 1.2
+  _mode: 1
+  _speed: 1
   _moveController: 1
   _moveDeadzone: 0.15
   _teleportRange: 6

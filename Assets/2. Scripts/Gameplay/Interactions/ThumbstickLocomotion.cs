@@ -15,11 +15,13 @@ namespace Gameplay.Interactions
         public enum Mode { Smooth, Teleport }
 
         [Header("Mode")]
-        [SerializeField] private Mode _mode = Mode.Smooth;
+        [Tooltip("Teleport is the most comfortable (zero vection) and is the default. Smooth move " +
+                 "induces motion sickness — only use it with a working comfort vignette.")]
+        [SerializeField] private Mode _mode = Mode.Teleport;
 
         [Header("Move (left stick)")]
         [Tooltip("Smooth-move speed (m/s). Lower = more comfortable.")]
-        [SerializeField] private float _speed = 1.2f;
+        [SerializeField] private float _speed = 1.0f;
         [SerializeField] private OVRInput.Controller _moveController = OVRInput.Controller.LTouch;
         [SerializeField] private float _moveDeadzone = 0.15f;
 

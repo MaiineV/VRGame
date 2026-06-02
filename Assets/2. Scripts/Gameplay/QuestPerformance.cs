@@ -9,6 +9,12 @@ namespace Gameplay
     public sealed class QuestPerformance : MonoBehaviour
     {
         [SerializeField] private int _targetHz = 72;
+        [Tooltip("Fixed Foveated Rendering reduces GPU cost toward the lens edges (where the eye " +
+                 "can't resolve detail), buying frame-budget headroom so we hold the refresh rate. " +
+                 "Stable pacing = far less judder-induced nausea. Dynamic auto-adjusts with load.")]
+        [SerializeField] private bool _enableFoveatedRendering = true;
+        [SerializeField] private OVRManager.FixedFoveatedRenderingLevel _foveationLevel =
+            OVRManager.FixedFoveatedRenderingLevel.High;
 
         void Start()
         {
@@ -24,6 +30,20 @@ namespace Gameplay
             catch (System.Exception e)
             {
                 Debug.LogWarning($"[QuestPerformance] Could not set display frequency: {e.Message}");
+            }
+
+            // Fixed Foveated Rendering: cheap GPU win that protects frame pacing on Quest 2.
+            if (_enableFoveatedRendering)
+            {
+                try
+                {
+                    OVRManager.fixedFoveatedRenderingLevel = _foveationLevel;
+                    OVRManager.useDynamicFixedFoveatedRendering = true;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"[QuestPerformance] Could not set foveated rendering: {e.Message}");
+                }
             }
         }
     }
