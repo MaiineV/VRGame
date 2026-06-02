@@ -34,7 +34,8 @@ public static class LightingBakeSetup
         RenderSettings.ambientMode = AmbientMode.Flat;
         RenderSettings.ambientLight = new Color(0.34f, 0.34f, 0.38f);
 
-        Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
+        // Baking is on-demand by default in Unity 6 (the "Auto Generate" workflow was removed),
+        // so there's nothing to set here — use "Bake Lighting Now" to trigger a bake.
 
         var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
         EditorSceneManager.MarkSceneDirty(scene);
