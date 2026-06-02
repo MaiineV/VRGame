@@ -15,6 +15,6 @@ MonoBehaviour:
   _displayName: Regular
   _prefab: {fileID: 451239037055270922, guid: 3e5b9c3360a4d27448582d81c9c766c4, type: 3}
   _walkSpeed: 1.4
-  _patienceSeconds: 45
+  _patienceSeconds: 70
   _drinkSeconds: 4
   _baseTip: 2

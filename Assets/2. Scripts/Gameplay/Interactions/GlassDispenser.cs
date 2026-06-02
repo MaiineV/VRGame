@@ -44,12 +44,6 @@ namespace Gameplay.Interactions
 
         void Start()
         {
-            if (!ServiceLocator.TryGet<IGlassPoolService>(out _pool))
-            {
-                MyLogger.LogWarning($"[GlassDispenser:{name}] No IGlassPoolService registered — dispenser disabled.");
-                _disabled = true;
-                return;
-            }
             if (_glassPrefab == null || _glassPrefab.GetComponent<Glass>() == null)
             {
                 MyLogger.LogWarning($"[GlassDispenser:{name}] Glass prefab missing or has no Glass component — dispenser disabled.");
@@ -57,11 +51,7 @@ namespace Gameplay.Interactions
                 return;
             }
 
-            int seats = _seatCountOverride > 0
-                ? _seatCountOverride
-                : FindObjectsByType<CustomerSeatPoint>(FindObjectsSortMode.None).Length;
-            _pool.Capacity = Mathf.Max(1, seats + _buffer);
-            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = {seats} seats + {_buffer} = {_pool.Capacity}.");
+            EnsurePool();
 
             if (_spawnButton != null) _spawnButton.Pressed += TrySpawn;
 
@@ -75,22 +65,50 @@ namespace Gameplay.Interactions
 
         void Update()
         {
-            if (_disabled || _pool == null) return;
+            if (_disabled) return;
 
-            // Gray out the physical button while the budget is exhausted: PokeButton ignores
-            // presses (and stays silent) when not interactable, signalling "recycle one first".
-            if (_spawnButton != null) _spawnButton.Interactable = _pool.CanSpawn;
+            EnsurePool();
+
+            // Gray out the physical button while the budget is exhausted (PokeButton stays silent
+            // when not interactable). With no pool service (no bootstrap) it's always interactable.
+            if (_spawnButton != null) _spawnButton.Interactable = _pool == null || _pool.CanSpawn;
 
             if (_enableControllerFallback && OVRInput.GetDown(_fallbackButton, _fallbackController))
                 TrySpawn();
         }
 
-        /// <summary>Spawn one pooled glass if the budget allows; no-op when at the cap.</summary>
+        /// <summary>Lazily resolve the pool service and set its budget the first time it appears.</summary>
+        private void EnsurePool()
+        {
+            if (_pool != null) return;
+            if (!ServiceLocator.TryGet<IGlassPoolService>(out _pool)) return;
+
+            int seats = _seatCountOverride > 0
+                ? _seatCountOverride
+                : FindObjectsByType<CustomerSeatPoint>(FindObjectsSortMode.None).Length;
+            _pool.Capacity = Mathf.Max(1, seats + _buffer);
+            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = {seats} seats + {_buffer} = {_pool.Capacity}.");
+        }
+
+        /// <summary>
+        /// Spawn one glass. Uses the pooled budget when the service is available; otherwise falls
+        /// back to a plain Instantiate so the scene still works when played without the bootstrap.
+        /// </summary>
         public void TrySpawn()
         {
-            if (_disabled || _pool == null || !_pool.CanSpawn) return;
+            if (_disabled) return;
+            EnsurePool();
+
             var t = _spawnPoint != null ? _spawnPoint : transform;
-            _pool.Spawn(_glassPrefab, t.position, t.rotation);
+            if (_pool != null)
+            {
+                if (!_pool.CanSpawn) return;
+                _pool.Spawn(_glassPrefab, t.position, t.rotation);
+            }
+            else
+            {
+                Instantiate(_glassPrefab, t.position, t.rotation);
+            }
         }
 
 #if UNITY_EDITOR

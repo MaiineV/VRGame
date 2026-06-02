@@ -2881,6 +2881,57 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &448753243
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 448753244}
+  - component: {fileID: 448753245}
+  m_Layer: 0
+  m_Name: PatienceBarRig
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &448753244
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448753243}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1775413354}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &448753245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 448753243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8569a51a47607cb4a98a1a525e1e016a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::UI.Diegetic.CustomerPatienceBar
+  _seat: {fileID: 1775413355}
+  _headOffset: {x: 0, y: 2.25, z: 0}
+  _size: {x: 0.55, y: 0.075}
+  _calmColor: {r: 0.27, g: 0.85, b: 0.35, a: 1}
+  _warnColor: {r: 0.96, g: 0.8, b: 0.2, a: 1}
+  _urgentColor: {r: 0.92, g: 0.22, b: 0.16, a: 1}
+  _pulseThreshold: 0.25
 --- !u!21 &533416543
 Material:
   serializedVersion: 8
@@ -2898,8 +2949,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -2996,7 +3049,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.45, g: 0.47, b: 0.52, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.45, g: 0.4699999, b: 0.52, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
@@ -3627,6 +3680,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.GameControls
   _quitHoldSeconds: 1.5
+  _fallbackConfig: {fileID: 11400000, guid: 89a14f0fd80ac634fb64b27194ca4549, type: 2}
 --- !u!114 &741939828
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3693,6 +3747,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI.Diegetic.NightClipboard
   _config: {fileID: 11400000, guid: 89a14f0fd80ac634fb64b27194ca4549, type: 2}
   _grab: {fileID: 748750978}
+  _requireHeld: 0
   _idleGroup: {fileID: 2031958423}
   _runningGroup: {fileID: 549241088}
   _summaryGroup: {fileID: 995748677}
@@ -3805,7 +3860,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UI.Diegetic.PokeButton
   _pressLayers:
     serializedVersion: 2
-    m_Bits: 128
+    m_Bits: 4294967295
   _debounceSeconds: 0.25
   _interactable: 1
   _cap: {fileID: 571462232}
@@ -5009,8 +5064,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -5107,7 +5164,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.15, g: 0.15, b: 0.18, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.14999998, g: 0.14999998, b: 0.17999998, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
@@ -5419,8 +5476,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -5517,7 +5576,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.25, g: 0.8, b: 0.3, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.24999997, g: 0.8, b: 0.29999998, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []
@@ -9926,6 +9985,7 @@ Transform:
   - {fileID: 1412560218}
   - {fileID: 370906992}
   - {fileID: 2052244710}
+  - {fileID: 448753244}
   m_Father: {fileID: 857291381}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1775413355
@@ -10574,8 +10634,10 @@ Material:
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: -1
-  stringTagMap: {}
-  disabledShaderPasses: []
+  stringTagMap:
+    RenderType: Opaque
+  disabledShaderPasses:
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -10672,7 +10734,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.9, g: 0.3, b: 0.2, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0.9, g: 0.29999998, b: 0.19999996, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
   m_BuildTextureStacks: []

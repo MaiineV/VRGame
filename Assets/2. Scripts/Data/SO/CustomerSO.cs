@@ -13,7 +13,7 @@ namespace Data.SO
         [Tooltip("World units per second while walking to/from the seat.")]
         [SerializeField] private float _walkSpeed = 1.4f;
         [Tooltip("Seconds the customer waits for a drink after sitting down.")]
-        [SerializeField] private float _patienceSeconds = 45f;
+        [SerializeField] private float _patienceSeconds = 70f;
         [Tooltip("Seconds the customer 'drinks' before leaving happy.")]
         [SerializeField] private float _drinkSeconds = 4f;
 

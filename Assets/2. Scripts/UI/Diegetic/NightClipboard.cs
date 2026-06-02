@@ -28,8 +28,12 @@ namespace UI.Diegetic
         [SerializeField] private NightConfigSO _config;
 
         [Header("Grab (optional)")]
-        [Tooltip("If set, the clipboard only reacts to buttons while held. Leave null to ignore.")]
+        [Tooltip("If set, the clipboard tracks held state for visuals/feedback. Leave null to ignore.")]
         [SerializeField] private GrabBridge _grab;
+        [Tooltip("When true, buttons only react while the clipboard is held (two-handed: grab with one " +
+                 "hand, poke with the other). When false (default), you can poke the buttons while the " +
+                 "clipboard rests on the bar too.")]
+        [SerializeField] private bool _requireHeld = false;
 
         [Header("Groups (one active per state)")]
         [SerializeField] private GameObject _idleGroup;
@@ -99,7 +103,7 @@ namespace UI.Diegetic
         private void OnAbortPressed()    { if (IsActive()) _state?.AbortNight(); }
         private void OnContinuePressed() { if (IsActive()) _state?.AcknowledgeSummary(); }
 
-        private bool IsActive() => _grab == null || _grab.IsHeld;
+        private bool IsActive() => !_requireHeld || _grab == null || _grab.IsHeld;
 
         private void OnStateChanged(Services.GameState.GameState from, Services.GameState.GameState to) => ApplyState(to);
 
