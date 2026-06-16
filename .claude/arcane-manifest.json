@@ -10,9 +10,9 @@
     "clickup",
     "statusline"
   ],
-  "installed_at": "2026-05-27T12:31:59Z",
-  "total_skills": 61,
-  "total_rules": 11,
+  "installed_at": "2026-06-05T23:36:07Z",
+  "total_skills": 62,
+  "total_rules": 12,
   "installed_skills": [
     "commit",
     "create-pr",
@@ -35,6 +35,7 @@
     "arcane-add",
     "arcane-remove",
     "arcane-clean",
+    "kickoff",
     "user-persona",
     "game-docs",
     "art-bible",
@@ -80,6 +81,7 @@
     "data-files",
     "prototype-code",
     "test-standards",
+    "implementation-workflow",
     "design-docs",
     "narrative",
     "gameplay-code",
@@ -93,10 +95,6 @@
     "quality",
     "game"
   ],
-  "source": "C:\\Users\\Sebastarbucks\\Desktop\\claude-code-arcane",
-  "worktree": {
-    "is_worktree": false,
-    "main_worktree": "C:\\Users\\Sebastarbucks\\Unity\\VRGame",
-    "shared_dirs": []
-  }
+  "source": "C:\\Users\\sebas\\.arcane\\cache\\f7333dd6a4a8",
+  "source_version": "1.0.0"
 }
