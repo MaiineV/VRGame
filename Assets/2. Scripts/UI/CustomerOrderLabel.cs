@@ -145,13 +145,20 @@ namespace UI
 
             if (bucket < 0)
             {
-                _label.text = $"Quiere <color=#{reqHex}>{reqPct}%</color>";
+                _label.text = $"Pedido: <color=#{reqHex}>{reqPct}%</color>";
                 return;
             }
 
+            // Match by bucket, not raw percentages, so the player only chases the colour/check —
+            // no more two ambiguous "100%" lines side by side.
+            bool match = bucket == FillLevels.Clamp(target);
             int glassPct = FillLevels.PercentOf(bucket);
             string glassHex = Hex(FillLevels.ColorOf(bucket));
-            _label.text = $"Quiere <color=#{reqHex}>{reqPct}%</color>\nVaso <color=#{glassHex}>{glassPct}%</color>";
+            string mark = match
+                ? $"<color=#{Hex(FillLevels.Colors[0])}>✓</color>"
+                : $"<color=#{Hex(FillLevels.Colors[3])}>✗</color>";
+            _label.text = $"Pedido: <color=#{reqHex}>{reqPct}%</color>\n" +
+                          $"Tu vaso: <color=#{glassHex}>{glassPct}%</color> {mark}";
         }
 
         /// <summary>Force the next LateUpdate to rebuild the order text.</summary>
