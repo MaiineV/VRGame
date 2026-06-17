@@ -47,6 +47,11 @@ namespace Gameplay.Liquid
         {
             _bottle.Grab.Grabbed += HandleGrabbed;
             _bottle.Grab.Released += HandleReleased;
+            // Tick regardless of grab state. The pour only actually happens when the bottle is
+            // tilted past the threshold and has liquid (gated in MyFixedUpdate), so always ticking
+            // is safe — and it avoids depending on the grab system reliably firing Grabbed, which
+            // left most bottles unable to pour while only one happened to work.
+            RegisterForTick();
             if (_bottle.Grab.IsHeld) HandleGrabbed();
         }
 
@@ -64,12 +69,10 @@ namespace Gameplay.Liquid
                 MyLogger.LogWarning($"[PourDetector:{name}] BottleSO is null — assign it on the Bottle component in the inspector.");
             if (_bottle.SO != null && _bottle.SO.Ingredient == null)
                 MyLogger.LogWarning($"[PourDetector:{name}] IngredientSO is null on {_bottle.SO.name}.");
-            RegisterForTick();
         }
 
         private void HandleReleased()
         {
-            UnregisterFromTick();
             StopPouring();
         }
 

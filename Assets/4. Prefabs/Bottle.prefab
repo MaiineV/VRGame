@@ -120,9 +120,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc2d6a8d5491acc4c9f5a9cc7d3149b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Liquid.PourDetector
-  _tiltThresholdDeg: 60
-  _maxTiltDeg: 130
-  _maxRayDistance: 0.6
+  _tiltThresholdDeg: 45
+  _maxTiltDeg: 110
+  _maxRayDistance: 0.9
   _containerMask:
     serializedVersion: 2
     m_Bits: 4294967295

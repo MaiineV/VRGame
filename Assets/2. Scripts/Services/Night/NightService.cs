@@ -47,9 +47,15 @@ namespace Services.Night
             _timeRemaining = config.DurationSeconds;
             _spawnTimer = 0f;
             IsRunning = true;
+
+            // Top up every bottle so each new night starts with full stock.
+            var bottles = Object.FindObjectsByType<Gameplay.Interactions.Bottle>(FindObjectsSortMode.None);
+            for (int i = 0; i < bottles.Length; i++)
+                if (bottles[i] != null) bottles[i].Refill();
+
             _updates.AddUpdateListener(this);
             NightStarted?.Invoke();
-            MyLogger.LogInfo("[NightService] Night started.");
+            MyLogger.LogInfo($"[NightService] Night started. Refilled {bottles.Length} bottle(s).");
         }
 
         public void EndNight()
