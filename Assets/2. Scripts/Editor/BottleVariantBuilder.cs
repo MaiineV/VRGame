@@ -24,7 +24,6 @@ namespace EditorTools
         private const string RecipesDir = "Assets/Resources/Database/Recipes";
         private const string VariantsDir = "Assets/4. Prefabs/Bottles";
 
-        private const float TargetHeight = 0.3f;   // meters; matches the base collider/neck scale
         private const float CapacityMl = 1000000f;  // 1000 L — intentionally huge so bottles never run dry while testing
         private const int RepairCost = 50;
 
@@ -40,6 +39,7 @@ namespace EditorTools
             public int UnitCost;
             public RecipeId Recipe;       // drink customers can request
             public int BasePrice;
+            public float Height;          // target world height (m). Varied per bottle on purpose.
         }
 
         private static readonly Def[] Defs =
@@ -47,23 +47,23 @@ namespace EditorTools
             new Def { Name = "JackDaniel",   FbxPath = "Assets/7.Models/JackDaniel.fbx",
                       Id = IngredientId.Whiskey, IngredientName = "Whiskey", BottleDisplay = "Jack Daniel's",
                       Liquid = new Color(0.55f, 0.30f, 0.05f), PourRate = 30f, UnitCost = 2,
-                      Recipe = RecipeId.Whiskey, BasePrice = 8 },
+                      Recipe = RecipeId.Whiskey, BasePrice = 8, Height = 0.28f },
             new Def { Name = "Hennessy",     FbxPath = "Assets/7.Models/Hennessy.fbx",
                       Id = IngredientId.Cognac, IngredientName = "Cognac", BottleDisplay = "Hennessy",
                       Liquid = new Color(0.45f, 0.22f, 0.05f), PourRate = 28f, UnitCost = 3,
-                      Recipe = RecipeId.Cognac, BasePrice = 10 },
+                      Recipe = RecipeId.Cognac, BasePrice = 10, Height = 0.30f },
             new Def { Name = "Champagne",    FbxPath = "Assets/7.Models/Champagne.fbx",
                       Id = IngredientId.Champagne, IngredientName = "Champagne", BottleDisplay = "Champagne",
                       Liquid = new Color(0.92f, 0.85f, 0.55f), PourRate = 35f, UnitCost = 3,
-                      Recipe = RecipeId.Champagne, BasePrice = 10 },
+                      Recipe = RecipeId.Champagne, BasePrice = 10, Height = 0.34f },
             new Def { Name = "Wine",         FbxPath = "Assets/7.Models/Wine.fbx",
                       Id = IngredientId.Wine, IngredientName = "Wine", BottleDisplay = "Red Wine",
                       Liquid = new Color(0.45f, 0.05f, 0.12f), PourRate = 32f, UnitCost = 2,
-                      Recipe = RecipeId.Wine, BasePrice = 7 },
+                      Recipe = RecipeId.Wine, BasePrice = 7, Height = 0.32f },
             new Def { Name = "SimpleBottle", FbxPath = "Assets/7.Models/low-poly-bottle/source/simple bottle.fbx",
                       Id = IngredientId.Tequila, IngredientName = "Tequila", BottleDisplay = "Tequila",
                       Liquid = new Color(0.85f, 0.80f, 0.55f), PourRate = 33f, UnitCost = 2,
-                      Recipe = RecipeId.Tequila, BasePrice = 7 },
+                      Recipe = RecipeId.Tequila, BasePrice = 7, Height = 0.26f },
         };
 
         [MenuItem("Pour Decisions/Visuals/Build Bottle Variants")]
@@ -222,21 +222,24 @@ namespace EditorTools
                 var body = instance.transform.Find("Body");
                 if (body != null) body.gameObject.SetActive(false);
 
-                // Drop the model in as the visual.
+                // Drop the model in as the visual. IMPORTANT: preserve the FBX's native rotation and
+                // (often non-uniform) localScale — they define the bottle's real proportions. Overwriting
+                // them with identity/uniform squashes models whose shape comes from a non-uniform import
+                // scale. We only zero the position to measure, then apply a UNIFORM resize factor.
                 var visual = (GameObject)PrefabUtility.InstantiatePrefab(model);
                 visual.name = "Visual";
                 visual.transform.SetParent(instance.transform, false);
                 visual.transform.localPosition = Vector3.zero;
-                visual.transform.localRotation = Quaternion.identity;
-                visual.transform.localScale = Vector3.one;
 
                 if (TryGetLocalBounds(visual, instance.transform, out var b))
                 {
-                    float scale = b.size.y > 1e-4f ? TargetHeight / b.size.y : 1f;
-                    visual.transform.localScale = Vector3.one * scale;
+                    // Uniform factor to reach this bottle's target height. Multiply (not overwrite) so the
+                    // model keeps its proportions; heights are intentionally varied per bottle.
+                    float factor = b.size.y > 1e-4f ? def.Height / b.size.y : 1f;
+                    visual.transform.localScale *= factor;
 
-                    // Bounds scale linearly about the root origin (visual sits at 0).
-                    Vector3 min = b.min * scale, max = b.max * scale;
+                    // Bounds scale linearly about the root origin (visual pivot sits at 0).
+                    Vector3 min = b.min * factor, max = b.max * factor;
                     float h = max.y - min.y;
                     // Sit the base on y=0 and center it on the bottle axis.
                     visual.transform.localPosition = new Vector3(-(min.x + max.x) * 0.5f, -min.y, -(min.z + max.z) * 0.5f);
@@ -252,8 +255,9 @@ namespace EditorTools
                 var bottle = instance.GetComponent<Bottle>();
                 if (bottle != null) SetField(bottle, "_so", bottleSO);
 
+                // Overwrite in place (do NOT DeleteAsset) so the prefab GUID is preserved and any
+                // instances already placed in scenes keep their reference and just pick up the new visual.
                 string path = $"{VariantsDir}/Bottle_{def.Name}.prefab";
-                AssetDatabase.DeleteAsset(path); // rebuild cleanly if it exists
                 var variant = PrefabUtility.SaveAsPrefabAsset(instance, path, out bool ok);
                 if (!ok) { Debug.LogError($"[BottleVariantBuilder] Failed to save variant {path}."); return null; }
                 return variant;
