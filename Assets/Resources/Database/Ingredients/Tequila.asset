@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Tequila
   _type: 10
   _liquidColor: {r: 0.184, g: 0.71, b: 0.478, a: 1}
-  _pourRateMlPerSec: 33
+  _pourRateMlPerSec: 50
   _unitCost: 2

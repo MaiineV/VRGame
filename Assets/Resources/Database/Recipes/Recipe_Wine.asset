@@ -15,5 +15,8 @@ MonoBehaviour:
   _id: 90
   _displayName: Red Wine
   _basePrice: 7
-  _steps: []
+  _steps:
+  - id: 210
+    targetMl: 120
+    toleranceMl: 50
   _foreignToleranceMl: 5

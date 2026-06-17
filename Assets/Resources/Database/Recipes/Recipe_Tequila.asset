@@ -15,5 +15,8 @@ MonoBehaviour:
   _id: 60
   _displayName: Tequila
   _basePrice: 7
-  _steps: []
+  _steps:
+  - id: 50
+    targetMl: 120
+    toleranceMl: 50
   _foreignToleranceMl: 5

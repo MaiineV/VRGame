@@ -27,16 +27,12 @@ namespace Gameplay
         {
             if (_state == null && !ServiceLocator.TryGet<IGameStateService>(out _state)) return;
 
-            if (OVRInput.GetDown(OVRInput.Button.One))
-            {
-                if (_state.Current == Services.GameState.GameState.Idle) BeginNight();
-                else if (_state.Current == Services.GameState.GameState.NightSummary) _state.AcknowledgeSummary();
-            }
-
-            if (OVRInput.GetDown(OVRInput.Button.Two))
-            {
-                if (_state.Current == Services.GameState.GameState.NightRunning) _state.AbortNight();
-            }
+            // A/B no longer start or abort the night — that lives on the diegetic clipboard.
+            // They used to flip the game state, which restarted the state-driven music on every
+            // press. A still acknowledges the end-of-night summary (a deliberate, one-off step).
+            if (OVRInput.GetDown(OVRInput.Button.One)
+                && _state.Current == Services.GameState.GameState.NightSummary)
+                _state.AcknowledgeSummary();
 
             if (OVRInput.Get(OVRInput.Button.Four))
             {

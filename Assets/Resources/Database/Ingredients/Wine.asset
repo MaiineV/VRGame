@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Wine
   _type: 10
   _liquidColor: {r: 0.478, g: 0.2, b: 0.71, a: 1}
-  _pourRateMlPerSec: 32
+  _pourRateMlPerSec: 48
   _unitCost: 2

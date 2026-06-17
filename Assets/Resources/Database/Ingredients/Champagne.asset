@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Champagne
   _type: 10
   _liquidColor: {r: 0.922, g: 0.824, b: 0.235, a: 1}
-  _pourRateMlPerSec: 35
+  _pourRateMlPerSec: 52
   _unitCost: 3

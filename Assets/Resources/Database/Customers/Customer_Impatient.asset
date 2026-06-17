@@ -15,6 +15,6 @@ MonoBehaviour:
   _displayName: Impatient
   _prefab: {fileID: 6753822472143942800, guid: 818a24a5859e3d04194d7fcd4138867b, type: 3}
   _walkSpeed: 1.6
-  _patienceSeconds: 40
+  _patienceSeconds: 60
   _drinkSeconds: 3
   _baseTip: 4
