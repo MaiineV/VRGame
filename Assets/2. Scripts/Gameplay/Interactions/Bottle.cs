@@ -16,11 +16,12 @@ namespace Gameplay.Interactions
         [SerializeField] private Breakable _breakable;
 
         private float _remainingMl;
+        private bool _filled;
 
         public BottleSO SO => _so;
         public Transform Neck => _neck != null ? _neck : transform;
-        public float RemainingMl => _remainingMl;
-        public bool IsEmpty => _remainingMl <= 0f;
+        public float RemainingMl { get { EnsureFilled(); return _remainingMl; } }
+        public bool IsEmpty { get { EnsureFilled(); return _remainingMl <= 0f; } }
         public GrabBridge Grab { get; private set; }
         public Rigidbody Body { get; private set; }
 
@@ -34,7 +35,7 @@ namespace Gameplay.Interactions
             if (_breakable == null) _breakable = GetComponent<Breakable>();
             if (_breakable != null) _breakable.Broken += HandleBroken;
 
-            if (_so != null) _remainingMl = _so.CapacityMl;
+            EnsureFilled();
         }
 
         void OnDestroy()
@@ -51,6 +52,7 @@ namespace Gameplay.Interactions
 
         public float Consume(float volumeMl)
         {
+            EnsureFilled();
             if (volumeMl <= 0f || _remainingMl <= 0f) return 0f;
             float actual = volumeMl > _remainingMl ? _remainingMl : volumeMl;
             _remainingMl -= actual;
@@ -59,7 +61,19 @@ namespace Gameplay.Interactions
 
         public void Refill()
         {
-            if (_so != null) _remainingMl = _so.CapacityMl;
+            if (_so != null) { _remainingMl = _so.CapacityMl; _filled = true; }
+        }
+
+        /// <summary>
+        /// Fills the bottle from its BottleSO the first time it's needed. Guards the case where
+        /// Awake ran before the SO reference was ready (or didn't run) — which left some bottles
+        /// reading empty and refusing to pour while others worked.
+        /// </summary>
+        private void EnsureFilled()
+        {
+            if (_filled || _so == null) return;
+            _remainingMl = _so.CapacityMl;
+            _filled = true;
         }
     }
 }

@@ -18,11 +18,12 @@ namespace Gameplay.Customer
         [Tooltip("Extra yaw (degrees) applied when facing the bar, in case the model's forward axis is rotated. Leave 0 if the model faces +Z.")]
         [SerializeField] private float _faceYawOffsetDeg = 0f;
 
-        // Metres the customer ROOT rises when seated, to fake sitting on the stool.
+        // Metres the customer ROOT rises when "seated". The bar has no stools now, so customers
+        // stand at full height on the ground instead of being lifted — keep this at 0.
         // Hardcoded as a const (not a SerializeField) on purpose: the model is a Humanoid
         // FBX whose Animator overwrites any child transform, and a serialized field kept
         // a stale baked value that ignored code changes. The root is never animated.
-        private const float SeatLiftY = 0.4f;
+        private const float SeatLiftY = 0f;
 
         public CustomerSO So { get; private set; }
         public CustomerSeatPoint Seat { get; private set; }

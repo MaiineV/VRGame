@@ -78,11 +78,12 @@ namespace UI
             _customer = c;
             _customer.Served += HandleServed;
 
-            // Color language (no drink-name text): tint the ticket background to the drink colour
-            // so it matches the bottle tag + the order orb. The name label is cleared.
+            // Tint the ticket background to the drink colour (matches the bottle tag + orb) AND
+            // spell out the order: drink name + the requested fill %, so the player can read
+            // exactly what to pour without guessing the colour.
             Color drink = DrinkColorUtil.For(c.TargetRecipe);
             if (_background != null) { _defaultBgColor = drink; _background.color = drink; }
-            if (_recipeLabel != null) _recipeLabel.text = string.Empty;
+            SetOrderLabel(c);
 
             if (_patienceFill != null) _patienceFill.fillAmount = 1f;
             SetRootActive(true);
@@ -108,12 +109,19 @@ namespace UI
             _flashTimer = _flashDuration;
         }
 
-        private void SetRecipeLabel(Data.Enums.RecipeId id)
+        private void SetOrderLabel(CustomerEntity c)
         {
             if (_recipeLabel == null) return;
-            if (!ServiceLocator.TryGet<IDatabaseService>(out var db)) { _recipeLabel.text = id.ToString(); return; }
-            RecipeSO so = db.GetRecipe(id);
-            _recipeLabel.text = so != null && !string.IsNullOrEmpty(so.DisplayName) ? so.DisplayName : id.ToString();
+
+            string name = c.TargetRecipe.ToString();
+            if (ServiceLocator.TryGet<IDatabaseService>(out var db))
+            {
+                RecipeSO so = db.GetRecipe(c.TargetRecipe);
+                if (so != null && !string.IsNullOrEmpty(so.DisplayName)) name = so.DisplayName;
+            }
+
+            int percent = Gameplay.Liquid.FillLevels.PercentOf(c.TargetLevel);
+            _recipeLabel.text = $"{name}\n{percent}%";
         }
 
         private void SetRootActive(bool active)
