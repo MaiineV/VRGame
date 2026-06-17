@@ -15,6 +15,6 @@ MonoBehaviour:
   _id: 40
   _displayName: Whiskey
   _type: 10
-  _liquidColor: {r: 0.55, g: 0.3, b: 0.05, a: 1}
+  _liquidColor: {r: 0.91, g: 0.51, b: 0.18, a: 1}
   _pourRateMlPerSec: 30
   _unitCost: 2

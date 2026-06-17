@@ -15,6 +15,6 @@ MonoBehaviour:
   _id: 60
   _displayName: Cognac
   _type: 10
-  _liquidColor: {r: 0.45, g: 0.22, b: 0.05, a: 1}
+  _liquidColor: {r: 0.831, g: 0.235, b: 0.62, a: 1}
   _pourRateMlPerSec: 28
   _unitCost: 3
