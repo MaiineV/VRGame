@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17e93d60ee54bba479abf04ea2e514b2, type: 3}
+  m_Name: Customer_Regular
+  m_EditorClassIdentifier: Assembly-CSharp::Data.SO.CustomerSO
+  _displayName: Regular
+  _prefab: {fileID: 451239037055270922, guid: 3e5b9c3360a4d27448582d81c9c766c4, type: 3}
+  _walkSpeed: 1.4
+  _patienceSeconds: 105
+  _drinkSeconds: 4
+  _baseTip: 2

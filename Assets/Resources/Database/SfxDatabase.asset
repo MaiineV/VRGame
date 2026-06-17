@@ -1,0 +1,111 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95a235ac53b615c4bb011e375dc58f71, type: 3}
+  m_Name: SfxDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::Data.SO.SfxDatabase
+  _entries:
+  - id: 10
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 1
+  - id: 20
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 21
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 30
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 31
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 40
+    clip: {fileID: 8300000, guid: 28cde229658c81240aab6bd92fa3d7f2, type: 3}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 41
+    clip: {fileID: 8300000, guid: 7375cbd050c91fb438a8292d26344b6c, type: 3}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 50
+    clip: {fileID: 8300000, guid: af23d93ef2beb4e4a8364a9de7f775c2, type: 3}
+    volume: 0.7
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 51
+    clip: {fileID: 8300000, guid: 6c7150aada6990541b8125e75e979f0c, type: 3}
+    volume: 0.7
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 120
+    clip: {fileID: 8300000, guid: 694417a59d5e27641ac884864a69c729, type: 3}
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1
+  - id: 130
+    clip: {fileID: 8300000, guid: 3e16d7a876afd2148bc9fd2d726d1136, type: 3}
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1
+  - id: 60
+    clip: {fileID: 0}
+    volume: 0.8
+    pitchMin: 0.95
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0

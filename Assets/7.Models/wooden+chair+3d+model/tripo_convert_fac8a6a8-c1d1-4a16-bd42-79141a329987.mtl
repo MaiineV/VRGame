@@ -1,0 +1,16 @@
+# Blender 5.0.1 MTL File: 'None'
+# www.blender.org
+
+newmtl tripo_mat_fac8a6a8-c1d1-4a16-bd42-79141a329987
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd woodenchair3dmodel_basecolor.JPEG
+map_Ns woodenchair3dmodel_roughness.JPEG
+map_Pr woodenchair3dmodel_roughness.JPEG
+map_refl woodenchair3dmodel_metallic.JPEG
+map_Pm woodenchair3dmodel_metallic.JPEG
+map_Bump -bm 1.000000 woodenchair3dmodel_normal.JPEG

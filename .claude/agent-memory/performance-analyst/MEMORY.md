@@ -1,0 +1,1 @@
+- [Quest Lighting Optimization](quest-lighting-optimization.md) — QuestLightingOptimize.cs menu items, chosen values, and rationale for Quest 2 GPU budget
