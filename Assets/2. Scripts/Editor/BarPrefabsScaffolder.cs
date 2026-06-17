@@ -4,7 +4,6 @@ using Core;
 using Data.Enums;
 using Data.SO;
 using Gameplay;
-using Gameplay.CashRegister;
 using Gameplay.Interactions;
 using Gameplay.Liquid;
 using Gameplay.Systems;
@@ -34,7 +33,6 @@ namespace EditorTools
             if (!EditorSceneManager.GetActiveScene().path.EndsWith("Bar.unity"))
                 EditorSceneManager.OpenScene(BarScenePath, OpenSceneMode.Single);
 
-            PlaceCashRegister();
             PlaceNightClipboard();
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
@@ -121,30 +119,6 @@ namespace EditorTools
             var prefab = PrefabUtility.SaveAsPrefabAsset(root, path);
             Object.DestroyImmediate(root);
             return prefab;
-        }
-
-        private static void PlaceCashRegister()
-        {
-            var anchor = GameObject.Find("__BarSceneRoot/CashRegisterAnchor");
-            if (anchor == null) { Debug.LogError("CashRegisterAnchor no existe"); return; }
-            if (anchor.transform.Find("CashRegister") != null) return;
-
-            var cash = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cash.name = "CashRegister";
-            cash.transform.SetParent(anchor.transform, false);
-            cash.transform.localScale = new Vector3(0.25f, 0.15f, 0.2f);
-            cash.AddComponent<CashRegister>();
-
-            var labelGO = new GameObject("CashLabel");
-            labelGO.transform.SetParent(cash.transform, false);
-            labelGO.transform.localPosition = new Vector3(0, 0.6f, -0.55f);
-            labelGO.transform.localScale = Vector3.one * 0.02f;
-            var cashLabel = labelGO.AddComponent<TextMeshPro>();
-            cashLabel.text = "$ 0";
-            cashLabel.fontSize = 8;
-            cashLabel.alignment = TextAlignmentOptions.Center;
-
-            TrySetField(cash.GetComponent<CashRegister>(), "_cashLabel", cashLabel);
         }
 
         private static void PlaceNightClipboard()

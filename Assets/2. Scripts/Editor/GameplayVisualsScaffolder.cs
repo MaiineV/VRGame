@@ -1,5 +1,4 @@
 #if UNITY_EDITOR
-using Gameplay.CashRegister;
 using Gameplay.Interactions;
 using Gameplay.Liquid;
 using TMPro;
@@ -21,49 +20,11 @@ namespace EditorTools
             if (root == null) { Debug.LogError("[GameplayVisualsScaffolder] __BarSceneRoot not found."); return; }
 
             int changes = 0;
-            changes += WireCashRegisterFlash(root.transform);
             changes += AddGlassFillBars(root.transform);
 
             EditorSceneManager.MarkSceneDirty(SceneManager.GetActiveScene());
             EditorSceneManager.SaveOpenScenes();
             Debug.Log($"[GameplayVisualsScaffolder] Applied {changes} changes.");
-        }
-
-        private static int WireCashRegisterFlash(Transform root)
-        {
-            var anchor = root.Find("CashRegisterAnchor");
-            if (anchor == null) return 0;
-            var cashGo = anchor.Find("CashRegister");
-            if (cashGo == null) return 0;
-            var reg = cashGo.GetComponent<CashRegister>();
-            if (reg == null) return 0;
-
-            var so = new SerializedObject(reg);
-            if (so.FindProperty("_flashLabel").objectReferenceValue != null) return 0;
-
-            var existing = cashGo.Find("FlashLabel");
-            TMP_Text flash;
-            if (existing != null)
-            {
-                flash = existing.GetComponent<TMP_Text>();
-            }
-            else
-            {
-                var go = new GameObject("FlashLabel");
-                go.transform.SetParent(cashGo, false);
-                go.transform.localPosition = new Vector3(0, 1.2f, -0.55f);
-                go.transform.localScale = Vector3.one * 0.02f;
-                var tmp = go.AddComponent<TextMeshPro>();
-                tmp.text = "";
-                tmp.fontSize = 10;
-                tmp.alignment = TextAlignmentOptions.Center;
-                tmp.fontStyle = FontStyles.Bold;
-                flash = tmp;
-            }
-
-            so.FindProperty("_flashLabel").objectReferenceValue = flash;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            return 1;
         }
 
         private static int AddGlassFillBars(Transform root)
