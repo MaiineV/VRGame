@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c17d6918ac08364b919fca99d66f666, type: 3}
-  m_Name: Bottle_Gin
+  m_Name: Bottle_SimpleBottle
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.BottleSO
-  _ingredient: {fileID: 11400000, guid: abcb76be9bd3245428c240e6fb79f697, type: 2}
+  _ingredient: {fileID: 11400000, guid: 040b52b3dcc72284c8a9906e245f59bf, type: 2}
   _capacityMl: 1000000
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 7895120573952397308, guid: bc6f738c018375849aa964b6318ce021, type: 3}
   _brokenPrefab: {fileID: 0}
   _repairCost: 50
