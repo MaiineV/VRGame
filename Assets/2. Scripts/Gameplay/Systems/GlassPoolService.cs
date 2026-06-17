@@ -32,6 +32,12 @@ namespace Gameplay.Systems
 
         /// <summary>Deactivates the glass, returns it to its bucket, and frees a budget slot.</summary>
         void Return(Glass instance);
+
+        /// <summary>
+        /// Raised right after a glass leaves play (served-and-carried-off, or trashed) and its
+        /// budget slot is freed. Lets the dispenser auto-refill so the bar always has a glass ready.
+        /// </summary>
+        event System.Action<Glass> Returned;
     }
 
     public sealed class GlassPoolService : IGlassPoolService
@@ -42,6 +48,8 @@ namespace Gameplay.Systems
         public int Capacity { get; set; }
         public int LiveCount { get; private set; }
         public bool CanSpawn => Capacity <= 0 || LiveCount < Capacity;
+
+        public event System.Action<Glass> Returned;
 
         public void Initialize()
         {
@@ -70,8 +78,10 @@ namespace Gameplay.Systems
             if (instance == null) return;
             if (LiveCount > 0) LiveCount--;
             var prefab = instance.SourcePrefab;
-            if (prefab == null) { Object.Destroy(instance.gameObject); return; }
+            if (prefab == null) { Object.Destroy(instance.gameObject); Returned?.Invoke(instance); return; }
             GetPool(prefab).ReturnToPool(instance);
+            // Slot is already freed (LiveCount--), so a listener may safely Spawn a replacement.
+            Returned?.Invoke(instance);
         }
 
         private PoolGeneric<Glass> GetPool(GameObject prefab)

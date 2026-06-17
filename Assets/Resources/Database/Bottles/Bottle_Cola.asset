@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bottle_Cola
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.BottleSO
   _ingredient: {fileID: 11400000, guid: 2df65e726d67a554eaf9f103155e1313, type: 2}
-  _capacityMl: 500
+  _capacityMl: 1000000
   _prefab: {fileID: 0}
   _brokenPrefab: {fileID: 0}
   _repairCost: 20

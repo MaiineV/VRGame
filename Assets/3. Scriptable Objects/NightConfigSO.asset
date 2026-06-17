@@ -16,5 +16,5 @@ MonoBehaviour:
   _spawnIntervalSeconds: 8
   _maxSimultaneous: 3
   _customerPool: []
-  _recipePool: 
+  _recipePool: 3200000046000000500000005a0000003c000000
   _drunkennessConfig: {fileID: 11400000, guid: f83bdb9b3b7bbe045baafe1986349e55, type: 2}

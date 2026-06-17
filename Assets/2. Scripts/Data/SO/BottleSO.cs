@@ -7,7 +7,7 @@ namespace Data.SO
     {
         [Header("Content")]
         [SerializeField] private IngredientSO _ingredient;
-        [SerializeField] private float _capacityMl = 750f;
+        [SerializeField] private float _capacityMl = 10000f;
 
         [Header("Visual")]
         [SerializeField] private GameObject _prefab;

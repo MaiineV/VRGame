@@ -9,5 +9,9 @@ namespace Data.Enums
         CubaLibre = 30,
         Margarita = 40,
         Whiskey = 50,
+        Tequila = 60,
+        Cognac = 70,
+        Champagne = 80,
+        Wine = 90,
     }
 }

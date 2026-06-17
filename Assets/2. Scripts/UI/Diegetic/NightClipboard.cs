@@ -3,7 +3,6 @@ using Gameplay.Interactions;
 using Services;
 using Services.Economy;
 using Services.GameState;
-using Services.Save;
 using TMPro;
 using UnityEngine;
 
@@ -52,20 +51,15 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _summaryExpenses;
         [SerializeField] private TMP_Text _summaryNightlyEarnings;
 
-        [Header("Idle labels (progression)")]
-        [SerializeField] private TMP_Text _idleNightNumber;
-        [SerializeField] private TMP_Text _idleBestEarnings;
-        [SerializeField] private TMP_Text _idleCash;
+        // Idle progression (night/best/cash) now lives solely on the ProgressionBoard.
 
         private IGameStateService _state;
         private IEconomyService _economy;
-        private ISaveService _save;
 
         void OnEnable()
         {
             if (!ServiceLocator.TryGet<IGameStateService>(out _state)) return;
             ServiceLocator.TryGet<IEconomyService>(out _economy);
-            ServiceLocator.TryGet<ISaveService>(out _save);
 
             if (_config != null) _state.SetPendingConfig(_config);
 
@@ -96,7 +90,6 @@ namespace UI.Diegetic
             }
             _state = null;
             _economy = null;
-            _save = null;
         }
 
         private void OnStartPressed()    { if (IsActive()) _state?.BeginNight(); }
@@ -114,7 +107,6 @@ namespace UI.Diegetic
             if (_summaryGroup != null) _summaryGroup.SetActive(s == Services.GameState.GameState.NightSummary);
 
             if (s == Services.GameState.GameState.NightSummary) FillSummary();
-            else if (s == Services.GameState.GameState.Idle) FillIdle();
             RefreshInteractable();
         }
 
@@ -134,15 +126,6 @@ namespace UI.Diegetic
             if (_summaryFailed != null)           _summaryFailed.text           = _economy.FailedOrders.ToString();
             if (_summaryExpenses != null)         _summaryExpenses.text         = $"-${_economy.Expenses}";
             if (_summaryNightlyEarnings != null)  _summaryNightlyEarnings.text  = FormatSigned(_economy.NightlyEarnings);
-        }
-
-        private void FillIdle()
-        {
-            if (_save == null) return;
-            var d = _save.Current;
-            if (_idleNightNumber != null)  _idleNightNumber.text  = $"Night {d.nightsCompleted + 1}";
-            if (_idleBestEarnings != null) _idleBestEarnings.text = $"Best: ${d.bestNightEarnings}";
-            if (_idleCash != null)         _idleCash.text         = $"${d.cash}";
         }
 
         private static string FormatSigned(int n) => n >= 0 ? $"+${n}" : $"-${-n}";

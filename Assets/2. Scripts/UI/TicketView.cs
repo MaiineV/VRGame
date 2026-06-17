@@ -77,7 +77,13 @@ namespace UI
         {
             _customer = c;
             _customer.Served += HandleServed;
-            SetRecipeLabel(c.TargetRecipe);
+
+            // Color language (no drink-name text): tint the ticket background to the drink colour
+            // so it matches the bottle tag + the order orb. The name label is cleared.
+            Color drink = DrinkColorUtil.For(c.TargetRecipe);
+            if (_background != null) { _defaultBgColor = drink; _background.color = drink; }
+            if (_recipeLabel != null) _recipeLabel.text = string.Empty;
+
             if (_patienceFill != null) _patienceFill.fillAmount = 1f;
             SetRootActive(true);
             RegisterTick();

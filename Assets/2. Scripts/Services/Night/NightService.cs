@@ -47,9 +47,15 @@ namespace Services.Night
             _timeRemaining = config.DurationSeconds;
             _spawnTimer = 0f;
             IsRunning = true;
+
+            // Top up every bottle so each new night starts with full stock.
+            var bottles = Object.FindObjectsByType<Gameplay.Interactions.Bottle>(FindObjectsSortMode.None);
+            for (int i = 0; i < bottles.Length; i++)
+                if (bottles[i] != null) bottles[i].Refill();
+
             _updates.AddUpdateListener(this);
             NightStarted?.Invoke();
-            MyLogger.LogInfo("[NightService] Night started.");
+            MyLogger.LogInfo($"[NightService] Night started. Refilled {bottles.Length} bottle(s).");
         }
 
         public void EndNight()
@@ -146,11 +152,12 @@ namespace Services.Night
 
         private void HandleCustomerServed(CustomerEntity c, RecipeId recipe, float score, bool isExact)
         {
-            int baseTip = isExact ? c.So.BaseTip : 0;
+            // Tip scales with the serve score (full when perfect, partial when one axis is wrong).
+            // RegisterSale also scales the base price by score, so a partial serve pays partially.
             float mult = _config != null && _config.DrunkennessConfig != null
                 ? _config.DrunkennessConfig.TipMultiplier(c.Drunkenness)
                 : 1f;
-            int tip = Mathf.RoundToInt(baseTip * mult);
+            int tip = Mathf.RoundToInt(c.So.BaseTip * Mathf.Clamp01(score) * mult);
             _economy.RegisterSale(recipe, score, tip);
         }
 

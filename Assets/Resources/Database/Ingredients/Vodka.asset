@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Vodka
   _type: 10
   _liquidColor: {r: 0.95, g: 0.95, b: 1, a: 0.9}
-  _pourRateMlPerSec: 30
+  _pourRateMlPerSec: 45
   _unitCost: 3

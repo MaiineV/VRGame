@@ -9,6 +9,11 @@ namespace Gameplay.Interactions
         [SerializeField] private float _grabRadius = 0.12f;
         [SerializeField] private LayerMask _grabMask = ~0;
 
+        [Tooltip("Hold (false): keep the trigger pressed to hold the object — release to drop. " +
+                 "Toggle (true): one press grabs, the next press drops. Default hold keeps the " +
+                 "current feel; toggle is gentler on the hand for long sessions.")]
+        [SerializeField] private bool _toggleGrab;
+
         [Tooltip("Optional. If null, will auto-resolve to OVRCameraRig.rightHandAnchor / leftHandAnchor based on _controller.")]
         [SerializeField] private Transform _trackingSource;
 
@@ -52,14 +57,31 @@ namespace Gameplay.Interactions
 
         void Update()
         {
-            bool pressed = OVRInput.Get(OVRInput.Button.PrimaryHandTrigger, _controller)
-                           || OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger, _controller);
+            if (_toggleGrab)
+            {
+                bool toggled = OVRInput.GetDown(OVRInput.Button.PrimaryHandTrigger, _controller)
+                               || OVRInput.GetDown(OVRInput.Button.PrimaryIndexTrigger, _controller);
 
-            if (_debugLog && pressed)
-                MyLogger.LogInfo($"[SimpleVRGrabber:{name}] pressed at {transform.position} (held={_held != null})");
+                if (_debugLog && toggled)
+                    MyLogger.LogInfo($"[SimpleVRGrabber:{name}] toggle at {transform.position} (held={_held != null})");
 
-            if (_held == null && pressed) TryGrab();
-            else if (_held != null && !pressed) Release();
+                if (toggled)
+                {
+                    if (_held == null) TryGrab();
+                    else Release();
+                }
+            }
+            else
+            {
+                bool pressed = OVRInput.Get(OVRInput.Button.PrimaryHandTrigger, _controller)
+                               || OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger, _controller);
+
+                if (_debugLog && pressed)
+                    MyLogger.LogInfo($"[SimpleVRGrabber:{name}] pressed at {transform.position} (held={_held != null})");
+
+                if (_held == null && pressed) TryGrab();
+                else if (_held != null && !pressed) Release();
+            }
 
             if (_held != null && _heldRb != null && _heldRb.isKinematic)
             {

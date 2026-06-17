@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Tonic
   _type: 20
   _liquidColor: {r: 0.85, g: 0.95, b: 1, a: 0.5}
-  _pourRateMlPerSec: 40
+  _pourRateMlPerSec: 60
   _unitCost: 1

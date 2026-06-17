@@ -16,5 +16,5 @@ MonoBehaviour:
   _displayName: Cola
   _type: 20
   _liquidColor: {r: 0.25, g: 0.15, b: 0.05, a: 0.9}
-  _pourRateMlPerSec: 40
+  _pourRateMlPerSec: 60
   _unitCost: 1

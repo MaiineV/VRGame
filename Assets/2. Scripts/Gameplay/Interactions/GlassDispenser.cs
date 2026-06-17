@@ -29,6 +29,9 @@ namespace Gameplay.Interactions
         [SerializeField] private int _seatCountOverride = 0;
         [Tooltip("Dispense one glass at scene start so the bar isn't empty.")]
         [SerializeField] private bool _spawnOneOnStart = true;
+        [Tooltip("Auto-dispense a replacement whenever a glass leaves play (a customer carries it " +
+                 "off, or it's trashed), so the bar is never left empty. Still respects the budget cap.")]
+        [SerializeField] private bool _autoRefillOnReturn = true;
 
         [Header("Spawn button (poke)")]
         [SerializeField] private PokeButton _spawnButton;
@@ -41,6 +44,7 @@ namespace Gameplay.Interactions
 
         private IGlassPoolService _pool;
         private bool _disabled;
+        private bool _subscribed;
 
         void Start()
         {
@@ -58,9 +62,16 @@ namespace Gameplay.Interactions
             if (_spawnOneOnStart) TrySpawn();
         }
 
+        void OnEnable()
+        {
+            // Pool may already be resolved from a previous enable cycle; re-hook if so.
+            SubscribePool();
+        }
+
         void OnDisable()
         {
             if (_spawnButton != null) _spawnButton.Pressed -= TrySpawn;
+            UnsubscribePool();
         }
 
         void Update()
@@ -88,6 +99,32 @@ namespace Gameplay.Interactions
                 : FindObjectsByType<CustomerSeatPoint>(FindObjectsSortMode.None).Length;
             _pool.Capacity = Mathf.Max(1, seats + _buffer);
             MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = {seats} seats + {_buffer} = {_pool.Capacity}.");
+
+            SubscribePool();
+        }
+
+        private void SubscribePool()
+        {
+            if (_subscribed || _pool == null) return;
+            _pool.Returned += OnGlassReturned;
+            _subscribed = true;
+        }
+
+        private void UnsubscribePool()
+        {
+            if (!_subscribed || _pool == null) return;
+            _pool.Returned -= OnGlassReturned;
+            _subscribed = false;
+        }
+
+        /// <summary>
+        /// A glass just left play and freed its budget slot. Replace it at the dispenser so the
+        /// player always has a fresh glass ready. <see cref="TrySpawn"/> respects the budget cap.
+        /// </summary>
+        private void OnGlassReturned(Glass _)
+        {
+            if (_disabled || !_autoRefillOnReturn) return;
+            TrySpawn();
         }
 
         /// <summary>

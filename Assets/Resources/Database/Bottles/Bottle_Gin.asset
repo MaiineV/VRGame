@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Bottle_Gin
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.BottleSO
   _ingredient: {fileID: 11400000, guid: abcb76be9bd3245428c240e6fb79f697, type: 2}
-  _capacityMl: 750
+  _capacityMl: 1000000
   _prefab: {fileID: 0}
   _brokenPrefab: {fileID: 0}
   _repairCost: 50

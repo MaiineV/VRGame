@@ -207,6 +207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Liquid.LiquidRenderer
   _palette: {fileID: 11400000, guid: a4df680e6bd58484c90485aa31ab0f75, type: 2}
+  _colorByFillLevel: 0
 --- !u!1 &3330438658124137410
 GameObject:
   m_ObjectHideFlags: 0
