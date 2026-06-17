@@ -53,6 +53,18 @@ namespace Gameplay.Liquid
             return 0f;
         }
 
+        /// <summary>Ingredient holding the most volume (the "main" drink), or None if empty.</summary>
+        public IngredientId DominantId()
+        {
+            int best = -1;
+            float bestVol = 0f;
+            for (int i = 0; i < _count; i++)
+            {
+                if (_volumes[i] > bestVol) { bestVol = _volumes[i]; best = i; }
+            }
+            return best >= 0 ? _ids[best] : IngredientId.None;
+        }
+
         public void Clear()
         {
             for (int i = 0; i < _count; i++)

@@ -13,6 +13,10 @@ namespace Gameplay.Customer.States
 {
     public sealed class WaitingState : IState<CustomerEntity>
     {
+        // Drink matters but with partial credit: score = 0.5*levelOk + 0.5*drinkOk.
+        // The customer accepts (drinks + pays, scaled by score) at or above this; below, they leave.
+        private const float AcceptThreshold = 0.5f;
+
         private ServeSocket _socket;
         private bool _pendingOk;
         private LiquidMix _pendingMix;
@@ -31,22 +35,38 @@ namespace Gameplay.Customer.States
             if (_hasMatch)
             {
                 _hasMatch = false;
+
+                // Two axes: the fill level (from the socket) and the drink itself (dominant
+                // ingredient vs the recipe's main ingredient). Each is worth half — so the
+                // wrong drink at the right level (or vice versa) is a partial, not a hard fail.
+                bool levelOk = _pendingOk;
+                bool drinkOk = EvaluateDrink(c, _pendingMix);
+                float score = (levelOk ? 0.5f : 0f) + (drinkOk ? 0.5f : 0f);
+                bool isExact = levelOk && drinkOk;
+                bool accepted = score >= AcceptThreshold;
+
                 c.Drunkenness = ComputeDrunkenness(_pendingMix);
                 _pendingMix = null;
                 c.ServedGlass = _pendingGlass;   // despawned when the customer leaves
                 _pendingGlass = null;
-                c.RaiseServed(c.TargetRecipe, _pendingOk ? 1f : 0f, _pendingOk);
 
                 if (ServiceLocator.TryGet<IAudioService>(out var audio))
                 {
-                    var sfx = _pendingOk ? SfxId.CustomerServed : SfxId.CustomerLeft;
+                    var sfx = accepted ? SfxId.CustomerServed : SfxId.CustomerLeft;
                     audio.PlayOneShot(sfx, c.transform.position);
                 }
 
-                if (_pendingOk)
+                if (accepted)
+                {
+                    // Pay scales with score (full when perfect, half when one axis is wrong).
+                    c.RaiseServed(c.TargetRecipe, score, isExact);
                     c.Machine.TransitionTo(CustomerStateId.Drinking);
+                }
                 else
+                {
+                    // Both wrong: no sale; the customer leaves unhappy (counts as a failure).
                     c.Machine.TransitionTo(CustomerStateId.Leaving);
+                }
                 return;
             }
 
@@ -67,6 +87,19 @@ namespace Gameplay.Customer.States
             _pendingMix = glass != null ? glass.Mix : null;
             _pendingGlass = glass;
             _hasMatch = true;
+        }
+
+        /// <summary>
+        /// True if the glass's dominant ingredient matches the recipe's main ingredient.
+        /// Defensive defaults to true when we can't resolve the recipe (don't punish on missing data).
+        /// </summary>
+        private static bool EvaluateDrink(CustomerEntity c, LiquidMix mix)
+        {
+            if (mix == null || mix.IsEmpty) return false;
+            if (!ServiceLocator.TryGet<IDatabaseService>(out var db)) return true;
+            var recipe = db.GetRecipe(c.TargetRecipe);
+            if (recipe == null || recipe.Steps == null || recipe.Steps.Length == 0) return true;
+            return mix.DominantId() == recipe.Steps[0].id;
         }
 
         private static float ComputeDrunkenness(LiquidMix mix)

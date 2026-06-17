@@ -146,11 +146,12 @@ namespace Services.Night
 
         private void HandleCustomerServed(CustomerEntity c, RecipeId recipe, float score, bool isExact)
         {
-            int baseTip = isExact ? c.So.BaseTip : 0;
+            // Tip scales with the serve score (full when perfect, partial when one axis is wrong).
+            // RegisterSale also scales the base price by score, so a partial serve pays partially.
             float mult = _config != null && _config.DrunkennessConfig != null
                 ? _config.DrunkennessConfig.TipMultiplier(c.Drunkenness)
                 : 1f;
-            int tip = Mathf.RoundToInt(baseTip * mult);
+            int tip = Mathf.RoundToInt(c.So.BaseTip * Mathf.Clamp01(score) * mult);
             _economy.RegisterSale(recipe, score, tip);
         }
 
