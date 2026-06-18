@@ -2,31 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(xargs grep -ilE \"BuildPipeline|BuildPlayer\")",
-      "mcp__mcp-unity__recompile_scripts",
+      "mcp__UnityMCP",
       "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
-      "mcp__mcp-unity__get_scene_info",
-      "mcp__mcp-unity__get_console_logs",
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "mcp__mcp-unity__get_gameobject",
       "Bash(node -e \"const d=require\\('fs'\\).readFileSync\\('toolu_01ERzArdiGV6hVRs4fZwoZFr.json','utf8'\\); const j=JSON.parse\\(d\\); const go=JSON.parse\\(j[0].text\\).gameObject; function walk\\(o,depth\\){const comps=o.components.map\\(c=>c.type\\).join\\(', '\\); console.log\\('  '.repeat\\(depth\\)+o.name+' ['+comps+']'\\); \\(o.children||[]\\).forEach\\(c=>walk\\(c,depth+1\\)\\);} walk\\(go,0\\);\")",
-      "mcp__mcp-unity__update_component",
       "Bash(node -e ' *])",
       "Bash(node -e ' *)",
       "Bash(node _fbxscan.js)",
       "Bash(node _prefabscan.js \"Assets/4. Prefabs/Bottle.prefab\" \"Assets/4. Prefabs/Bottle5.prefab\" \"Assets/4. Prefabs/Glass.prefab\" \"Assets/4. Prefabs/Table.prefab\" \"Assets/4. Prefabs/BarCounter.prefab\" \"Assets/4. Prefabs/BarShelf.prefab\" \"Assets/4. Prefabs/Chair.prefab\")",
       "Bash(node _resolve.js)",
       "Bash(node _scenemap.js)",
-      "mcp__mcp-unity__update_gameobject",
-      "mcp__mcp-unity__set_transform",
-      "mcp__mcp-unity__reparent_gameobject",
-      "mcp__mcp-unity__save_scene",
-      "mcp__mcp-unity__execute_menu_item",
       "Bash(python -c ' *)",
       "Bash(xargs grep -liE \"customer|npc|client|patron|order\")",
-      "mcp__mcp-unity__add_asset_to_scene",
-      "mcp__mcp-unity__delete_gameobject",
       "Bash(grep -a _prefab: Resources/Database/Customers/Customer___TRACKED_VAR__.asset)",
       "Bash(grep -aA40 \"Recipe\" DatabaseService.cs)",
       "Bash(grep -aA3 'value: Visual' '4. Prefabs/__TRACKED_VAR__.prefab')",
@@ -37,7 +26,6 @@
       "Bash([ -f \"$LOG\" ])",
       "Read(//c/Users/Sebastarbucks/AppData/Local/Unity/Editor/**)",
       "Read(//c/Users/Sebastarbucks/AppData/Local/Unity/**)",
-      "mcp__mcp-unity__load_scene",
       "Bash(where blender *)",
       "Read(//c/Program Files/Blender Foundation//**)",
       "Read(//c/Program Files/Blender Foundation/**)",
@@ -67,6 +55,6 @@
     ]
   },
   "enabledMcpjsonServers": [
-    "mcp-unity"
+    "UnityMCP"
   ]
 }
