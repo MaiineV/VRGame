@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Services.Save
 {
     /// <summary>
@@ -13,6 +15,22 @@ namespace Services.Save
         public int nightsCompleted;
         public int bestNightEarnings;
 
-        public const int CurrentVersion = 1;
+        // --- v2: day-shop progression ---------------------------------------------------------
+        // Unlocked recipes (RecipeId cast to int) and the bottles their ingredients enable
+        // (IngredientId cast to int). Flat Lists because JsonUtility can't serialize HashSet /
+        // Dictionary. Per-bottle purchased stock (in millilitres) lives in <see cref="stock"/>.
+        public List<int> unlockedRecipes = new();
+        public List<int> unlockedBottles = new();
+        public List<StockEntry> stock = new();
+
+        public const int CurrentVersion = 2;
+    }
+
+    /// <summary>Purchased stock for one bottle, in millilitres, keyed by IngredientId (as int).</summary>
+    [System.Serializable]
+    public struct StockEntry
+    {
+        public int ingredientId;
+        public int ml;
     }
 }

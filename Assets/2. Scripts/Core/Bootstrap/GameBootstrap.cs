@@ -5,6 +5,7 @@ using Services.Database;
 using Services.Economy;
 using Services.GameState;
 using Services.Night;
+using Services.Progression;
 using Services.Recipe;
 using Services.Save;
 using Services.UpdateService;
@@ -100,6 +101,7 @@ namespace Core
             ServiceLocator.Register<ISaveService, SaveService>(mImmediateInit: true);
             ServiceLocator.Register<IRecipeService, RecipeService>(mImmediateInit: true);
             ServiceLocator.Register<IEconomyService, EconomyService>(mImmediateInit: true);
+            ServiceLocator.Register<IProgressionService, ProgressionService>(mImmediateInit: true);
             ServiceLocator.Register<IBreakablePoolService, BreakablePoolService>(mImmediateInit: true);
             ServiceLocator.Register<ICustomerPoolService, CustomerPoolService>(mImmediateInit: true);
             ServiceLocator.Register<IGlassPoolService, GlassPoolService>(mImmediateInit: true);

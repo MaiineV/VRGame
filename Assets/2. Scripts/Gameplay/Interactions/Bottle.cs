@@ -65,6 +65,18 @@ namespace Gameplay.Interactions
         }
 
         /// <summary>
+        /// Set the remaining liquid directly, clamped to [0, CapacityMl]. Marks the bottle as filled
+        /// so the lazy <see cref="EnsureFilled"/> can't override it. Used by NightService to fill the
+        /// bottle from the stock the player bought in the day shop (instead of a free refill).
+        /// </summary>
+        public void SetRemaining(float ml)
+        {
+            float cap = _so != null ? _so.CapacityMl : ml;
+            _remainingMl = Mathf.Clamp(ml, 0f, cap);
+            _filled = true;
+        }
+
+        /// <summary>
         /// Fills the bottle from its BottleSO the first time it's needed. Guards the case where
         /// Awake ran before the SO reference was ready (or didn't run) — which left some bottles
         /// reading empty and refusing to pour while others worked.

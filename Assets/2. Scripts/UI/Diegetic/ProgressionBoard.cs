@@ -82,7 +82,7 @@ namespace UI.Diegetic
 
         private void OnStateChanged(GameState from, GameState to)
         {
-            if (to == GameState.Idle || to == GameState.NightSummary)
+            if (to == GameState.Idle || to == GameState.DayShop || to == GameState.NightSummary)
                 Refresh();
         }
 

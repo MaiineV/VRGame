@@ -5,6 +5,7 @@ using Gameplay;
 using Gameplay.Customer;
 using Gameplay.Systems;
 using Services.Economy;
+using Services.Progression;
 using Services.UpdateService;
 using UnityEngine;
 using Utilities;
@@ -20,6 +21,7 @@ namespace Services.Night
         private float _timeRemaining;
         private float _spawnTimer;
         private readonly List<CustomerEntity> _active = new(8);
+        private RecipeId[] _availableRecipes = System.Array.Empty<RecipeId>();
 
         public bool IsRunning { get; private set; }
         public float TimeRemaining => _timeRemaining;
@@ -48,14 +50,26 @@ namespace Services.Night
             _spawnTimer = 0f;
             IsRunning = true;
 
-            // Top up every bottle so each new night starts with full stock.
+            // Fill each bottle from the stock the player bought in the day shop (replaces the old
+            // free refill). ConsumeStockForNight transfers the purchased ml and zeroes the entry.
+            ServiceLocator.TryGet<IProgressionService>(out var progression);
             var bottles = Object.FindObjectsByType<Gameplay.Interactions.Bottle>(FindObjectsSortMode.None);
             for (int i = 0; i < bottles.Length; i++)
-                if (bottles[i] != null) bottles[i].Refill();
+            {
+                var b = bottles[i];
+                if (b == null) continue;
+                float ml = (progression != null && b.SO != null && b.SO.Ingredient != null)
+                    ? progression.ConsumeStockForNight(b.SO.Ingredient.Id)
+                    : 0f;
+                b.SetRemaining(ml);
+            }
+
+            // Only spawn orders for unlocked recipes that are also in this night's pool.
+            _availableRecipes = BuildAvailableRecipes(config, progression);
 
             _updates.AddUpdateListener(this);
             NightStarted?.Invoke();
-            MyLogger.LogInfo($"[NightService] Night started. Refilled {bottles.Length} bottle(s).");
+            MyLogger.LogInfo($"[NightService] Night started. Filled {bottles.Length} bottle(s) from stock; {_availableRecipes.Length} recipe(s) available.");
         }
 
         public void EndNight()
@@ -111,7 +125,7 @@ namespace Services.Night
             if (seat == null) return;
 
             var customerPool = _config.CustomerPool;
-            var recipes = _config.RecipePool;
+            var recipes = _availableRecipes; // RecipePool ∩ unlocked recipes (precomputed in StartNight)
             if (customerPool == null || customerPool.Length == 0 || recipes == null || recipes.Length == 0) return;
 
             var so = customerPool[Random.Range(0, customerPool.Length)];
@@ -171,6 +185,23 @@ namespace Services.Night
             if (c.Seat != null) c.Seat.Clear();
             _active.Remove(c);
             if (!happy) _economy.RegisterFailure(c.TargetRecipe);
+        }
+
+        /// <summary>
+        /// Returns the recipes from this night's pool that the player has unlocked. If progression is
+        /// unavailable, falls back to the full pool so the game still works without the shop.
+        /// </summary>
+        private static RecipeId[] BuildAvailableRecipes(NightConfigSO config, IProgressionService progression)
+        {
+            var pool = config != null ? config.RecipePool : null;
+            if (pool == null || pool.Length == 0) return System.Array.Empty<RecipeId>();
+            if (progression == null) return pool;
+
+            var list = new List<RecipeId>(pool.Length);
+            for (int i = 0; i < pool.Length; i++)
+                if (pool[i] != RecipeId.None && progression.IsRecipeUnlocked(pool[i]))
+                    list.Add(pool[i]);
+            return list.ToArray();
         }
     }
 }

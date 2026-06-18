@@ -1,11 +1,15 @@
-using Data.SO;
 using Services;
 using Services.Database;
+using Services.Progression;
 using TMPro;
 using UnityEngine;
 
 namespace UI.Diegetic
 {
+    /// <summary>
+    /// Diegetic menu board. Lists the drinks the player has unlocked in the day shop (hides locked
+    /// ones) and refreshes whenever the unlock set changes.
+    /// </summary>
     public sealed class RecipeMenuBoard : MonoBehaviour
     {
         [SerializeField] private TMP_Text _titleLabel;
@@ -15,7 +19,30 @@ namespace UI.Diegetic
         [SerializeField] private string _title = "MENU";
         [SerializeField] private string _separator = "\n--------------------\n";
 
-        void OnEnable() => Refresh();
+        private IProgressionService _progression;
+        private bool _bound;
+
+        // OnEnable handles re-enables; Start retries in case OnEnable ran before the services were
+        // registered (scene init-order race), so the unlock filter is applied before the first frame.
+        void OnEnable() => Bind();
+        void Start() => Bind();
+
+        void OnDisable()
+        {
+            if (_bound && _progression != null) _progression.UnlocksChanged -= Refresh;
+            _bound = false;
+            _progression = null;
+        }
+
+        private void Bind()
+        {
+            if (!_bound && ServiceLocator.TryGet<IProgressionService>(out _progression))
+            {
+                _progression.UnlocksChanged += Refresh;
+                _bound = true;
+            }
+            Refresh();
+        }
 
         public void Refresh()
         {
@@ -35,6 +62,8 @@ namespace UI.Diegetic
             {
                 var r = recipes[i];
                 if (r == null) continue;
+                // Only advertise drinks the player has unlocked.
+                if (_progression != null && !_progression.IsRecipeUnlocked(r.Id)) continue;
                 if (sb.Length > 0) sb.Append(_separator);
 
                 sb.Append("<b>").Append(r.DisplayName).Append("</b>");
@@ -54,7 +83,7 @@ namespace UI.Diegetic
                 }
             }
 
-            _recipesLabel.text = sb.ToString();
+            _recipesLabel.text = sb.Length > 0 ? sb.ToString() : "(sin tragos desbloqueados)";
         }
     }
 }
