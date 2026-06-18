@@ -21,6 +21,13 @@ namespace Data.SO
         [SerializeField] private string _displayName;
         [SerializeField] private int _basePrice = 5;
 
+        [Header("Progression")]
+        [Tooltip("Cash charged to unlock this drink in the day shop. Unlocking it also enables the " +
+                 "bottles for its ingredients.")]
+        [SerializeField] private int _unlockCost = 0;
+        [Tooltip("If true, this drink starts unlocked on a fresh/migrated save (keeps night 1 playable).")]
+        [SerializeField] private bool _unlockedByDefault = false;
+
         [Header("Composition")]
         [SerializeField] private Step[] _steps;
         [Tooltip("Max volume of unlisted ingredients tolerated before the recipe fails.")]
@@ -31,5 +38,7 @@ namespace Data.SO
         public int BasePrice => _basePrice;
         public Step[] Steps => _steps;
         public float ForeignToleranceMl => _foreignToleranceMl;
+        public int UnlockCost => _unlockCost;
+        public bool UnlockedByDefault => _unlockedByDefault;
     }
 }

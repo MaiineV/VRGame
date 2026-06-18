@@ -28,14 +28,20 @@ namespace Services.GameState
         public void Initialize()
         {
             _night.NightEnded += OnNightEnded;
-            Transition(GameState.Idle);
+            // Boot straight into the day shop: the player buys stock / unlocks drinks, then starts night 1.
+            Transition(GameState.DayShop);
         }
 
         public void SetPendingConfig(NightConfigSO config) => PendingConfig = config;
 
         public void BeginNight()
         {
-            if (Current != GameState.Idle) { MyLogger.LogWarning("[GameState] BeginNight ignored: not Idle."); return; }
+            // DayShop is the normal entry; Idle accepted for back-compat with the legacy night clipboard.
+            if (Current != GameState.DayShop && Current != GameState.Idle)
+            {
+                MyLogger.LogWarning("[GameState] BeginNight ignored: not in DayShop.");
+                return;
+            }
             if (PendingConfig == null) { MyLogger.LogError("[GameState] BeginNight: no PendingConfig."); return; }
 
             _economy.ResetForNewNight();
@@ -53,7 +59,8 @@ namespace Services.GameState
         public void AcknowledgeSummary()
         {
             if (Current != GameState.NightSummary) return;
-            Transition(GameState.Idle);
+            // After the summary the player returns to the day shop to restock / unlock before the next night.
+            Transition(GameState.DayShop);
         }
 
         private void OnNightEnded()

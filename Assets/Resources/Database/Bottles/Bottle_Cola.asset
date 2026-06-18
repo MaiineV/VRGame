@@ -17,3 +17,7 @@ MonoBehaviour:
   _prefab: {fileID: 0}
   _brokenPrefab: {fileID: 0}
   _repairCost: 20
+  _unlockCost: 0
+  _stockUnitPrice: 2
+  _mlPerStockUnit: 1000
+  _unlockedByDefault: 0

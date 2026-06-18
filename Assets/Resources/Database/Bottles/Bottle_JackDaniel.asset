@@ -17,3 +17,7 @@ MonoBehaviour:
   _prefab: {fileID: 2408662550552234382, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
   _brokenPrefab: {fileID: 0}
   _repairCost: 50
+  _unlockCost: 0
+  _stockUnitPrice: 5
+  _mlPerStockUnit: 1000
+  _unlockedByDefault: 0

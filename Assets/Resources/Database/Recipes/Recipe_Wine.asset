@@ -15,6 +15,8 @@ MonoBehaviour:
   _id: 90
   _displayName: Red Wine
   _basePrice: 7
+  _unlockCost: 0
+  _unlockedByDefault: 1
   _steps:
   - id: 210
     targetMl: 120

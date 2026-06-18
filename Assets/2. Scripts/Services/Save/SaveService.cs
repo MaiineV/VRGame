@@ -14,6 +14,11 @@ namespace Services.Save
         private const string FileName = "save.json";
         private const string TempSuffix = ".tmp";
 
+        // Seed cash for a brand-new game so the first day shop is usable. Without it the player would
+        // start with $0 and no stock — unable to buy stock, pour, or earn (a hard economic deadlock,
+        // since stock now replaces the old free nightly refill). Migrated saves keep their own cash.
+        private const int StartingCash = 300;
+
         private string _path;
         private string _tempPath;
 
@@ -23,7 +28,7 @@ namespace Services.Save
         {
             _path = Path.Combine(Application.persistentDataPath, FileName);
             _tempPath = _path + TempSuffix;
-            Current = Load() ?? new SaveData();
+            Current = Load() ?? new SaveData { cash = StartingCash };
         }
 
         public void Save()
@@ -65,11 +70,17 @@ namespace Services.Save
                 var json = File.ReadAllText(_path);
                 var data = JsonUtility.FromJson<SaveData>(json);
                 if (data == null) return null;
-                if (data.version != SaveData.CurrentVersion)
+
+                if (data.version > SaveData.CurrentVersion)
                 {
-                    MyLogger.LogWarning($"[SaveService] Save file version {data.version} != current {SaveData.CurrentVersion}. Resetting.");
+                    // Future save from a newer build: we can't understand it. Reset rather than corrupt.
+                    MyLogger.LogWarning($"[SaveService] Save file version {data.version} > current {SaveData.CurrentVersion}. Resetting.");
                     return null;
                 }
+
+                if (data.version < SaveData.CurrentVersion)
+                    Migrate(data);
+
                 return data;
             }
             catch (System.Exception ex)
@@ -77,6 +88,22 @@ namespace Services.Save
                 MyLogger.LogError($"[SaveService] Load failed: {ex.Message}. Starting fresh.");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Upgrades an older save in place to <see cref="SaveData.CurrentVersion"/> with no data loss.
+        /// JsonUtility already populated absent fields (the v2 unlock/stock lists) with empty
+        /// defaults, so v1→v2 only needs to stamp the version. Starter unlocks are seeded later by
+        /// ProgressionService when it detects an empty unlocked set.
+        /// </summary>
+        private static void Migrate(SaveData data)
+        {
+            int from = data.version;
+            data.unlockedRecipes ??= new System.Collections.Generic.List<int>();
+            data.unlockedBottles ??= new System.Collections.Generic.List<int>();
+            data.stock ??= new System.Collections.Generic.List<StockEntry>();
+            data.version = SaveData.CurrentVersion;
+            MyLogger.LogInfo($"[SaveService] Migrated save v{from} -> v{SaveData.CurrentVersion}.");
         }
     }
 }
