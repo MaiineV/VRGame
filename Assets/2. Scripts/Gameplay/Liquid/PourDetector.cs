@@ -33,6 +33,7 @@ namespace Gameplay.Liquid
         private bool _registered;
         private bool _pouring;
         private int _pourLoopHandle;
+        private float _diagCooldown;   // throttles the tilt-but-no-pour diagnostic
 
         public bool IsPouring => _pouring;
         public event System.Action<float> Poured; // volume ml per tick
@@ -79,9 +80,14 @@ namespace Gameplay.Liquid
         private void RegisterForTick()
         {
             if (_registered) return;
-            if (!ServiceLocator.TryGet<IUpdateService>(out var svc)) return;
+            if (!ServiceLocator.TryGet<IUpdateService>(out var svc))
+            {
+                MyLogger.LogWarning($"[PourDetector:{name}] UpdateService NOT ready at register time — this bottle will NOT pour.");
+                return;
+            }
             svc.AddFixedUpdateListener(this);
             _registered = true;
+            MyLogger.LogInfo($"[PourDetector:{name}] registered for tick (so={(_bottle.SO != null ? _bottle.SO.name : "NULL")}).");
         }
 
         private void UnregisterFromTick()
@@ -94,15 +100,33 @@ namespace Gameplay.Liquid
 
         public void MyFixedUpdate()
         {
-            if (_bottle.SO == null || _bottle.IsEmpty) { StopPouring(); return; }
+            if (_diagCooldown > 0f) _diagCooldown -= Time.fixedDeltaTime;
 
             float tiltDeg = Vector3.Angle(_neck.up, Vector3.up);
-            if (tiltDeg < _tiltThresholdDeg) { StopPouring(); return; }
+            bool tilted = tiltDeg >= _tiltThresholdDeg;
+
+            if (_bottle.SO == null || _bottle.IsEmpty)
+            {
+                if (tilted) Diag($"bailed: SO={( _bottle.SO != null ? _bottle.SO.name : "NULL")} empty={_bottle.IsEmpty} remaining={_bottle.RemainingMl:0}");
+                StopPouring();
+                return;
+            }
+
+            if (!tilted) { StopPouring(); return; }
+
+            if (_bottle.SO.Ingredient == null)
+            {
+                Diag($"bailed: Ingredient NULL on {_bottle.SO.name}");
+                StopPouring();
+                return;
+            }
 
             float t = Mathf.InverseLerp(_tiltThresholdDeg, _maxTiltDeg, tiltDeg);
             float rateMlSec = _bottle.SO.Ingredient.PourRateMlPerSec * t;
             float volume = _bottle.Consume(rateMlSec * Time.fixedDeltaTime);
-            if (volume <= 0f) { StopPouring(); return; }
+            if (volume <= 0f) { Diag($"bailed: volume<=0 (rate={rateMlSec:0.0} remaining={_bottle.RemainingMl:0})"); StopPouring(); return; }
+
+            Diag($"POURING tilt={tiltDeg:0} vol={volume:0.00} ing={_bottle.SO.Ingredient.name}");
 
             _pouring = true;
 
@@ -143,6 +167,15 @@ namespace Gameplay.Liquid
             }
 
             Poured?.Invoke(volume);
+        }
+
+        // Throttled per-bottle diagnostic: prints at most ~once/sec so logcat shows the
+        // real pour gate for each bottle without flooding. Remove once the pour bug is closed.
+        private void Diag(string msg)
+        {
+            if (_diagCooldown > 0f) return;
+            _diagCooldown = 1f;
+            MyLogger.LogInfo($"[PourDetector:{name}] {msg}");
         }
 
         private void StopPouring()
