@@ -33,6 +33,11 @@ namespace Gameplay.Interactions
         private IEconomyService _economy;
         private bool _subscribed;
 
+        // Last visibility we applied. Lets Update() act only on an actual change (cheap), and makes the
+        // poll a reliable safety net so the bottle always matches the desired state even if an event was
+        // missed (service init-order races, a transition that didn't reach this gate, etc.).
+        private bool? _lastVisible;
+
         void Awake()
         {
             _bottle = GetComponent<Bottle>();
@@ -41,6 +46,10 @@ namespace Gameplay.Interactions
 
         void OnEnable() => Bind();
         void Start() => Bind();
+
+        // Events drive most updates; this poll guarantees eventual consistency. It's a bool compare per
+        // frame unless the desired visibility actually changed (then it toggles renderers once).
+        void Update() => Apply();
 
         void OnDisable()
         {
@@ -54,6 +63,7 @@ namespace Gameplay.Interactions
             _progression = null;
             _state = null;
             _economy = null;
+            _lastVisible = null;
         }
 
         // --- IGrabGate ---------------------------------------------------------------------------
@@ -111,11 +121,17 @@ namespace Gameplay.Interactions
             if (_bottle == null || _bottle.SO == null || _bottle.SO.Ingredient == null) return;
             // While held, the grabber owns the transform/physics — don't fight it.
             if (_grab != null && _grab.IsHeld) return;
+            // Wait until services resolve; until then leave the bottle as authored (don't force-hide).
+            if (_progression == null || _state == null) return;
+
+            bool vis = ShouldBeVisible();
+            if (_lastVisible.HasValue && _lastVisible.Value == vis) return; // no change → skip the toggle
+            _lastVisible = vis;
 
             if (_target != null && _target != gameObject)
-                _target.SetActive(ShouldBeVisible());
+                _target.SetActive(vis);
             else
-                SetVisible(ShouldBeVisible());
+                SetVisible(vis);
         }
 
         private bool ShouldBeVisible()

@@ -61,6 +61,11 @@ namespace Gameplay.Interactions
                 Body.angularVelocity = Vector3.zero;
             }
 
+            // Re-enable colliders in case the glass was carried off by a customer (which disables them
+            // so the in-hand glass can't shove the NPC or be grabbed). Pooling must restore a clean state.
+            var cols = GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = true;
+
             var grab = GetComponent<GrabBridge>();
             if (grab != null) grab.SetHeld(false);
         }

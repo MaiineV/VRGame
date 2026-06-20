@@ -18,6 +18,11 @@ namespace Gameplay.Customer
         [Tooltip("Extra yaw (degrees) applied when facing the bar, in case the model's forward axis is rotated. Leave 0 if the model faces +Z.")]
         [SerializeField] private float _faceYawOffsetDeg = 0f;
 
+        [Header("Serving")]
+        [Tooltip("Local offset (relative to the customer root) where the served glass is held while the " +
+                 "customer wanders off and leaves. Roughly hand height, slightly forward-right.")]
+        [SerializeField] private Vector3 _glassHoldOffset = new Vector3(0.16f, 1.05f, 0.18f);
+
         // Metres the customer ROOT rises when "seated". The bar has no stools now, so customers
         // stand at full height on the ground instead of being lifted — keep this at 0.
         // Hardcoded as a const (not a SerializeField) on purpose: the model is a Humanoid
@@ -143,6 +148,50 @@ namespace Gameplay.Customer
         }
 
         /// <summary>
+        /// Attaches the served glass to the customer so it travels with them as they wander off and
+        /// leave, instead of staying on the bar. Parents it at a hold offset, freezes its physics, and
+        /// disables its colliders so the carried glass can't shove the customer or be grabbed. Idempotent.
+        /// </summary>
+        public void CarryServedGlass()
+        {
+            if (ServedGlass == null) return;
+
+            var t = ServedGlass.transform;
+            t.SetParent(transform, worldPositionStays: false);
+            t.localPosition = _glassHoldOffset;
+            t.localRotation = Quaternion.identity;
+
+            if (ServedGlass is Gameplay.Interactions.Glass glass && glass.Body != null)
+            {
+                glass.Body.isKinematic = true;
+                glass.Body.useGravity = false;
+            }
+
+            var cols = ServedGlass.GetComponentsInChildren<Collider>(true);
+            for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+        }
+
+        /// <summary>
+        /// Recycles the served glass (pool return, or Destroy fallback) and clears the reference.
+        /// Called from <see cref="DespawnNow"/> so the carried glass leaves the world with the customer.
+        /// </summary>
+        public void RecycleServedGlass()
+        {
+            if (ServedGlass == null) return;
+
+            if (ServedGlass is Gameplay.Interactions.Glass glass &&
+                ServiceLocator.TryGet<IGlassPoolService>(out var pool))
+            {
+                pool.Return(glass);
+            }
+            else
+            {
+                Destroy(ServedGlass.gameObject);
+            }
+            ServedGlass = null;
+        }
+
+        /// <summary>
         /// Yaws the whole customer to face the bar. Targets the ServePoint first: it sits
         /// on the bar in front of the customer, so its horizontal direction reliably points
         /// at the bar/player. The LookAtPoint can sit almost directly overhead (tiny, off-axis
@@ -188,6 +237,9 @@ namespace Gameplay.Customer
         {
             UnregisterTick();
             _initialized = false;
+
+            // The customer takes their glass with them — recycle it as they leave the world.
+            RecycleServedGlass();
 
             if (Seat != null && Seat.CurrentCustomer == this) Seat.Clear();
             Seat = null;

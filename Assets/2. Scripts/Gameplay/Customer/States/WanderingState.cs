@@ -27,6 +27,8 @@ namespace Gameplay.Customer.States
         public void Enter(CustomerEntity c)
         {
             c.Stand();
+            // Pick up the served glass so it travels with the customer as they stroll and leave.
+            c.CarryServedGlass();
             _pauseTimer = 0f;
             _target = PickTarget(c);
         }

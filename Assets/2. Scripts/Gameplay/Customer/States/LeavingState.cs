@@ -18,21 +18,9 @@ namespace Gameplay.Customer.States
             _published = false;
             _wobbleTime = 0f;
 
-            // The customer takes their glass with them: recycle it as they leave.
-            // Return to the pool when possible; only Destroy as a fallback.
-            if (c.ServedGlass != null)
-            {
-                if (c.ServedGlass is Glass glass &&
-                    ServiceLocator.TryGet<IGlassPoolService>(out var pool))
-                {
-                    pool.Return(glass);
-                }
-                else
-                {
-                    Object.Destroy(c.ServedGlass.gameObject);
-                }
-                c.ServedGlass = null;
-            }
+            // Take the glass along (covers the unhappy path that skips Wandering). It rides with the
+            // customer and is recycled in CustomerEntity.DespawnNow when they leave the world.
+            c.CarryServedGlass();
         }
 
         public void Update(CustomerEntity c)
