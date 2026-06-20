@@ -92,7 +92,14 @@ namespace UI.Diegetic
             _economy = null;
         }
 
-        private void OnStartPressed()    { if (IsActive()) _state?.BeginNight(); }
+        private void OnStartPressed()
+        {
+            if (!IsActive() || _state == null) return;
+            // Start works in any non-running state. After a night we sit in NightSummary; acknowledge
+            // it first (resets the per-night economy) so the next night starts clean.
+            if (_state.Current == Services.GameState.GameState.NightSummary) _state.AcknowledgeSummary();
+            _state.BeginNight();
+        }
         private void OnAbortPressed()    { if (IsActive()) _state?.AbortNight(); }
         private void OnContinuePressed() { if (IsActive()) _state?.AcknowledgeSummary(); }
 
@@ -102,8 +109,13 @@ namespace UI.Diegetic
 
         private void ApplyState(Services.GameState.GameState s)
         {
-            if (_idleGroup != null)    _idleGroup.SetActive(s == Services.GameState.GameState.Idle);
-            if (_runningGroup != null) _runningGroup.SetActive(s == Services.GameState.GameState.NightRunning);
+            // Binary visibility: the Start group shows in every state that ISN'T the running night
+            // (DayShop, Idle, NightSummary, Boot) so the player can always start the next night; the
+            // Stop group shows only while the night runs. This avoids getting stranded in NightSummary
+            // with no visible button (the old per-state split left nothing on screen there).
+            bool running = s == Services.GameState.GameState.NightRunning;
+            if (_idleGroup != null)    _idleGroup.SetActive(!running);
+            if (_runningGroup != null) _runningGroup.SetActive(running);
             if (_summaryGroup != null) _summaryGroup.SetActive(s == Services.GameState.GameState.NightSummary);
 
             if (s == Services.GameState.GameState.NightSummary) FillSummary();
@@ -113,8 +125,9 @@ namespace UI.Diegetic
         private void RefreshInteractable()
         {
             bool held = IsActive();
-            if (_startButton != null)    _startButton.Interactable    = held && _state != null && _state.Current == Services.GameState.GameState.Idle;
-            if (_abortButton != null)    _abortButton.Interactable    = held && _state != null && _state.Current == Services.GameState.GameState.NightRunning;
+            bool running = _state != null && _state.Current == Services.GameState.GameState.NightRunning;
+            if (_startButton != null)    _startButton.Interactable    = held && _state != null && !running;
+            if (_abortButton != null)    _abortButton.Interactable    = held && running;
             if (_continueButton != null) _continueButton.Interactable = held && _state != null && _state.Current == Services.GameState.GameState.NightSummary;
         }
 

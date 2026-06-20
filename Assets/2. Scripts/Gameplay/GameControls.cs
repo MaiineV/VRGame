@@ -29,7 +29,8 @@ namespace Gameplay
 
             if (OVRInput.GetDown(OVRInput.Button.One))
             {
-                if (_state.Current == Services.GameState.GameState.Idle) BeginNight();
+                if (_state.Current == Services.GameState.GameState.DayShop
+                    || _state.Current == Services.GameState.GameState.Idle) BeginNight();
                 else if (_state.Current == Services.GameState.GameState.NightSummary) _state.AcknowledgeSummary();
             }
 

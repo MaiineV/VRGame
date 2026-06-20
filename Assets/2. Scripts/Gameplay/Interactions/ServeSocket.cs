@@ -47,6 +47,8 @@ namespace Gameplay.Interactions
             var glass = other.GetComponentInParent<Glass>();
             if (glass == null || glass == CurrentGlass) return;
             CurrentGlass = glass;
+            // Tell the glass which level this seat wants so its fill gauge can draw the target marker.
+            glass.RequestedLevel = FillLevels.Clamp(TargetLevel);
             _servedThisPlacement = false;
             _lastFill = -1f;
             _settleTimer = 0f;
@@ -57,6 +59,7 @@ namespace Gameplay.Interactions
             var glass = other.GetComponentInParent<Glass>();
             if (glass == null || glass != CurrentGlass) return;
             var leaving = CurrentGlass;
+            leaving.RequestedLevel = null; // no longer at a customer → hide the target marker
             CurrentGlass = null;
             _servedThisPlacement = false;
             GlassRemoved?.Invoke(leaving);

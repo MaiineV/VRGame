@@ -28,6 +28,7 @@ namespace Gameplay.Liquid
         [SerializeField] private SfxId _pourSfx = SfxId.PourLoop;
 
         private Bottle _bottle;
+        private GrabBridge _grab;
         private Transform _neck;
         private readonly RaycastHit[] _hits = new RaycastHit[4];
         private bool _registered;
@@ -46,20 +47,30 @@ namespace Gameplay.Liquid
 
         void OnEnable()
         {
-            _bottle.Grab.Grabbed += HandleGrabbed;
-            _bottle.Grab.Released += HandleReleased;
-            // Tick regardless of grab state. The pour only actually happens when the bottle is
-            // tilted past the threshold and has liquid (gated in MyFixedUpdate), so always ticking
-            // is safe — and it avoids depending on the grab system reliably firing Grabbed, which
-            // left most bottles unable to pour while only one happened to work.
+            // Resolve the grab bridge defensively: Bottle.Awake normally caches it, but on a runtime-
+            // instantiated bottle this OnEnable can run before that cache is populated, leaving
+            // _bottle.Grab null. A null grab here used to throw and abort OnEnable BEFORE the tick was
+            // registered — so the bottle never poured. Fall back to a direct GetComponent and, crucially,
+            // always register for the tick regardless (the pour is gated on tilt+liquid, not on grab).
+            _grab = _bottle != null ? _bottle.Grab : null;
+            if (_grab == null) _grab = GetComponent<GrabBridge>();
+            if (_grab != null)
+            {
+                _grab.Grabbed += HandleGrabbed;
+                _grab.Released += HandleReleased;
+            }
+
             RegisterForTick();
-            if (_bottle.Grab.IsHeld) HandleGrabbed();
+            if (_grab != null && _grab.IsHeld) HandleGrabbed();
         }
 
         void OnDisable()
         {
-            _bottle.Grab.Grabbed -= HandleGrabbed;
-            _bottle.Grab.Released -= HandleReleased;
+            if (_grab != null)
+            {
+                _grab.Grabbed -= HandleGrabbed;
+                _grab.Released -= HandleReleased;
+            }
             UnregisterFromTick();
             StopPouring();
         }

@@ -19,6 +19,26 @@ namespace Gameplay.Interactions
 
         [SerializeField] private bool _debugLog;
 
+        [Header("Throw")]
+        [Tooltip("How many recent frames of hand motion to average for the release velocity. More = " +
+                 "smoother but laggier; ~5 (about 0.1s) feels natural. Used as a fallback when the " +
+                 "Oculus controller-velocity API reads ~0 (e.g. in the editor with no headset).")]
+        [SerializeField] private int _velocitySamples = 5;
+
+        [Tooltip("Multiplier on the released velocity. 1 = exact hand speed (1:1); >1 makes throws " +
+                 "fly further with less effort. ~1.2 feels good without being floaty.")]
+        [SerializeField] private float _throwVelocityScale = 1.2f;
+
+        // Tracking space the Oculus controller velocities are expressed in (local to the rig).
+        // Cached in Awake so Release can convert them to world space.
+        private Transform _trackingSpace;
+
+        private readonly System.Collections.Generic.List<Vector3> _linVels = new();
+        private readonly System.Collections.Generic.List<Vector3> _angVels = new();
+        private Vector3 _lastTrackPos;
+        private Quaternion _lastTrackRot;
+        private bool _hasLastSample;
+
         private GrabBridge _held;
         private Rigidbody _heldRb;
         private Transform _heldOriginalParent;
@@ -30,9 +50,13 @@ namespace Gameplay.Interactions
 
         void Awake()
         {
+            var rig = FindAnyObjectByType<OVRCameraRig>();
+            // Cache the tracking space: the Oculus controller-velocity API reports in this space,
+            // so Release converts those local velocities to world via this transform.
+            if (rig != null) _trackingSpace = rig.trackingSpace != null ? rig.trackingSpace : rig.transform;
+
             if (_trackingSource != null) return;
 
-            var rig = FindAnyObjectByType<OVRCameraRig>();
             if (rig == null)
             {
                 if (_debugLog) MyLogger.LogWarning($"[SimpleVRGrabber:{name}] No OVRCameraRig found and no _trackingSource assigned. Grabber will use its own transform.");
@@ -94,6 +118,85 @@ namespace Gameplay.Interactions
         {
             if (_trackingSource == null) return;
             transform.SetPositionAndRotation(_trackingSource.position, _trackingSource.rotation);
+            SampleVelocity();
+        }
+
+        // Records the hand's linear/angular velocity each frame so Release can throw the held object
+        // with the real motion of the hand (averaged over the last few frames for a stable result).
+        private void SampleVelocity()
+        {
+            float dt = Time.deltaTime;
+            if (dt <= 0f) return;
+
+            Vector3 pos = transform.position;
+            Quaternion rot = transform.rotation;
+
+            if (_hasLastSample)
+            {
+                Vector3 linVel = (pos - _lastTrackPos) / dt;
+
+                Quaternion delta = rot * Quaternion.Inverse(_lastTrackRot);
+                delta.ToAngleAxis(out float angleDeg, out Vector3 axis);
+                if (angleDeg > 180f) angleDeg -= 360f;
+                Vector3 angVel = axis.sqrMagnitude > 0.0001f
+                    ? axis.normalized * (angleDeg * Mathf.Deg2Rad) / dt
+                    : Vector3.zero;
+
+                if (!float.IsNaN(linVel.x) && !float.IsNaN(angVel.x))
+                {
+                    Push(_linVels, linVel);
+                    Push(_angVels, angVel);
+                }
+            }
+
+            _lastTrackPos = pos;
+            _lastTrackRot = rot;
+            _hasLastSample = true;
+        }
+
+        private void Push(System.Collections.Generic.List<Vector3> buf, Vector3 v)
+        {
+            buf.Add(v);
+            int max = Mathf.Max(1, _velocitySamples);
+            while (buf.Count > max) buf.RemoveAt(0);
+        }
+
+        private static Vector3 Average(System.Collections.Generic.List<Vector3> buf)
+        {
+            if (buf.Count == 0) return Vector3.zero;
+            Vector3 sum = Vector3.zero;
+            for (int i = 0; i < buf.Count; i++) sum += buf[i];
+            return sum / buf.Count;
+        }
+
+        private void ResetVelocityTracking()
+        {
+            _linVels.Clear();
+            _angVels.Clear();
+            _hasLastSample = false;
+        }
+
+        // Release velocity for a thrown object. Prefers the Oculus controller-velocity API (reliable
+        // on-device, reports in tracking space → converted to world), and falls back to the per-frame
+        // position sampler when that reads ~0 (e.g. running in the editor without a headset).
+        private void GetThrowVelocity(out Vector3 linear, out Vector3 angular)
+        {
+            linear = Vector3.zero;
+            angular = Vector3.zero;
+
+            Vector3 localLin = OVRInput.GetLocalControllerVelocity(_controller);
+            Vector3 localAng = OVRInput.GetLocalControllerAngularVelocity(_controller);
+
+            if (localLin.sqrMagnitude > 0.0001f)
+            {
+                linear = _trackingSpace != null ? _trackingSpace.TransformVector(localLin) : localLin;
+                angular = _trackingSpace != null ? _trackingSpace.TransformDirection(localAng) : localAng;
+                return;
+            }
+
+            // Fallback: differentiated hand-anchor motion (averaged over the last few frames).
+            linear = Average(_linVels);
+            angular = Average(_angVels);
         }
 
         void TryGrab()
@@ -121,6 +224,7 @@ namespace Gameplay.Interactions
             }
 
             _held = best;
+            ResetVelocityTracking();
             _heldRb = best.GetComponent<Rigidbody>();
             _heldOriginalParent = best.transform.parent;
             best.transform.SetParent(transform, true);
@@ -161,12 +265,13 @@ namespace Gameplay.Interactions
             if (_heldRb != null)
             {
                 _heldRb.isKinematic = _heldWasKinematic;
-                // Zero out any residual velocity from the kinematic follow so the object
-                // settles where it's released instead of flying or bouncing off the bar.
+                // Throw: hand off the hand's velocity so a flick launches the object. Released without
+                // moving → ~zero velocity, so it just settles.
                 if (!_heldRb.isKinematic)
                 {
-                    _heldRb.linearVelocity = Vector3.zero;
-                    _heldRb.angularVelocity = Vector3.zero;
+                    GetThrowVelocity(out Vector3 lin, out Vector3 ang);
+                    _heldRb.linearVelocity = lin * _throwVelocityScale;
+                    _heldRb.angularVelocity = ang;
                 }
             }
             _held.SetHeld(false);

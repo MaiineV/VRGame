@@ -129,6 +129,17 @@ namespace UI
             _indicator = container.transform;
             _indicator.SetParent(transform, false);
 
+            // Robust to whatever scale this GameObject has in the scene. The label used to be a
+            // world-space text Canvas (RectTransform scaled to ~0.004), and the orb/gauge primitives
+            // below are built at metre scale (0.16 etc). If we inherited that 0.004 the indicator
+            // would render sub-millimetre — invisible. Cancel the parent's lossy scale so the
+            // container sits at world scale 1 regardless of how the seat object is set up.
+            Vector3 ls = transform.lossyScale;
+            _indicator.localScale = new Vector3(
+                Mathf.Abs(ls.x) > 1e-5f ? 1f / ls.x : 1f,
+                Mathf.Abs(ls.y) > 1e-5f ? 1f / ls.y : 1f,
+                Mathf.Abs(ls.z) > 1e-5f ? 1f / ls.z : 1f);
+
             // Orb
             var orb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             orb.name = "OrderOrb";

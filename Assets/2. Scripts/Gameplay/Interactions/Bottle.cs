@@ -12,13 +12,24 @@ namespace Gameplay.Interactions
     {
         [SerializeField] private BottleSO _so;
         [SerializeField] private Transform _neck;
+        [Tooltip("This bottle's own prefab. Set each bottle prefab to reference itself so BottleRespawner " +
+                 "can destroy and recreate it at its origin when a night ends.")]
+        [SerializeField] private GameObject _sourcePrefab;
         [Tooltip("Optional. If assigned, registers BottleSO.RepairCost as an expense when broken.")]
         [SerializeField] private Breakable _breakable;
+
+        [Header("Physics (applied on Awake)")]
+        [Tooltip("Mass in kg. A full glass bottle is roughly 1 kg.")]
+        [SerializeField] private float _mass = 1.2f;
+        [Tooltip("Linear damping (air resistance). Low so a thrown bottle flies instead of floating.")]
+        [SerializeField] private float _linearDamping = 0.05f;
+        [SerializeField] private float _angularDamping = 0.05f;
 
         private float _remainingMl;
         private bool _filled;
 
         public BottleSO SO => _so;
+        public GameObject SourcePrefab => _sourcePrefab;
         public Transform Neck => _neck != null ? _neck : transform;
         public float RemainingMl { get { EnsureFilled(); return _remainingMl; } }
         public bool IsEmpty { get { EnsureFilled(); return _remainingMl <= 0f; } }
@@ -31,6 +42,9 @@ namespace Gameplay.Interactions
             Body = GetComponent<Rigidbody>();
             Body.interpolation = RigidbodyInterpolation.Interpolate;
             Body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+            Body.mass = _mass;
+            Body.linearDamping = _linearDamping;
+            Body.angularDamping = _angularDamping;
 
             if (_breakable == null) _breakable = GetComponent<Breakable>();
             if (_breakable != null) _breakable.Broken += HandleBroken;
