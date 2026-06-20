@@ -1,18 +1,20 @@
 using System.Collections.Generic;
+using Data.Enums;
 using Gameplay.Interactions;
 using Services;
 using Services.Night;
+using Services.Progression;
 using UnityEngine;
 using Utilities;
 
 namespace Gameplay.Systems
 {
     /// <summary>
-    /// Owns the bar's bottles across nights. On start it records each scene bottle's origin (prefab +
-    /// world pose + parent). When a night ends (or is aborted) it destroys every bottle — including
-    /// broken ones, which <see cref="Breakable"/> only deactivates — and recreates the whole set fresh
-    /// at their origins. Whatever bottles you place in the scene (e.g. a backup set) are picked up
-    /// automatically; this component doesn't create duplicates itself.
+    /// Resets the bar's OWNED bottles to their origin between nights. On start it records each scene
+    /// bottle's origin (prefab + world pose + parent + ingredient). When a night ends it destroys and
+    /// recreates only the bottles whose ingredient the player OWNS — restoring thrown/moved/broken
+    /// owned bottles to a clean state. Bottles that are still for sale in the shop are LEFT UNTOUCHED:
+    /// recreating a locked bottle was making it read as unlocked, so we simply don't respawn those.
     ///
     /// Bottles aren't pooled (they're scene-placed), so each bottle prefab must reference itself via
     /// <see cref="Bottle.SourcePrefab"/> for recreation to work.
@@ -25,6 +27,7 @@ namespace Gameplay.Systems
             public Vector3 Position;
             public Quaternion Rotation;
             public Transform Parent;
+            public IngredientId Ingredient;
         }
 
         private readonly List<Origin> _origins = new();
@@ -62,7 +65,14 @@ namespace Gameplay.Systems
                 }
 
                 var t = b.transform;
-                _origins.Add(new Origin { Prefab = b.SourcePrefab, Position = t.position, Rotation = t.rotation, Parent = t.parent });
+                _origins.Add(new Origin
+                {
+                    Prefab = b.SourcePrefab,
+                    Position = t.position,
+                    Rotation = t.rotation,
+                    Parent = t.parent,
+                    Ingredient = IngredientOf(b),
+                });
             }
 
             MyLogger.LogInfo($"[BottleRespawner] Tracking {_origins.Count} bottle origin(s).");
@@ -70,16 +80,41 @@ namespace Gameplay.Systems
 
         private void RespawnAll()
         {
-            // Destroy every current bottle (active or broken/inactive) before recreating the full set.
+            // Only touch OWNED bottles. For-sale (locked) bottles are left exactly where they are so
+            // destroying/recreating them can't flip their lock state.
+            ServiceLocator.TryGet<IProgressionService>(out var progression);
+
+            // Destroy only the live bottles whose ingredient is currently owned.
             var live = Object.FindObjectsByType<Bottle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < live.Length; i++)
-                if (live[i] != null) Destroy(live[i].gameObject);
+            {
+                var b = live[i];
+                if (b == null) continue;
+                if (IsOwned(progression, IngredientOf(b))) Destroy(b.gameObject);
+            }
 
+            // Recreate only the owned origins.
+            int recreated = 0;
             for (int i = 0; i < _origins.Count; i++)
+            {
+                if (!IsOwned(progression, _origins[i].Ingredient)) continue;
                 Spawn(_origins[i]);
+                recreated++;
+            }
 
-            MyLogger.LogInfo($"[BottleRespawner] Respawned {_origins.Count} bottle(s) at origin.");
+            MyLogger.LogInfo($"[BottleRespawner] Respawned {recreated} owned bottle(s) at origin (for-sale bottles left untouched).");
         }
+
+        // A bottle with no progression service or no ingredient is treated as owned (default-usable),
+        // so the reset still works in setups without the shop economy.
+        private static bool IsOwned(IProgressionService progression, IngredientId ingredient)
+        {
+            if (ingredient == IngredientId.None) return true;
+            return progression == null || progression.IsBottleUnlocked(ingredient);
+        }
+
+        private static IngredientId IngredientOf(Bottle b) =>
+            b != null && b.SO != null && b.SO.Ingredient != null ? b.SO.Ingredient.Id : IngredientId.None;
 
         private static void Spawn(Origin o)
         {

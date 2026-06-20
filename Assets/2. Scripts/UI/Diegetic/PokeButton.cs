@@ -49,6 +49,13 @@ namespace UI.Diegetic
         {
             ServiceLocator.TryGet<IUpdateService>(out _updates);
             if (_cap != null && !_capCached) { _capRestLocal = _cap.localPosition; _capCached = true; }
+
+            // Arm a debounce window on enable. When a button group is swapped (e.g. Start hidden /
+            // Stop shown the instant the night begins), the newly-enabled button can fire OnTriggerEnter
+            // immediately because the poking finger is still inside its trigger — which used to abort the
+            // night the moment you started it. Ignoring presses for the first _debounceSeconds makes the
+            // finger leave and re-enter before a press counts.
+            _cooldown = _debounceSeconds;
         }
 
         void OnDisable()

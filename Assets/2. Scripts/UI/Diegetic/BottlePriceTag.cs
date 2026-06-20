@@ -26,11 +26,17 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _label;
         [Tooltip("If true, the tag rotates to face the main camera each frame (billboard).")]
         [SerializeField] private bool _faceCamera = true;
+        [Tooltip("If true, the tag snaps above the matching bottle each frame so it stays aligned even " +
+                 "if the bottle is moved, duplicated, or respawned. Off keeps the tag at its fixed spot.")]
+        [SerializeField] private bool _followBottle = true;
+        [Tooltip("Offset above the bottle's origin (world units) when following.")]
+        [SerializeField] private Vector3 _followOffset = new Vector3(0f, 0.28f, 0f);
 
         private IProgressionService _progression;
         private IGameStateService _state;
         private bool _subscribed;
         private Transform _cam;
+        private Gameplay.Interactions.Bottle _bottleInstance;
 
         void Awake()
         {
@@ -54,10 +60,28 @@ namespace UI.Diegetic
 
         void LateUpdate()
         {
+            // Keep the tag glued above its bottle so the price always reads against the right bottle,
+            // even after the bottle was moved in the editor, duplicated, or destroyed/recreated by the
+            // night respawn. Re-resolve the instance whenever the cached one is gone.
+            if (_followBottle && _bottle != null)
+            {
+                if (_bottleInstance == null) _bottleInstance = FindBottleInstance();
+                if (_bottleInstance != null)
+                    transform.position = _bottleInstance.transform.position + _followOffset;
+            }
+
             if (!_faceCamera) return;
             if (_cam == null && Camera.main != null) _cam = Camera.main.transform;
             if (_cam != null)
                 transform.rotation = Quaternion.LookRotation(transform.position - _cam.position);
+        }
+
+        private Gameplay.Interactions.Bottle FindBottleInstance()
+        {
+            var bottles = Object.FindObjectsByType<Gameplay.Interactions.Bottle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < bottles.Length; i++)
+                if (bottles[i] != null && bottles[i].SO == _bottle) return bottles[i];
+            return null;
         }
 
         private void Bind()
