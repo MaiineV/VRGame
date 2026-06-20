@@ -16,13 +16,16 @@ namespace Services.Database
         private readonly Dictionary<IngredientId, BottleSO> _bottles = new();
         private readonly Dictionary<RecipeId, RecipeSO> _recipes = new();
         private RecipeSO[] _recipesList;
+        private BottleSO[] _bottlesList;
 
         public IReadOnlyList<RecipeSO> AllRecipes => _recipesList;
+        public IReadOnlyList<BottleSO> AllBottles => _bottlesList;
 
         public void Initialize()
         {
             LoadAll(IngredientsResourcesPath, _ingredients, so => so.Id);
             LoadAll(BottlesResourcesPath, _bottles, so => so.Ingredient != null ? so.Ingredient.Id : IngredientId.None);
+            _bottlesList = Resources.LoadAll<BottleSO>(BottlesResourcesPath);
 
             var recipes = Resources.LoadAll<RecipeSO>(RecipesResourcesPath);
             _recipesList = recipes;

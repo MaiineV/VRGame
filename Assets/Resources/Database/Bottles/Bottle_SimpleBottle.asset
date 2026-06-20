@@ -20,4 +20,4 @@ MonoBehaviour:
   _unlockCost: 0
   _stockUnitPrice: 3
   _mlPerStockUnit: 1000
-  _unlockedByDefault: 0
+  _unlockedByDefault: 1

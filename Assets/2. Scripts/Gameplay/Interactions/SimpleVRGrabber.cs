@@ -107,6 +107,10 @@ namespace Gameplay.Interactions
             {
                 var b = _hits[i].GetComponentInParent<GrabBridge>();
                 if (b == null || b.IsHeld) continue;
+                // A grabbable can veto being picked up right now (e.g. a for-sale bottle the player
+                // can't afford). Skip it so the grabber simply doesn't latch on.
+                var gate = b.GetComponentInParent<IGrabGate>();
+                if (gate != null && !gate.CanGrab) continue;
                 float d = (b.transform.position - transform.position).sqrMagnitude;
                 if (d < bestDist) { bestDist = d; best = b; }
             }

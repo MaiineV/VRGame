@@ -15,8 +15,8 @@ MonoBehaviour:
   _id: 50
   _displayName: Jack Daniel's
   _basePrice: 8
-  _unlockCost: 0
-  _unlockedByDefault: 1
+  _unlockCost: 40
+  _unlockedByDefault: 0
   _steps:
   - id: 40
     targetMl: 120

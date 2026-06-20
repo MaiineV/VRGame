@@ -76,6 +76,26 @@ namespace Services.Progression
             return true;
         }
 
+        public bool UnlockBottle(IngredientId ingredient)
+        {
+            if (ingredient == IngredientId.None) return false;
+            if (_bottles.Contains(ingredient)) return false;        // already unlocked: no charge
+
+            var bottle = _db.GetBottle(ingredient);
+            if (bottle == null) { MyLogger.LogWarning($"[Progression] UnlockBottle: no bottle for {ingredient}."); return false; }
+
+            int cost = Mathf.Max(0, bottle.UnlockCost);
+            if (_economy.Cash < cost) return false;                 // unaffordable
+
+            if (cost > 0) _economy.RegisterExpense(cost, $"Unlock bottle {ingredient}");
+            _bottles.Add(ingredient);
+            UnlockRecipesUsing(ingredient);
+            Persist();
+            UnlocksChanged?.Invoke();
+            MyLogger.LogInfo($"[Progression] Unlocked bottle {ingredient} for {cost} -> cash {_economy.Cash}.");
+            return true;
+        }
+
         public bool BuyStock(IngredientId ingredient, int units)
         {
             if (units <= 0) return false;
@@ -118,15 +138,48 @@ namespace Services.Progression
             }
         }
 
-        private void SeedDefaults()
+        /// <summary>Unlock (recipe id only, no bottle auto-grant) every recipe whose steps use this
+        /// ingredient, so buying a bottle makes its drink serveable. Multi-ingredient recipes still
+        /// need their other bottles physically present to be poured.</summary>
+        private void UnlockRecipesUsing(IngredientId ingredient)
         {
             var recipes = _db.AllRecipes;
             if (recipes == null) return;
             for (int i = 0; i < recipes.Count; i++)
             {
                 var r = recipes[i];
-                if (r != null && r.Id != RecipeId.None && r.UnlockedByDefault)
-                    ApplyRecipeUnlock(r);
+                if (r == null || r.Id == RecipeId.None || r.Steps == null) continue;
+                for (int s = 0; s < r.Steps.Length; s++)
+                {
+                    if (r.Steps[s].id == ingredient) { _recipes.Add(r.Id); break; }
+                }
+            }
+        }
+
+        private void SeedDefaults()
+        {
+            var recipes = _db.AllRecipes;
+            if (recipes != null)
+            {
+                for (int i = 0; i < recipes.Count; i++)
+                {
+                    var r = recipes[i];
+                    if (r != null && r.Id != RecipeId.None && r.UnlockedByDefault)
+                        ApplyRecipeUnlock(r);
+                }
+            }
+
+            // Bottles flagged UnlockedByDefault start usable from night 1 on their own, independent of
+            // any recipe (e.g. a starter bottle to pour with before its recipe is unlocked/bought).
+            var bottles = _db.AllBottles;
+            if (bottles != null)
+            {
+                for (int i = 0; i < bottles.Count; i++)
+                {
+                    var b = bottles[i];
+                    if (b != null && b.Ingredient != null && b.UnlockedByDefault)
+                        _bottles.Add(b.Ingredient.Id);
+                }
             }
         }
 

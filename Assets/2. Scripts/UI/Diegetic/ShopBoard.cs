@@ -23,7 +23,7 @@ namespace UI.Diegetic
     /// </summary>
     public sealed class ShopBoard : MonoBehaviour
     {
-        private enum EntryKind { UnlockRecipe, BuyStock }
+        private enum EntryKind { UnlockRecipe, UnlockBottle, BuyStock }
 
         private struct ShopEntry
         {
@@ -156,6 +156,8 @@ namespace UI.Diegetic
             var e = _entries[Mathf.Clamp(_index, 0, _entries.Count - 1)];
             if (e.kind == EntryKind.UnlockRecipe)
                 _progression.UnlockRecipe(e.recipe);
+            else if (e.kind == EntryKind.UnlockBottle)
+                _progression.UnlockBottle(e.ingredient);
             else
                 _progression.BuyStock(e.ingredient, Mathf.Max(1, _stockUnitsPerBuy));
             // On success UnlocksChanged fires -> RebuildCatalog. Rebuild anyway in case nothing changed.
@@ -186,6 +188,22 @@ namespace UI.Diegetic
                     }
                 }
 
+                // Locked bottles for sale as standalone items (recipes still auto-unlock their own
+                // bottles; these are the ones not covered that way).
+                var bottles = _db.AllBottles;
+                if (bottles != null && _progression != null)
+                {
+                    for (int i = 0; i < bottles.Count; i++)
+                    {
+                        var b = bottles[i];
+                        if (b == null || b.Ingredient == null) continue;
+                        var ing = b.Ingredient.Id;
+                        if (ing == IngredientId.None) continue;
+                        if (!_progression.IsBottleUnlocked(ing))
+                            _entries.Add(new ShopEntry { kind = EntryKind.UnlockBottle, ingredient = ing });
+                    }
+                }
+
                 if (_progression != null)
                 {
                     foreach (var ing in _progression.UnlockedBottles)
@@ -208,6 +226,11 @@ namespace UI.Diegetic
                 var r = _db.GetRecipe(e.recipe);
                 return r != null ? Mathf.Max(0, r.UnlockCost) : 0;
             }
+            if (e.kind == EntryKind.UnlockBottle)
+            {
+                var bo = _db.GetBottle(e.ingredient);
+                return bo != null ? Mathf.Max(0, bo.UnlockCost) : 0;
+            }
             var b = _db.GetBottle(e.ingredient);
             return b != null ? Mathf.Max(0, b.StockUnitPrice) * Mathf.Max(1, _stockUnitsPerBuy) : 0;
         }
@@ -220,6 +243,12 @@ namespace UI.Diegetic
                 var r = _db.GetRecipe(e.recipe);
                 string n = r != null ? r.DisplayName : e.recipe.ToString();
                 return $"Desbloquear: {n}";
+            }
+            else if (e.kind == EntryKind.UnlockBottle)
+            {
+                var b = _db.GetBottle(e.ingredient);
+                string n = b != null && b.Ingredient != null ? b.Ingredient.DisplayName : e.ingredient.ToString();
+                return $"Comprar botella: {n}";
             }
             else
             {

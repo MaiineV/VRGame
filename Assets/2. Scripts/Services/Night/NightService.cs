@@ -50,18 +50,16 @@ namespace Services.Night
             _spawnTimer = 0f;
             IsRunning = true;
 
-            // Fill each bottle from the stock the player bought in the day shop (replaces the old
-            // free refill). ConsumeStockForNight transfers the purchased ml and zeroes the entry.
+            // Owned bottles start full each night (a purchased bottle is yours permanently, no per-night
+            // stock). Bottles the player doesn't own are emptied (they're hidden during the night anyway).
             ServiceLocator.TryGet<IProgressionService>(out var progression);
             var bottles = Object.FindObjectsByType<Gameplay.Interactions.Bottle>(FindObjectsSortMode.None);
             for (int i = 0; i < bottles.Length; i++)
             {
                 var b = bottles[i];
-                if (b == null) continue;
-                float ml = (progression != null && b.SO != null && b.SO.Ingredient != null)
-                    ? progression.ConsumeStockForNight(b.SO.Ingredient.Id)
-                    : 0f;
-                b.SetRemaining(ml);
+                if (b == null || b.SO == null || b.SO.Ingredient == null) { b?.SetRemaining(0f); continue; }
+                bool owned = progression == null || progression.IsBottleUnlocked(b.SO.Ingredient.Id);
+                b.SetRemaining(owned ? b.SO.CapacityMl : 0f);
             }
 
             // Only spawn orders for unlocked recipes that are also in this night's pool.

@@ -14,9 +14,9 @@ namespace Services.Save
         private const string FileName = "save.json";
         private const string TempSuffix = ".tmp";
 
-        // Seed cash for a brand-new game so the first day shop is usable. Without it the player would
-        // start with $0 and no stock — unable to buy stock, pour, or earn (a hard economic deadlock,
-        // since stock now replaces the old free nightly refill). Migrated saves keep their own cash.
+        // Seed cash for a brand-new game so the first day shop is usable: enough to buy the starter
+        // purchasable bottles by grabbing them. Without it the player would start with $0 and be unable
+        // to unlock any bottle. Migrated saves keep their own cash.
         private const int StartingCash = 300;
 
         private string _path;
@@ -58,7 +58,7 @@ namespace Services.Save
 
         public void ResetToDefaults()
         {
-            Current = new SaveData();
+            Current = new SaveData { cash = StartingCash };
             Save();
         }
 

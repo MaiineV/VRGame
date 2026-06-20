@@ -14,5 +14,6 @@ namespace Services.Database
         RecipeSO GetRecipe(RecipeId id);
 
         System.Collections.Generic.IReadOnlyList<RecipeSO> AllRecipes { get; }
+        System.Collections.Generic.IReadOnlyList<BottleSO> AllBottles { get; }
     }
 }

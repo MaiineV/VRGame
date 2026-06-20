@@ -22,6 +22,11 @@ namespace Services.Progression
         /// UnlockCost via the economy. No-op returning false if already unlocked or unaffordable.</summary>
         bool UnlockRecipe(RecipeId recipe);
 
+        /// <summary>Unlock a bottle directly in the day shop, charging its BottleSO.UnlockCost. Lets a
+        /// bottle be sold as a standalone item (independent of recipes, which still auto-unlock the
+        /// bottles they use). No-op returning false if already unlocked, unknown, or unaffordable.</summary>
+        bool UnlockBottle(IngredientId ingredient);
+
         /// <summary>Buy <paramref name="units"/> of stock for an already-unlocked bottle. Charges
         /// units * BottleSO.StockUnitPrice and adds units * BottleSO.MlPerStockUnit ml. Returns
         /// false if the bottle is locked, units &lt;= 0, or it's unaffordable.</summary>
