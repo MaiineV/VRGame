@@ -60,7 +60,7 @@ namespace Gameplay.Customer.States
                 {
                     // Pay scales with score (full when perfect, half when one axis is wrong).
                     c.RaiseServed(c.TargetRecipe, score, isExact);
-                    c.Machine.TransitionTo(CustomerStateId.Drinking);
+                    c.Machine.TransitionTo(CustomerStateId.Wandering);
                 }
                 else
                 {

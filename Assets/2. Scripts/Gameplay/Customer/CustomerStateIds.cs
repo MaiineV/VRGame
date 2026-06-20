@@ -4,7 +4,7 @@ namespace Gameplay.Customer
     {
         Approaching = 10,
         Waiting = 20,
-        Drinking = 30,
+        Wandering = 35,
         Leaving = 40
     }
 }

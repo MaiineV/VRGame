@@ -19,5 +19,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b40825e98e2ad874f8b5493b953d729c, type: 2}
   - {fileID: 11400000, guid: 5deb5bc57371c724fa9c4f47c0964934, type: 2}
   - {fileID: 11400000, guid: 4dab26017d9b22e4d9a05ab3c51348f9, type: 2}
+  - {fileID: 11400000, guid: 08e8f3185d3e1324e9b3fb40fb5b9820, type: 2}
   _recipePool: 3200000046000000500000005a0000003c000000
   _drunkennessConfig: {fileID: 11400000, guid: f9801fafb4e5db74c84872243b80dadd, type: 2}

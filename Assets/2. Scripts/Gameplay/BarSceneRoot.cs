@@ -19,6 +19,9 @@ namespace Gameplay
         [Header("Customer flow")]
         [SerializeField] private Transform _customerSpawnPoint;
         [SerializeField] private Transform _customerExitPoint;
+        [Tooltip("Open-floor points a served customer strolls between before leaving (WanderingState). " +
+                 "Place them in walkable, obstacle-free areas — movement is straight-line (no NavMesh).")]
+        [SerializeField] private Transform[] _wanderPoints;
 
         [Header("Bottle storage positions (behind the bar)")]
         [SerializeField] private Transform[] _bottleShelfPoints;
@@ -34,6 +37,7 @@ namespace Gameplay
         public CustomerSeatPoint[] Seats => _seats;
         public Transform CustomerSpawnPoint => _customerSpawnPoint;
         public Transform CustomerExitPoint => _customerExitPoint;
+        public Transform[] WanderPoints => _wanderPoints;
         public Transform[] BottleShelfPoints => _bottleShelfPoints;
         public Transform CashRegisterAnchor => _cashRegisterAnchor;
 

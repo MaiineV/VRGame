@@ -75,7 +75,7 @@ namespace Gameplay.Customer
                 Machine = new StateMachine<CustomerStateId, CustomerEntity>(this);
                 Machine.AddState(CustomerStateId.Approaching, new ApproachingState());
                 Machine.AddState(CustomerStateId.Waiting, new WaitingState());
-                Machine.AddState(CustomerStateId.Drinking, new DrinkingState());
+                Machine.AddState(CustomerStateId.Wandering, new WanderingState());
                 Machine.AddState(CustomerStateId.Leaving, new LeavingState());
             }
             else

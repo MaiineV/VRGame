@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 17e93d60ee54bba479abf04ea2e514b2, type: 3}
-  m_Name: Customer_Regular
+  m_Name: Customer_Human
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.CustomerSO
-  _displayName: Regular
-  _prefab: {fileID: 451239037055270922, guid: 3e5b9c3360a4d27448582d81c9c766c4, type: 3}
+  _displayName: Human
+  _prefab: {fileID: 4297378467404803135, guid: 41184938e55b2054eab7f3aad2fe832a, type: 3}
   _walkSpeed: 1.4
   _patienceSeconds: 105
   _drinkSeconds: 12
