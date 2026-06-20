@@ -958,7 +958,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 8.47335, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -6361,7 +6361,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7869315247949882868, guid: 77b1691e91e96074b89b6a6514b6ec5b, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.3230002
+      value: 1.167
       objectReference: {fileID: 0}
     - target: {fileID: 7869315247949882868, guid: 77b1691e91e96074b89b6a6514b6ec5b, type: 3}
       propertyPath: m_LocalPosition.y
@@ -7905,7 +7905,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3952712226871755753, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.1030002
+      value: 0.839
       objectReference: {fileID: 0}
     - target: {fileID: 3952712226871755753, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -9223,7 +9223,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 530083387105074322, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.88300014
+      value: 0.438
       objectReference: {fileID: 0}
     - target: {fileID: 530083387105074322, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
       propertyPath: m_LocalPosition.y
@@ -9977,7 +9977,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1054256116159067167, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.663
+      value: 0.105
       objectReference: {fileID: 0}
     - target: {fileID: 1054256116159067167, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: m_LocalPosition.y
@@ -10350,7 +10350,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1684330856}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.5}
+  m_LocalPosition: {x: 0, y: 0, z: -1.33}
   m_LocalScale: {x: 0.04, y: 0.04, z: 0.04}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -10358,7 +10358,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.663, y: 1.45}
+  m_AnchoredPosition: {x: 0.302, y: 1.45}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1684330858
@@ -10464,7 +10464,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 10.524193, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
@@ -11419,7 +11419,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.883, y: 1.45}
+  m_AnchoredPosition: {x: 0.682, y: 1.45}
   m_SizeDelta: {x: 20, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1896361893
@@ -11523,7 +11523,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 4.747946, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0
