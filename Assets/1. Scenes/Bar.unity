@@ -3161,7 +3161,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.619}
+  m_AnchoredPosition: {x: 0, y: 1.869}
   m_SizeDelta: {x: 0.3, y: 0.12}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &370906993
@@ -8514,11 +8514,17 @@ MonoBehaviour:
   _snapAngle: 30
   _smoothTurnSpeed: 120
   _turnDeadzone: 0.6
+  _autoCalibrateHeight: 1
+  _targetEyeHeight: 1.6
+  _recenterButton: 8
   _standingHeightOffset: 0.4
   _heightModifier: 4
   _heightAdjustSpeed: 0.6
   _minHeightOffset: -0.5
-  _maxHeightOffset: 1.2
+  _maxHeightOffset: 1.5
+  _minValidHeadHeight: 0.6
+  _calibrationSettleTime: 0.6
+  _debugLog: 0
 --- !u!1 &1271294697
 GameObject:
   m_ObjectHideFlags: 0

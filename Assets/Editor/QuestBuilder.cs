@@ -16,7 +16,7 @@ namespace VRGame.EditorTools
     public static class QuestBuilder
     {
         private const string OutputDir = "Builds";
-        private const string ApkName = "Pour Decisions.apk";
+        private const string ApkName = "PourDecisions.apk";
 
         [MenuItem("Build/Build Quest APK %#b")]
         public static void BuildQuestAPK()

@@ -57,19 +57,39 @@ namespace Gameplay.Interactions
         [SerializeField] private float _turnDeadzone = 0.6f;
 
         [Header("Height")]
-        [Tooltip("Vertical offset applied on start so a seated/short player still stands at a comfortable " +
-                 "bar height. Tweak live with the height modifier + right stick Y.")]
+        [Tooltip("Auto-calibrate the view height on start so the player's eyes land at TargetEyeHeight " +
+                 "whether they're seated or standing (no need to stand up). When off, falls back to the " +
+                 "fixed StandingHeightOffset below.")]
+        [SerializeField] private bool _autoCalibrateHeight = true;
+        [Tooltip("Eye height (m) the bar was designed around. Calibration lifts/lowers the rig so the " +
+                 "headset sits at this height regardless of the player's real seated/standing height.")]
+        [SerializeField] private float _targetEyeHeight = 1.6f;
+        [Tooltip("Press to re-run height calibration at runtime (e.g. after shifting in your chair). " +
+                 "Y on the left Touch by default.")]
+        [SerializeField] private OVRInput.Button _recenterButton = OVRInput.Button.Four; // Y on left Touch
+        [Tooltip("Vertical offset applied on start when auto-calibrate is OFF, so a seated/short player " +
+                 "still reaches a comfortable bar height. Tweak live with the height modifier + right stick Y.")]
         [SerializeField] private float _standingHeightOffset = 0.4f;
         [Tooltip("Hold this button + push right stick Y to raise/lower the view at runtime.")]
         [SerializeField] private OVRInput.Button _heightModifier = OVRInput.Button.Three; // X on left Touch
         [SerializeField] private float _heightAdjustSpeed = 0.6f;
         [SerializeField] private float _minHeightOffset = -0.5f;
-        [SerializeField] private float _maxHeightOffset = 1.2f;
+        [SerializeField] private float _maxHeightOffset = 1.5f;
+        [Tooltip("Minimum plausible head world-Y before calibration runs. Guards against calibrating while " +
+                 "the headset pose is still settling at start (a transient low/origin reading).")]
+        [SerializeField] private float _minValidHeadHeight = 0.6f;
+        [Tooltip("After tracking becomes valid, keep re-calibrating for this long before locking in, so the " +
+                 "final height uses the settled pose (not a noisy first frame). Avoids starting up too high.")]
+        [SerializeField] private float _calibrationSettleTime = 0.6f;
+        [Tooltip("Log measured head height and applied offset on each calibration (debugging only).")]
+        [SerializeField] private bool _debugLog = false;
 
         private Transform _head;
         private Transform _leftHand;
         private bool _snapArmed = true;
         private float _heightOffset;
+        private bool _calibrated;
+        private float _calibTimer;
 
         // Teleport state
         private Transform _reticle;
@@ -92,7 +112,10 @@ namespace Gameplay.Interactions
                 MyLogger.LogWarning("[ThumbstickLocomotion] No OVRCameraRig found. Movement will use local forward.");
             }
 
-            ApplyHeightOffset(_standingHeightOffset);
+            // With auto-calibrate, wait for valid tracking and let Update() calibrate on the first good
+            // frame (the headset pose is still at the origin on frame 0). Otherwise apply the fixed offset.
+            if (_autoCalibrateHeight) _calibrated = false;
+            else ApplyHeightOffset(_standingHeightOffset);
         }
 
         void Update()
@@ -101,6 +124,45 @@ namespace Gameplay.Interactions
             else HandleTeleport();
             HandleTurn();
             HandleHeight();
+            HandleCalibration();
+        }
+
+        // Auto-calibrate once tracking is valid, and re-calibrate on demand via the recenter button.
+        // We don't lock on the first valid frame: the headset pose is noisy right after launch and can
+        // briefly read low, which would lock in too high an offset (player floats). Instead we keep
+        // re-calibrating across a short settle window so the final, settled pose wins, then lock.
+        private void HandleCalibration()
+        {
+            // Recenter re-arms a fresh settle pass (also covers manual recenter after auto-calibration).
+            if (OVRInput.GetDown(_recenterButton)) { _calibrated = false; _calibTimer = 0f; }
+
+            if (!_autoCalibrateHeight || _calibrated) return;
+
+            // Wait for plausible tracking; reset the settle timer until then.
+            if (_head == null || _head.position.y < _minValidHeadHeight) { _calibTimer = 0f; return; }
+
+            Calibrate();                              // idempotent: snaps eyes to target, last write wins
+            _calibTimer += Time.deltaTime;
+            if (_calibTimer >= _calibrationSettleTime) _calibrated = true;
+        }
+
+        /// <summary>
+        /// Lifts/lowers the rig so the headset (centerEyeAnchor) sits at <see cref="_targetEyeHeight"/>,
+        /// regardless of whether the player is seated or standing. The measured eye Y already includes any
+        /// offset applied so far, so we add the remaining delta on top of the current offset. Returns false
+        /// (no-op) until the headset pose is plausible, to avoid calibrating against the frame-0 origin.
+        /// </summary>
+        private bool Calibrate()
+        {
+            if (_head == null || _head.position.y < _minValidHeadHeight) return false;
+
+            float delta = _targetEyeHeight - _head.position.y;
+            ApplyHeightOffset(_heightOffset + delta);
+
+            if (_debugLog)
+                MyLogger.LogInfo($"[ThumbstickLocomotion] Calibrated: measured eye Y={_head.position.y:F2}m, " +
+                                 $"target={_targetEyeHeight:F2}m, offset now={_heightOffset:F2}m.");
+            return true;
         }
 
         private void HandleSmoothMove()
