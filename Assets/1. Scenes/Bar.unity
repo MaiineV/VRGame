@@ -252,6 +252,7 @@ MonoBehaviour:
   _idleVolume: 0.35
   _nightVolume: 0.25
   _feedbackVolume: 0.6
+  _ambienceVolume: 0.3
 --- !u!4 &40441150
 Transform:
   m_ObjectHideFlags: 0
@@ -295,7 +296,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
