@@ -2,7 +2,9 @@ using Data.Enums;
 using Gameplay.Interactions;
 using Services;
 using Services.Audio;
+using Services.Haptics;
 using Services.UpdateService;
+using Services.Vfx;
 using UnityEngine;
 using Utilities;
 
@@ -35,6 +37,9 @@ namespace Gameplay.Liquid
         private bool _pouring;
         private int _pourLoopHandle;
         private float _diagCooldown;   // throttles the tilt-but-no-pour diagnostic
+        private float _splashTimer;    // throttles the splash burst (fixed update is ~50 fps)
+
+        private const float SplashInterval = 0.08f;
 
         public bool IsPouring => _pouring;
         public event System.Action<float> Poured; // volume ml per tick
@@ -171,10 +176,29 @@ namespace Gameplay.Liquid
             if (_stream != null)
                 _stream.Show(_neck.position, streamEnd, _bottle.SO.Ingredient.LiquidColor);
 
+            // Splash droplets where the stream lands (only when it actually hits a container),
+            // throttled so the 50 fps fixed tick doesn't flood particles.
+            if (_splashTimer > 0f) _splashTimer -= Time.fixedDeltaTime;
+            if (target != null && _splashTimer <= 0f
+                && ServiceLocator.TryGet<IVfxService>(out var vfx))
+            {
+                _splashTimer = SplashInterval;
+                vfx.PlayBurst(VfxId.Splash, streamEnd, _bottle.SO.Ingredient.LiquidColor);
+            }
+
             if (_pourLoopHandle == 0 && _pourSfx != SfxId.None
                 && ServiceLocator.TryGet<IAudioService>(out var audio))
             {
                 _pourLoopHandle = audio.StartLoop(_pourSfx, _neck, _neck.position);
+            }
+
+            // Light sustained buzz on the pouring hand. Re-issued each fixed tick (just over one
+            // tick long) so it stays alive while pouring and dies on its own when we stop.
+            if (_grab != null && _grab.HeldByHand >= 0
+                && ServiceLocator.TryGet<IHapticService>(out var hap))
+            {
+                var ctrl = _grab.HeldByHand == 0 ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
+                hap.Pulse(ctrl, 0.18f, Time.fixedDeltaTime + 0.02f);
             }
 
             Poured?.Invoke(volume);

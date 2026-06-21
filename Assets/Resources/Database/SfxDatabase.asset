@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.SfxDatabase
   _entries:
   - id: 10
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: c8d2daf68156435e8b8be92034fcbbf1, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
@@ -22,23 +22,23 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 1
   - id: 20
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: f17eea8a7f2548dbab811dea2f36d956, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
     spatialBlend: 1
-    minRetriggerInterval: 0
+    minRetriggerInterval: 0.05
     loop: 0
   - id: 21
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 01b58aac09d042b8bab952223f50d73a, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
     spatialBlend: 1
-    minRetriggerInterval: 0
+    minRetriggerInterval: 0.05
     loop: 0
   - id: 30
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 76e0ab8a983243109debe7f6463684ed, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
@@ -46,7 +46,7 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 0
   - id: 31
-    clip: {fileID: 0}
+    clip: {fileID: 8300000, guid: 3af9ea4ee26a45c6968cea2e9699cbfe, type: 3}
     volume: 0.8
     pitchMin: 0.95
     pitchMax: 1.05
@@ -102,10 +102,26 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 1
   - id: 60
-    clip: {fileID: 0}
-    volume: 0.8
+    clip: {fileID: 8300000, guid: 66f2e6318bb04ecebb1f489890bea609, type: 3}
+    volume: 0.7
     pitchMin: 0.95
     pitchMax: 1.05
     spatialBlend: 1
+    minRetriggerInterval: 0.05
+    loop: 0
+  - id: 70
+    clip: {fileID: 8300000, guid: 9ed6c5a6ed4c41a7ad6e96068e58b497, type: 3}
+    volume: 0.5
+    pitchMin: 0.9
+    pitchMax: 1.1
+    spatialBlend: 1
     minRetriggerInterval: 0
     loop: 0
+  - id: 110
+    clip: {fileID: 8300000, guid: 25b7a9f6b8ce4a18953e15d2d5307202, type: 3}
+    volume: 0.3
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1

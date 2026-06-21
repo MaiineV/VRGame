@@ -1,6 +1,7 @@
 using Data.Enums;
 using Services;
 using Services.Audio;
+using Services.Haptics;
 using Services.UpdateService;
 using UnityEngine;
 using UnityEngine.Events;
@@ -75,6 +76,9 @@ namespace UI.Diegetic
             _cooldown = _debounceSeconds;
             if (_pressSfx != SfxId.None && ServiceLocator.TryGet<IAudioService>(out var audio))
                 audio.PlayOneShot(_pressSfx, transform.position);
+            // Crisp confirmation buzz. The poking hand isn't identified here, so pulse both briefly.
+            if (ServiceLocator.TryGet<IHapticService>(out var hap))
+                hap.PulseBoth(0.35f, 0.05f);
             _onPressed?.Invoke();
             Pressed?.Invoke();
         }

@@ -1,3 +1,5 @@
+using Services;
+using Services.Haptics;
 using UnityEngine;
 using Utilities;
 
@@ -243,12 +245,21 @@ namespace Gameplay.Interactions
                 _heldColliders[i].isTrigger = true;
             }
 
+            // Tag the holding hand so gameplay (e.g. pour) can buzz the correct controller.
+            _held.SetHeldBy(_controller == OVRInput.Controller.LTouch ? 0 : 1);
             _held.SetHeld(true);
+
+            if (ServiceLocator.TryGet<IHapticService>(out var hap))
+                hap.Pulse(_controller, 0.4f, 0.06f);
         }
 
         void Release()
         {
             if (_held == null) return;
+
+            if (ServiceLocator.TryGet<IHapticService>(out var hap))
+                hap.Pulse(_controller, 0.25f, 0.04f);
+
             _held.transform.SetParent(_heldOriginalParent, true);
 
             if (_heldColliders != null)

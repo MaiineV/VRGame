@@ -5,6 +5,7 @@ using Services.Economy;
 using Services.GameState;
 using Services.Save;
 using Services.UpdateService;
+using Services.Vfx;
 using TMPro;
 using UnityEngine;
 
@@ -107,6 +108,8 @@ namespace UI.Diegetic
         private void HandleSale(RecipeId recipe, int gross)
         {
             _audio?.PlayOneShot(SfxId.CashSale, transform.position);
+            if (ServiceLocator.TryGet<IVfxService>(out var vfx))
+                vfx.PlayBurst(VfxId.Coins, transform.position, new Color(1f, 0.84f, 0.2f, 1f));
             if (_flashLabel == null) return;
             _flashLabel.color = _saleColor;
             _flashLabel.text = "+" + gross;

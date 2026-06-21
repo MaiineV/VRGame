@@ -1,7 +1,9 @@
 using Data.Enums;
 using Services;
 using Services.Audio;
+using Services.Haptics;
 using Services.UpdateService;
+using Services.Vfx;
 using UnityEngine;
 
 namespace Gameplay.Systems
@@ -23,6 +25,8 @@ namespace Gameplay.Systems
         [Tooltip("Optional extra outward velocity applied to shard rigidbodies on spawn.")]
         [SerializeField] private float _shardExplosionForce = 0.5f;
         [SerializeField] private SfxId _breakSfx = SfxId.GlassBreak;
+        [Tooltip("Tint of the shatter particle burst (e.g. light grey for glass, amber for a bottle).")]
+        [SerializeField] private Color _breakVfxColor = new Color(0.85f, 0.9f, 1f, 1f);
 
         public event System.Action<Breakable> Broken;
 
@@ -54,6 +58,13 @@ namespace Gameplay.Systems
 
             if (_breakSfx != SfxId.None && ServiceLocator.TryGet<IAudioService>(out var audio))
                 audio.PlayOneShot(_breakSfx, transform.position);
+
+            // No clear owning hand at break time — buzz both with a short sharp pulse.
+            if (ServiceLocator.TryGet<IHapticService>(out var hap))
+                hap.PulseBoth(0.6f, 0.12f);
+
+            if (ServiceLocator.TryGet<IVfxService>(out var vfx))
+                vfx.PlayBurst(VfxId.Shatter, transform.position, _breakVfxColor);
 
             gameObject.SetActive(false);
             ReturnShardsLater.Schedule(_shardsPrefab, shards, _shardLifetime);

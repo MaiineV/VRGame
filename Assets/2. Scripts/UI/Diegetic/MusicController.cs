@@ -12,10 +12,13 @@ namespace UI.Diegetic
         [SerializeField, Range(0f, 1f)] private float _idleVolume = 0.35f;
         [SerializeField, Range(0f, 1f)] private float _nightVolume = 0.25f;
         [SerializeField, Range(0f, 1f)] private float _feedbackVolume = 0.6f;
+        [Tooltip("Steady bar room-tone loop, runs the whole time the player is in the bar.")]
+        [SerializeField, Range(0f, 1f)] private float _ambienceVolume = 0.3f;
 
         private IAudioService _audio;
         private IGameStateService _state;
         private int _musicHandle;
+        private int _ambienceHandle;
 
         void OnEnable()
         {
@@ -24,12 +27,20 @@ namespace UI.Diegetic
 
             _state.StateChanged += OnStateChanged;
             ApplyMusic(_state.Current);
+
+            // Persistent bar ambience, independent of the music track (separate pool slot).
+            _ambienceHandle = _audio.StartLoop(SfxId.BarAmbience, null, Vector3.zero, _ambienceVolume);
         }
 
         void OnDisable()
         {
             if (_state != null) _state.StateChanged -= OnStateChanged;
             StopCurrentMusic();
+            if (_ambienceHandle != 0 && _audio != null)
+            {
+                _audio.StopLoop(_ambienceHandle);
+                _ambienceHandle = 0;
+            }
             _audio = null;
             _state = null;
         }

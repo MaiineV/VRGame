@@ -5,6 +5,7 @@ using Gameplay.Customer.States;
 using Gameplay.Liquid;
 using Gameplay.Systems;
 using Services;
+using Services.Audio;
 using Services.Recipe;
 using Services.UpdateService;
 using UnityEngine;
@@ -44,6 +45,31 @@ namespace Gameplay.Customer
         public float DrinkTimer;
         public float Drunkenness;
 
+        // --- Locomotion animation ---
+        // The customer ROOT is moved by code (MoveTowards); the Animator on the model child plays the
+        // matching clip. We pick the clip from the root's real per-frame speed (so pauses, approach,
+        // wander and leave are all covered without the states knowing about animation) plus drunkenness.
+        [Tooltip("Drunkenness (0..1) at or above which the customer plays the drunk idle/walk clips.")]
+        [SerializeField] private float _drunkAnimThreshold = 0.4f;
+        [Tooltip("Root speed (m/s) above which the customer is considered walking rather than idle.")]
+        [SerializeField] private float _walkSpeedThreshold = 0.05f;
+
+        private Animator _animator;
+        private readonly int _hashIdle = Animator.StringToHash("Idle");
+        private readonly int _hashWalking = Animator.StringToHash("Walking");
+        private readonly int _hashDrunk = Animator.StringToHash("Drunk");
+        private readonly int _hashDrunkWalk = Animator.StringToHash("Drunk Walk");
+        private int _currentAnimHash;
+        private Vector3 _lastAnimPos;
+        private bool _hasAnimPos;
+
+        // Footsteps: emit one each time the customer covers a stride's worth of ground (scales with
+        // speed for free). Independent of the Animator, so it works even on un-rigged customers.
+        [Tooltip("Metres walked between footstep sounds.")]
+        [SerializeField] private float _strideLength = 0.55f;
+        private float _stepDistance;
+        private IAudioService _audio;
+
         public event System.Action<CustomerEntity, RecipeId, float, bool> Served;
         public event System.Action<CustomerEntity, bool> Left;
 
@@ -65,6 +91,13 @@ namespace Gameplay.Customer
             Seat = seat;
             TargetRecipe = recipe;
             ExitPoint = exitPoint;
+
+            // Resolve the model's Animator once (Human customer has one; kobolds don't — then this
+            // stays null and all animation calls are harmless no-ops). Reset anim tracking for reuse.
+            if (_animator == null) _animator = GetComponentInChildren<Animator>();
+            _currentAnimHash = 0;
+            _hasAnimPos = false;
+            _stepDistance = 0f;
 
             // Reset runtime state for clean reuse.
             WaitTimer = so.PatienceSeconds;
@@ -110,7 +143,61 @@ namespace Gameplay.Customer
             Machine?.Shutdown();
         }
 
-        public void MyUpdate() => Machine?.Update();
+        public void MyUpdate()
+        {
+            Machine?.Update();
+            UpdateAnimator();
+        }
+
+        /// <summary>
+        /// Drives the model's locomotion animation from the root's actual movement this frame and the
+        /// current drunkenness. Walking/Idle by speed; Drunk Walk/Drunk once drunk enough. No-op when
+        /// the model has no Animator (e.g. kobold customers).
+        /// </summary>
+        private void UpdateAnimator()
+        {
+            Vector3 p = transform.position;
+            float dt = Time.deltaTime;
+            float dist = 0f;
+            if (_hasAnimPos && dt > 0f)
+            {
+                Vector3 d = p - _lastAnimPos;
+                d.y = 0f;
+                dist = d.magnitude;
+            }
+            _lastAnimPos = p;
+            _hasAnimPos = true;
+
+            float speed = dt > 0f ? dist / dt : 0f;
+            bool moving = speed > _walkSpeedThreshold;
+
+            UpdateFootsteps(moving, dist);
+
+            if (_animator == null) return;
+
+            bool drunk = Drunkenness > _drunkAnimThreshold;
+            int hash = moving ? (drunk ? _hashDrunkWalk : _hashWalking)
+                              : (drunk ? _hashDrunk : _hashIdle);
+
+            if (hash != _currentAnimHash)
+            {
+                _animator.CrossFade(hash, 0.15f, 0);
+                _currentAnimHash = hash;
+            }
+        }
+
+        /// <summary>Emits a positional footstep each time the customer covers a stride's worth of
+        /// distance. Speed-correct for free (faster walk → more distance → more steps).</summary>
+        private void UpdateFootsteps(bool moving, float distThisFrame)
+        {
+            if (!moving) return;
+            _stepDistance += distThisFrame;
+            if (_stepDistance < _strideLength) return;
+            _stepDistance = 0f;
+
+            if (_audio == null) ServiceLocator.TryGet<IAudioService>(out _audio);
+            _audio?.PlayOneShot(SfxId.Footstep, transform.position);
+        }
 
         public bool MoveTowards(Vector3 target, float arriveDistance = 0.05f)
         {

@@ -4,14 +4,17 @@ using Services.Audio;
 using Services.Database;
 using Services.Economy;
 using Services.GameState;
+using Services.Haptics;
 using Services.Night;
 using Services.Progression;
 using Services.Recipe;
 using Services.Save;
 using Services.UpdateService;
+using Services.Vfx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Core.Managers;
+using Services.Atmosphere;
 using Utilities;
 
 namespace Core
@@ -106,8 +109,13 @@ namespace Core
             ServiceLocator.Register<ICustomerPoolService, CustomerPoolService>(mImmediateInit: true);
             ServiceLocator.Register<IGlassPoolService, GlassPoolService>(mImmediateInit: true);
             ServiceLocator.Register<IAudioService, AudioService>(mImmediateInit: true);
+            ServiceLocator.Register<IHapticService, HapticService>(mImmediateInit: true);
+            ServiceLocator.Register<IVfxService, VfxService>(mImmediateInit: true);
             ServiceLocator.Register<INightService, NightService>(mImmediateInit: true);
             ServiceLocator.Register<IGameStateService, GameStateService>(mImmediateInit: true);
+            // Registered after GameStateService: AtmosphereService subscribes to it in Initialize(),
+            // so the state service must already be registered when this immediate-inits.
+            ServiceLocator.Register<IAtmosphereService, AtmosphereService>(mImmediateInit: true);
             // TODO: registrar progresivamente segun se implementen
             //   IUIService
         }

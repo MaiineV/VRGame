@@ -6,7 +6,9 @@ using Gameplay.Liquid;
 using Services;
 using Services.Audio;
 using Services.Database;
+using Services.Haptics;
 using Services.Night;
+using Services.Vfx;
 using UnityEngine;
 
 namespace Gameplay.Customer.States
@@ -56,8 +58,17 @@ namespace Gameplay.Customer.States
                     audio.PlayOneShot(sfx, c.transform.position);
                 }
 
+                // Serve confirmation: a satisfying double-tap feel on success, a softer nudge on a miss.
+                if (ServiceLocator.TryGet<IHapticService>(out var hap))
+                    hap.PulseBoth(accepted ? 0.5f : 0.3f, accepted ? 0.12f : 0.06f);
+
                 if (accepted)
                 {
+                    // Green sparkle above the satisfied customer.
+                    if (ServiceLocator.TryGet<IVfxService>(out var vfx))
+                        vfx.PlayBurst(VfxId.ServeSuccess, c.transform.position + Vector3.up * 1.2f,
+                                      new Color(0.3f, 1f, 0.4f, 1f));
+
                     // Pay scales with score (full when perfect, half when one axis is wrong).
                     c.RaiseServed(c.TargetRecipe, score, isExact);
                     c.Machine.TransitionTo(CustomerStateId.Wandering);

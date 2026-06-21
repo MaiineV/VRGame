@@ -16,6 +16,13 @@ namespace Gameplay.Interactions
 
         public bool IsHeld { get; private set; }
 
+        /// <summary>Which hand currently holds this: 0 = left, 1 = right, -1 = none. Set by the grab
+        /// system so gameplay (e.g. pour haptics) can target the holding controller without this
+        /// stack-agnostic bridge depending on any specific VR SDK type.</summary>
+        public int HeldByHand { get; private set; } = -1;
+
+        public void SetHeldBy(int hand) => HeldByHand = hand;
+
         public event System.Action Grabbed;
         public event System.Action Released;
 
@@ -23,6 +30,7 @@ namespace Gameplay.Interactions
         {
             if (IsHeld == held) return;
             IsHeld = held;
+            if (!held) HeldByHand = -1;
             if (held)
             {
                 _onGrabbed?.Invoke();
