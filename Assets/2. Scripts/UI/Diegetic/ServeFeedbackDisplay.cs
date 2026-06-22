@@ -14,12 +14,12 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _resultLabel;
 
         [Header("Correct")]
-        [SerializeField] private string _correctText = "OK!";
-        [SerializeField] private Color _correctColor = new Color(0.2f, 1f, 0.3f, 1f);
+        [SerializeField] private string _correctText = "$$$";
+        [SerializeField] private Color _correctColor = new Color(0.3f, 1f, 0.4f, 1f);
 
         [Header("Wrong")]
-        [SerializeField] private string _wrongText = "MAL";
-        [SerializeField] private Color _wrongColor = new Color(1f, 0.3f, 0.2f, 1f);
+        [SerializeField] private string _wrongText = "$";
+        [SerializeField] private Color _wrongColor = new Color(1f, 0.2f, 0.15f, 1f);
 
         [Header("Timing")]
         [SerializeField] private float _displayDuration = 2f;
@@ -103,7 +103,10 @@ namespace UI.Diegetic
         {
             if (_popupRoot == null || _resultLabel == null) return;
 
-            _resultLabel.text = isExact ? _correctText : _wrongText;
+            // Money-symbol feedback: well-served = "$$$" (green), badly-served = "$" (red). Hardcoded
+            // here (not just the field defaults) so pre-existing scene instances that serialized the old
+            // "OK!"/"MAL" text still show the symbols without needing a per-instance inspector edit.
+            _resultLabel.text = isExact ? "$$$" : "$";
             _resultLabel.color = isExact ? _correctColor : _wrongColor;
             _popupRoot.transform.localPosition = _startPos;
             _popupRoot.SetActive(true);

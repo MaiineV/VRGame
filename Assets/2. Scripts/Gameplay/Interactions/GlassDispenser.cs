@@ -27,6 +27,8 @@ namespace Gameplay.Interactions
         [SerializeField] private int _buffer = 2;
         [Tooltip("Override the auto seat count. 0 = count CustomerSeatPoints in the scene.")]
         [SerializeField] private int _seatCountOverride = 0;
+        [Tooltip("Hard ceiling on glasses live in the world at once, regardless of seats + buffer.")]
+        [SerializeField] private int _maxGlasses = 6;
         [Tooltip("Dispense one glass at scene start so the bar isn't empty.")]
         [SerializeField] private bool _spawnOneOnStart = true;
         [Tooltip("Auto-dispense a replacement whenever a glass leaves play (a customer carries it " +
@@ -97,8 +99,10 @@ namespace Gameplay.Interactions
             int seats = _seatCountOverride > 0
                 ? _seatCountOverride
                 : FindObjectsByType<CustomerSeatPoint>(FindObjectsSortMode.None).Length;
-            _pool.Capacity = Mathf.Max(1, seats + _buffer);
-            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = {seats} seats + {_buffer} = {_pool.Capacity}.");
+            int budget = Mathf.Max(1, seats + _buffer);
+            if (_maxGlasses > 0) budget = Mathf.Min(budget, _maxGlasses);
+            _pool.Capacity = budget;
+            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = min({seats} seats + {_buffer}, cap {_maxGlasses}) = {_pool.Capacity}.");
 
             SubscribePool();
         }
