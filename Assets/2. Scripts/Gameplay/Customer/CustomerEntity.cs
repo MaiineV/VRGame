@@ -8,6 +8,7 @@ using Services;
 using Services.Audio;
 using Services.UpdateService;
 using UnityEngine;
+using UnityEngine.AI;
 using Utilities;
 
 namespace Gameplay.Customer
@@ -71,6 +72,12 @@ namespace Gameplay.Customer
         private float _stepDistance;
         private IAudioService _audio;
 
+        // NavMeshAgent drives movement (authoritative): it owns the transform position+rotation and paths
+        // around obstacles. MoveTowards feeds it a destination; we only re-path when the target changes.
+        private NavMeshAgent _agent;
+        private Vector3 _lastAgentDest;
+        private bool _hasAgentDest;
+
         public event System.Action<CustomerEntity, RecipeId, float, bool> Served;
         public event System.Action<CustomerEntity, bool> Left;
 
@@ -99,6 +106,21 @@ namespace Gameplay.Customer
             _currentAnimHash = 0;
             _hasAnimPos = false;
             _stepDistance = 0f;
+
+            // (Re)configure the NavMeshAgent each Init so pooled customers come back clean. Warp snaps the
+            // agent onto the navmesh at the spawn pose; from here all movement goes through the agent.
+            if (_agent == null) _agent = GetComponent<NavMeshAgent>();
+            if (_agent != null)
+            {
+                _agent.enabled = true;
+                _agent.speed = so.WalkSpeed;
+                _agent.updatePosition = true;
+                _agent.updateRotation = true;
+                _agent.Warp(transform.position);
+                _agent.isStopped = false;
+                if (_agent.isOnNavMesh) _agent.ResetPath();
+            }
+            _hasAgentDest = false;
 
             // Reset runtime state for clean reuse.
             WaitTimer = so.PatienceSeconds;
@@ -200,8 +222,30 @@ namespace Gameplay.Customer
             _audio?.PlayOneShot(SfxId.Footstep, transform.position);
         }
 
+        /// <summary>
+        /// Walks the customer toward <paramref name="target"/>, returning true once within
+        /// <paramref name="arriveDistance"/>. Uses the NavMeshAgent (paths around obstacles) when one is
+        /// available and on the navmesh; falls back to a straight-line move otherwise. Re-paths only when
+        /// the target actually changes, so calling it every frame with the same target is cheap.
+        /// </summary>
         public bool MoveTowards(Vector3 target, float arriveDistance = 0.05f)
         {
+            if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+            {
+                if (_agent.isStopped) _agent.isStopped = false;
+                _agent.speed = So.WalkSpeed;
+                _agent.stoppingDistance = arriveDistance;
+                if (!_hasAgentDest || (target - _lastAgentDest).sqrMagnitude > 0.0025f)
+                {
+                    _agent.SetDestination(target);
+                    _lastAgentDest = target;
+                    _hasAgentDest = true;
+                }
+                if (_agent.pathPending) return false;
+                return _agent.remainingDistance <= arriveDistance + 0.05f;
+            }
+
+            // Fallback: straight-line move when no navmesh/agent is available.
             var step = So.WalkSpeed * Time.deltaTime;
             var pos = transform.position;
             var dir = target - pos;
@@ -223,16 +267,35 @@ namespace Gameplay.Customer
         /// </summary>
         public void Sit()
         {
-            var p = transform.position;
-            transform.position = new Vector3(p.x, SeatLiftY, p.z);
+            // Stop the agent so it holds position while seated; FaceLookAt then turns to the bar (the
+            // stopped agent won't fight the manual rotation since it has no velocity).
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+                _hasAgentDest = false;
+            }
+            else
+            {
+                var p = transform.position;
+                transform.position = new Vector3(p.x, SeatLiftY, p.z);
+            }
             FaceLookAt();
         }
 
         /// <summary>Drops the customer back to the floor so it can walk away upright.</summary>
         public void Stand()
         {
-            var p = transform.position;
-            transform.position = new Vector3(p.x, 0f, p.z);
+            // Let the agent move again (it was stopped while seated).
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = false;
+            }
+            else
+            {
+                var p = transform.position;
+                transform.position = new Vector3(p.x, 0f, p.z);
+            }
         }
 
         /// <summary>

@@ -75,7 +75,11 @@ namespace Services.GameState
             _save.Save();
             MyLogger.LogInfo($"[GameState] Persisted: cash={data.cash}, nights={data.nightsCompleted}, best={data.bestNightEarnings}");
 
-            Transition(GameState.NightSummary);
+            // Two-moment loop (buy ↔ play): when the night ends go STRAIGHT back to the day shop, with
+            // no intermediate summary screen. Earnings are still tallied and saved above; the player just
+            // returns to shopping for the next night. (AcknowledgeSummary is kept for back-compat but the
+            // flow no longer passes through NightSummary.)
+            Transition(GameState.DayShop);
         }
 
         private void Transition(GameState to)

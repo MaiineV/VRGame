@@ -11,6 +11,8 @@ namespace Gameplay.Customer.States
     {
         private bool _published;
         private float _wobbleTime;
+        // Index of the next exit-route waypoint to walk to (before heading to the exit point).
+        private int _wp;
 
         // Resolved once on Enter so ComputeWobble doesn't TryGet every tick. May be null.
         private INightService _night;
@@ -20,6 +22,7 @@ namespace Gameplay.Customer.States
             c.Stand();
             _published = false;
             _wobbleTime = 0f;
+            _wp = 0;
             ServiceLocator.TryGet(out _night);
 
             // Take the glass along (covers the unhappy path that skips Wandering). It rides with the
@@ -36,6 +39,14 @@ namespace Gameplay.Customer.States
                 bool happy = c.DrinkTimer < c.So.DrinkSeconds;
                 c.RaiseLeft(happy);
                 _published = true;
+            }
+
+            // Walk the editable exit route first (seat → ... → near the door), then to the exit point.
+            var route = BarSceneRoot.Instance != null ? BarSceneRoot.Instance.ExitRoute : null;
+            if (route != null && _wp < route.Count)
+            {
+                if (c.MoveTowards(route.GetPoint(_wp), 0.25f)) _wp++;
+                return;
             }
 
             var target = c.ExitPoint.position;

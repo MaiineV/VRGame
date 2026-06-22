@@ -42,6 +42,18 @@ namespace UI.Diegetic
         void Awake()
         {
             if (_label == null) _label = GetComponentInChildren<TMP_Text>(true);
+
+            // Center the price over the bottle. The authored label sat offset to the right (a non-zero
+            // anchoredPosition.x plus a right margin), which — combined with the tag facing away — read as
+            // "shifted right". Zero the horizontal offset/margins and center the text so it sits squarely
+            // above the bottle.
+            if (_label != null)
+            {
+                var rt = _label.rectTransform;
+                var ap = rt.anchoredPosition; ap.x = 0f; rt.anchoredPosition = ap;
+                var m = _label.margin; m.x = 0f; m.z = 0f; _label.margin = m;
+                _label.alignment = TMPro.TextAlignmentOptions.Center;
+            }
         }
 
         void OnEnable() => Bind();
@@ -76,9 +88,9 @@ namespace UI.Diegetic
             // sync with the owned/shop state even if a StateChanged/UnlocksChanged event was missed.
             Apply();
 
-            // No runtime re-orientation: the tags are authored facing the player (identity rotation, +Z
-            // toward where the player stands in front of the shelf). The old camera-facing billboard
-            // locked a bad early frame and left the text sideways — so we just keep the authored rotation.
+            // No runtime re-orientation: the tags keep their authored (fixed) rotation. They're rotated
+            // in the scene to face the player — NO camera billboard (that tilted/followed the head and
+            // read as broken). The tag follows the bottle's POSITION only; its rotation stays put.
         }
 
         // Bind to the NEAREST bottle matching the SO, not just the first. With duplicate bottles of the
