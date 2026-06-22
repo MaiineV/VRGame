@@ -84,7 +84,9 @@ namespace Gameplay.Interactions
 
             // Gray out the physical button while the budget is exhausted (PokeButton stays silent
             // when not interactable). With no pool service (no bootstrap) it's always interactable.
-            if (_spawnButton != null) _spawnButton.Interactable = _pool == null || _pool.CanSpawn;
+            // Interactable when a fresh glass can be spawned OR there's a live glass we could recycle to
+            // make room (TrySpawn evicts the oldest free one at the cap). Only goes dead with no pool.
+            if (_spawnButton != null) _spawnButton.Interactable = _pool == null || _pool.CanSpawn || _pool.LiveCount > 0;
 
             if (_enableControllerFallback && OVRInput.GetDown(_fallbackButton, _fallbackController))
                 TrySpawn();
@@ -143,6 +145,9 @@ namespace Gameplay.Interactions
             var t = _spawnPoint != null ? _spawnPoint : transform;
             if (_pool != null)
             {
+                // At the cap, recycle the oldest free glass so the player can always get a fresh one
+                // instead of the dispenser going dead with stale glasses cluttering the bar.
+                if (!_pool.CanSpawn) _pool.RecycleOldestUnheld();
                 if (!_pool.CanSpawn) return;
                 _pool.Spawn(_glassPrefab, t.position, t.rotation);
             }

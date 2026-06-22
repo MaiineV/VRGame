@@ -84,38 +84,23 @@ namespace Gameplay.Systems
 
         private void RespawnAll()
         {
-            // Only touch OWNED bottles. For-sale (locked) bottles are left exactly where they are so
-            // destroying/recreating them can't flip their lock state.
-            ServiceLocator.TryGet<IProgressionService>(out var progression);
-
-            // Destroy only the live bottles the player OWNS (free, or this specific instance bought).
+            // Full clean rebuild: destroy every live bottle and recreate all captured origins, re-stamping
+            // their instance ids. Ownership now lives in ProgressionService/save (per instance), NOT in
+            // whether a bottle was recreated — so a rebuilt for-sale bottle still reads as for-sale and an
+            // owned one as owned. Rebuilding ALL (instead of only owned) guarantees every bottle is back on
+            // its shelf each night, fixing purchasable bottles that vanished and never returned.
             var live = Object.FindObjectsByType<Bottle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < live.Length; i++)
-            {
-                var b = live[i];
-                if (b == null) continue;
-                bool free = b.SO == null || b.SO.UnlockCost <= 0;
-                if (IsOwned(progression, b.InstanceId, free)) Destroy(b.gameObject);
-            }
+                if (live[i] != null) Destroy(live[i].gameObject);
 
-            // Recreate only the owned origins.
             int recreated = 0;
             for (int i = 0; i < _origins.Count; i++)
             {
-                if (!IsOwned(progression, _origins[i].InstanceId, _origins[i].Free)) continue;
                 Spawn(_origins[i]);
                 recreated++;
             }
 
-            MyLogger.LogInfo($"[BottleRespawner] Respawned {recreated} owned bottle(s) at origin (for-sale bottles left untouched).");
-        }
-
-        // A free bottle (or one with no progression service) is treated as owned (default-usable), so the
-        // reset still works in setups without the shop economy. Otherwise ownership is per physical instance.
-        private static bool IsOwned(IProgressionService progression, int instanceId, bool free)
-        {
-            if (free) return true;
-            return progression == null || progression.IsBottleInstanceOwned(instanceId);
+            MyLogger.LogInfo($"[BottleRespawner] Rebuilt {recreated} bottle(s) at origin (full reset; ownership is per-instance in save).");
         }
 
         private static IngredientId IngredientOf(Bottle b) =>

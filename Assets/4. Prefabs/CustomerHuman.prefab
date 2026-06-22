@@ -618,7 +618,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.6, y: 0.6, z: 0.6}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 64622339649859750}
@@ -637,9 +637,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Customer.CustomerEntity
   _faceYawOffsetDeg: 0
+  _glassHoldOffset: {x: 0.16, y: 1.05, z: 0.18}
   WaitTimer: 0
   DrinkTimer: 0
   Drunkenness: 0
+  _drunkAnimThreshold: 0.4
+  _walkSpeedThreshold: 0.05
+  _strideLength: 0.55
 --- !u!136 &3509643737632359691
 CapsuleCollider:
   m_ObjectHideFlags: 0

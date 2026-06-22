@@ -208,34 +208,10 @@ namespace Gameplay.Customer
             float dist = dir.magnitude;
             if (dist <= arriveDistance) return true;
 
-            Vector3 moveDir = dir.normalized;
-            float moveStep = Mathf.Min(step, dist);
-            moveStep = ClampStepForObstacles(pos, moveDir, moveStep);
-
-            transform.position = pos + moveDir * moveStep;
+            transform.position = pos + dir.normalized * Mathf.Min(step, dist);
             transform.rotation = Quaternion.Slerp(transform.rotation,
-                Quaternion.LookRotation(moveDir, Vector3.up), 10f * Time.deltaTime);
+                Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
             return false;
-        }
-
-        // Straight-line walkers (no NavMesh): stop short of solid scene geometry instead of clipping
-        // through the bar/tables/walls. Casts a body-sized capsule along the move direction, ignoring
-        // triggers, other customers and glasses (so they don't block each other or carried drinks).
-        private float ClampStepForObstacles(Vector3 pos, Vector3 moveDir, float step)
-        {
-            const float bodyRadius = 0.22f;
-            const float bodyHeight = 1.3f;
-            const float skin = 0.05f;
-
-            Vector3 p0 = pos + Vector3.up * bodyRadius;
-            Vector3 p1 = pos + Vector3.up * (bodyHeight - bodyRadius);
-            if (Physics.CapsuleCast(p0, p1, bodyRadius, moveDir, out var hit, step + skin, ~0, QueryTriggerInteraction.Ignore))
-            {
-                if (hit.collider.GetComponentInParent<CustomerEntity>() != null) return step; // ignore other NPCs
-                if (hit.collider.GetComponentInParent<Gameplay.Interactions.Glass>() != null) return step;
-                return Mathf.Max(0f, hit.distance - skin);
-            }
-            return step;
         }
 
         /// <summary>
