@@ -24,7 +24,8 @@ namespace UI.Diegetic
         [SerializeField] private BottleSO _bottle;
         [Tooltip("Label to write the price into. Defaults to a TMP_Text on this object or its children.")]
         [SerializeField] private TMP_Text _label;
-        [Tooltip("If true, the tag rotates to face the main camera each frame (billboard).")]
+        [Tooltip("If true, the tag orients ONCE toward the player (yaw only, kept upright) and then stays " +
+                 "static. The old per-frame billboard tilted with the head and read as 'broken'.")]
         [SerializeField] private bool _faceCamera = true;
         [Tooltip("If true, the tag snaps above the matching bottle each frame so it stays aligned even " +
                  "if the bottle is moved, duplicated, or respawned. Off keeps the tag at its fixed spot.")]
@@ -38,6 +39,7 @@ namespace UI.Diegetic
         private Transform _cam;
         private Gameplay.Interactions.Bottle _bottleInstance;
         private bool? _lastShow;
+        private bool _oriented;   // true once the tag has been locked to its static facing
 
         void Awake()
         {
@@ -76,10 +78,17 @@ namespace UI.Diegetic
             // sync with the owned/shop state even if a StateChanged/UnlocksChanged event was missed.
             Apply();
 
-            if (!_faceCamera) return;
+            // Orient once toward the player, yaw only (upright), then leave it static. A full per-frame
+            // LookRotation pitched the tag up/down as the player tilted their head to look at the shelf,
+            // which read as "broken" text. Static + upright + facing the player fixes that.
+            if (!_faceCamera || _oriented) return;
             if (_cam == null && Camera.main != null) _cam = Camera.main.transform;
-            if (_cam != null)
-                transform.rotation = Quaternion.LookRotation(transform.position - _cam.position);
+            if (_cam == null) return;
+            Vector3 away = transform.position - _cam.position; // TMP's readable face is -Z, so +Z points away from the viewer
+            away.y = 0f;
+            if (away.sqrMagnitude < 1e-4f) return;
+            transform.rotation = Quaternion.LookRotation(away.normalized, Vector3.up);
+            _oriented = true;
         }
 
         // Bind to the NEAREST bottle matching the SO, not just the first. With duplicate bottles of the

@@ -45,6 +45,10 @@ namespace Gameplay.Interactions
             Body.mass = _mass;
             Body.linearDamping = _linearDamping;
             Body.angularDamping = _angularDamping;
+            // Keep the bottle upright when set down: a low centre of mass plus the flat-bottomed
+            // BoxCollider on the prefab make it self-right instead of tipping (a CapsuleCollider's
+            // rounded base balances on a point and falls over). Same trick as Glass.
+            Body.centerOfMass = new Vector3(0f, -0.04f, 0f);
 
             if (_breakable == null) _breakable = GetComponent<Breakable>();
             if (_breakable != null) _breakable.Broken += HandleBroken;

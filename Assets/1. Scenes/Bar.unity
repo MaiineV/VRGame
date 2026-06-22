@@ -1469,6 +1469,19 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6625639b37252e347b493a6f7f0d4050, type: 3}
+--- !u!134 &161869035
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1001 &177698104
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5237,7 +5250,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 799864193}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 161869035}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -5249,7 +5262,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.06, y: 0.05, z: 0.06}
+  m_Size: {x: 0.1, y: 0.08, z: 0.1}
   m_Center: {x: 0, y: 0.02, z: 0}
 --- !u!4 &799864196
 Transform:
@@ -5261,7 +5274,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.835, y: 1.05, z: 0.003}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.7, y: 1.7, z: 1.7}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2138520495}
@@ -10921,6 +10934,7 @@ MonoBehaviour:
   _spawnPoint: {fileID: 0}
   _buffer: 2
   _seatCountOverride: 0
+  _maxGlasses: 6
   _spawnOneOnStart: 1
   _autoRefillOnReturn: 1
   _spawnButton: {fileID: 799864194}
