@@ -35,39 +35,21 @@ namespace Core.Managers
             SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
         }
 
-        public static void LoadAdditive(string sceneName)
-        {
-            if (IsLoaded(sceneName)) return;
-            SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-        }
-
-        public static void Unload(string sceneName)
-        {
-            if (!IsLoaded(sceneName)) return;
-            SceneManager.UnloadSceneAsync(sceneName);
-        }
-
         public static void LoadWithLoading(string gameplayScene, string loadingScene)
         {
             EnsureInstance();
-            Instance.StartFlow(gameplayScene, loadingScene, null);
+            Instance.StartFlow(gameplayScene, loadingScene);
         }
 
-        public static void LoadWithLoading(string gameplayScene, string loadingScene, string additiveScene)
-        {
-            EnsureInstance();
-            Instance.StartFlow(gameplayScene, loadingScene, additiveScene);
-        }
-
-        void StartFlow(string gameplay, string loading, string additive)
+        void StartFlow(string gameplay, string loading)
         {
             if (_currentFlow != null)
                 StopCoroutine(_currentFlow);
 
-            _currentFlow = StartCoroutine(Flow(gameplay, loading, additive));
+            _currentFlow = StartCoroutine(Flow(gameplay, loading));
         }
 
-        IEnumerator Flow(string gameplayScene, string loadingScene, string additiveScene)
+        IEnumerator Flow(string gameplayScene, string loadingScene)
         {
             try
             {
@@ -108,13 +90,6 @@ namespace Core.Managers
                 var gp = SceneManager.GetSceneByName(gameplayScene);
                 if (gp.IsValid())
                     SceneManager.SetActiveScene(gp);
-
-                if (!string.IsNullOrEmpty(additiveScene) && !IsLoaded(additiveScene))
-                {
-                    var additiveOp = SceneManager.LoadSceneAsync(additiveScene, LoadSceneMode.Additive);
-                    if (additiveOp != null)
-                        yield return additiveOp;
-                }
 
                 if (!string.IsNullOrEmpty(loadingScene) && IsLoaded(loadingScene))
                 {

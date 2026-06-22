@@ -51,8 +51,6 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _summaryExpenses;
         [SerializeField] private TMP_Text _summaryNightlyEarnings;
 
-        // Idle progression (night/best/cash) now lives solely on the ProgressionBoard.
-
         private IGameStateService _state;
         private IEconomyService _economy;
 

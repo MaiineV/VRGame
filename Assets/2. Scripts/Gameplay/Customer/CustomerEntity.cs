@@ -6,10 +6,8 @@ using Gameplay.Liquid;
 using Gameplay.Systems;
 using Services;
 using Services.Audio;
-using Services.Recipe;
 using Services.UpdateService;
 using UnityEngine;
-using UnityEngine.AI;
 using Utilities;
 
 namespace Gameplay.Customer
@@ -42,9 +40,11 @@ namespace Gameplay.Customer
         public Transform ExitPoint { get; private set; }
         public StateMachine<CustomerStateId, CustomerEntity> Machine { get; private set; }
 
-        public float WaitTimer;
-        public float DrinkTimer;
-        public float Drunkenness;
+        // FSM-internal state: read by UI/services across the assembly, but only the customer's
+        // states should mutate it — hence internal set.
+        public float WaitTimer { get; internal set; }
+        public float DrinkTimer { get; internal set; }
+        public float Drunkenness { get; internal set; }
 
         // --- Locomotion animation ---
         // The customer ROOT is moved by code (MoveTowards); the Animator on the model child plays the
@@ -56,7 +56,6 @@ namespace Gameplay.Customer
         [SerializeField] private float _walkSpeedThreshold = 0.05f;
 
         private Animator _animator;
-        private NavMeshAgent _agent;   // optional; drives pathing when a runtime navmesh exists (else straight-line)
         private readonly int _hashIdle = Animator.StringToHash("Idle");
         private readonly int _hashWalking = Animator.StringToHash("Walking");
         private readonly int _hashDrunk = Animator.StringToHash("Drunk");
@@ -237,9 +236,11 @@ namespace Gameplay.Customer
         }
 
         /// <summary>
-        /// Attaches the served glass to the customer so it travels with them as they wander off and
-        /// leave, instead of staying on the bar. Parents it at a hold offset, freezes its physics, and
-        /// disables its colliders so the carried glass can't shove the customer or be grabbed. Idempotent.
+        /// "Accepts" the served glass: takes ownership of it so it leaves the bar with the customer and
+        /// is recycled when they despawn, but HIDES it. The carried glass was rendering at a hold offset
+        /// near the (scaled, possibly hand-less) customer and read as a glass floating in mid-air, so we
+        /// disable its renderers (kept alive/parented only for bookkeeping). Also freezes physics and
+        /// disables colliders so it can't shove the customer or be grabbed. Idempotent.
         /// </summary>
         public void CarryServedGlass()
         {
@@ -258,6 +259,11 @@ namespace Gameplay.Customer
 
             var cols = ServedGlass.GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+            // Hide it so there's no glass floating beside the NPC. ResetForPool re-enables the renderers
+            // when the glass is recycled and reused.
+            var rends = ServedGlass.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < rends.Length; i++) rends[i].enabled = false;
         }
 
         /// <summary>

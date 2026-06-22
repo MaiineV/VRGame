@@ -53,7 +53,6 @@ namespace Services.Progression
         }
 
         public bool IsRecipeUnlocked(RecipeId recipe) => _recipes.Contains(recipe);
-        public bool IsBottleUnlocked(IngredientId ingredient) => _bottles.Contains(ingredient);
         public bool IsBottleInstanceOwned(int instanceId) => _ownedInstances.Contains(instanceId);
 
         public bool UnlockBottleInstance(int instanceId, IngredientId ingredient, int cost)

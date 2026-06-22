@@ -13,7 +13,6 @@ namespace Services.Progression
     public interface IProgressionService : IGameService
     {
         bool IsRecipeUnlocked(RecipeId recipe);
-        bool IsBottleUnlocked(IngredientId ingredient);
 
         IReadOnlyCollection<RecipeId> UnlockedRecipes { get; }
         IReadOnlyCollection<IngredientId> UnlockedBottles { get; }

@@ -41,6 +41,12 @@ namespace Utilities.Pool
             if (pPoolEntry == null)
                 return;
 
+            // Re-parent back to the pool root before deactivating. A pooled entry can be parented
+            // elsewhere while live (e.g. a glass parented to a customer as it's carried off); without
+            // this it returns still under that transform and comes back stale/invisible.
+            if (pPoolEntry is Component lComponent && _mParent != null)
+                lComponent.transform.SetParent(_mParent, false);
+
             SetActiveState(pPoolEntry, false);
             _mAvailables.Enqueue(pPoolEntry);
         }

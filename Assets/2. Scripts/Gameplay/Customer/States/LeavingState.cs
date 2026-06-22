@@ -12,11 +12,15 @@ namespace Gameplay.Customer.States
         private bool _published;
         private float _wobbleTime;
 
+        // Resolved once on Enter so ComputeWobble doesn't TryGet every tick. May be null.
+        private INightService _night;
+
         public void Enter(CustomerEntity c)
         {
             c.Stand();
             _published = false;
             _wobbleTime = 0f;
+            ServiceLocator.TryGet(out _night);
 
             // Take the glass along (covers the unhappy path that skips Wandering). It rides with the
             // customer and is recycled in CustomerEntity.DespawnNow when they leave the world.
@@ -46,8 +50,8 @@ namespace Gameplay.Customer.States
         private Vector3 ComputeWobble(CustomerEntity c)
         {
             if (c.Drunkenness <= 0.01f) return Vector3.zero;
-            if (!ServiceLocator.TryGet<INightService>(out var n)) return Vector3.zero;
-            var cfg = (n as NightService)?.DrunkennessConfig;
+            if (_night == null) return Vector3.zero;
+            var cfg = (_night as NightService)?.DrunkennessConfig;
             if (cfg == null) return Vector3.zero;
 
             _wobbleTime += Time.deltaTime;

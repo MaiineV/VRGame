@@ -25,8 +25,29 @@ namespace Gameplay.Customer.States
         private Glass _pendingGlass;
         private bool _hasMatch;
 
+        // Services resolved once on Enter (this state instance is reused across customers, so the
+        // serve frame must not pay for repeated ServiceLocator.TryGet lookups). Any may be null.
+        private IAudioService _audio;
+        private IHapticService _haptics;
+        private IVfxService _vfx;
+        private IDatabaseService _db;
+        private INightService _night;
+
         public void Enter(CustomerEntity c)
         {
+            // This state instance is recycled across customers — clear any serve carried over from a
+            // previous occupant before we re-subscribe, or a stale serve could bleed into this one.
+            _hasMatch = false;
+            _pendingGlass = null;
+            _pendingMix = null;
+            _pendingOk = false;
+
+            ServiceLocator.TryGet(out _audio);
+            ServiceLocator.TryGet(out _haptics);
+            ServiceLocator.TryGet(out _vfx);
+            ServiceLocator.TryGet(out _db);
+            ServiceLocator.TryGet(out _night);
+
             c.Sit();
             _socket = c.Seat.ServeSocket;
             if (_socket != null) _socket.Served += HandleServed;
@@ -52,22 +73,20 @@ namespace Gameplay.Customer.States
                 c.ServedGlass = _pendingGlass;   // despawned when the customer leaves
                 _pendingGlass = null;
 
-                if (ServiceLocator.TryGet<IAudioService>(out var audio))
+                if (_audio != null)
                 {
                     var sfx = accepted ? SfxId.CustomerServed : SfxId.CustomerLeft;
-                    audio.PlayOneShot(sfx, c.transform.position);
+                    _audio.PlayOneShot(sfx, c.transform.position);
                 }
 
                 // Serve confirmation: a satisfying double-tap feel on success, a softer nudge on a miss.
-                if (ServiceLocator.TryGet<IHapticService>(out var hap))
-                    hap.PulseBoth(accepted ? 0.5f : 0.3f, accepted ? 0.12f : 0.06f);
+                _haptics?.PulseBoth(accepted ? 0.5f : 0.3f, accepted ? 0.12f : 0.06f);
 
                 if (accepted)
                 {
                     // Green sparkle above the satisfied customer.
-                    if (ServiceLocator.TryGet<IVfxService>(out var vfx))
-                        vfx.PlayBurst(VfxId.ServeSuccess, c.transform.position + Vector3.up * 1.2f,
-                                      new Color(0.3f, 1f, 0.4f, 1f));
+                    _vfx?.PlayBurst(VfxId.ServeSuccess, c.transform.position + Vector3.up * 1.2f,
+                                    new Color(0.3f, 1f, 0.4f, 1f));
 
                     // Pay scales with score (full when perfect, half when one axis is wrong).
                     c.RaiseServed(c.TargetRecipe, score, isExact);
@@ -104,27 +123,27 @@ namespace Gameplay.Customer.States
         /// True if the glass's dominant ingredient matches the recipe's main ingredient.
         /// Defensive defaults to true when we can't resolve the recipe (don't punish on missing data).
         /// </summary>
-        private static bool EvaluateDrink(CustomerEntity c, LiquidMix mix)
+        private bool EvaluateDrink(CustomerEntity c, LiquidMix mix)
         {
             if (mix == null || mix.IsEmpty) return false;
-            if (!ServiceLocator.TryGet<IDatabaseService>(out var db)) return true;
-            var recipe = db.GetRecipe(c.TargetRecipe);
+            if (_db == null) return true;
+            var recipe = _db.GetRecipe(c.TargetRecipe);
             if (recipe == null || recipe.Steps == null || recipe.Steps.Length == 0) return true;
             return mix.DominantId() == recipe.Steps[0].id;
         }
 
-        private static float ComputeDrunkenness(LiquidMix mix)
+        private float ComputeDrunkenness(LiquidMix mix)
         {
             if (mix == null || mix.IsEmpty) return 0f;
-            if (!ServiceLocator.TryGet<INightService>(out var night)) return 0f;
-            var cfg = (night as NightService)?.DrunkennessConfig;
+            if (_night == null) return 0f;
+            var cfg = (_night as NightService)?.DrunkennessConfig;
             if (cfg == null) return 0f;
-            if (!ServiceLocator.TryGet<IDatabaseService>(out var db)) return 0f;
+            if (_db == null) return 0f;
 
             float alcoholMl = 0f;
             for (int i = 0; i < mix.Count; i++)
             {
-                var ing = db.GetIngredient(mix.IdAt(i));
+                var ing = _db.GetIngredient(mix.IdAt(i));
                 if (ing != null && ing.Type == IngredientType.Alcohol)
                     alcoholMl += mix.VolumeAt(i);
             }

@@ -14,11 +14,9 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _resultLabel;
 
         [Header("Correct")]
-        [SerializeField] private string _correctText = "$$$";
         [SerializeField] private Color _correctColor = new Color(0.3f, 1f, 0.4f, 1f);
 
         [Header("Wrong")]
-        [SerializeField] private string _wrongText = "$";
         [SerializeField] private Color _wrongColor = new Color(1f, 0.2f, 0.15f, 1f);
 
         [Header("Timing")]

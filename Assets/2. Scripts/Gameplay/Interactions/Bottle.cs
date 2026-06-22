@@ -89,11 +89,6 @@ namespace Gameplay.Interactions
             return actual;
         }
 
-        public void Refill()
-        {
-            if (_so != null) { _remainingMl = _so.CapacityMl; _filled = true; }
-        }
-
         /// <summary>
         /// Set the remaining liquid directly, clamped to [0, CapacityMl]. Marks the bottle as filled
         /// so the lazy <see cref="EnsureFilled"/> can't override it. Used by NightService to fill the

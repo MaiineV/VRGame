@@ -76,6 +76,11 @@ namespace Gameplay.Systems
             var center = shardsRoot.position;
             for (int i = 0; i < bodies.Length; i++)
             {
+                // Zero any motion left over from the previous shatter — a pooled shard instance keeps
+                // its last velocity, so without this a recycled shatter inherits old movement.
+                bodies[i].linearVelocity = Vector3.zero;
+                bodies[i].angularVelocity = Vector3.zero;
+
                 var dir = bodies[i].worldCenterOfMass - center;
                 if (dir.sqrMagnitude < 0.0001f) dir = Random.onUnitSphere;
                 bodies[i].AddForce(dir.normalized * force, ForceMode.VelocityChange);

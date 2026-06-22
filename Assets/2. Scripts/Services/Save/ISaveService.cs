@@ -7,8 +7,5 @@ namespace Services.Save
 
         /// <summary>Write the current data to disk atomically.</summary>
         void Save();
-
-        /// <summary>Wipe to defaults and persist. Destructive.</summary>
-        void ResetToDefaults();
     }
 }

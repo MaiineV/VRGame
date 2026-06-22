@@ -30,7 +30,12 @@ namespace Services.Save
         // which INGREDIENTS are usable (recipe serveability / pour), granted when any instance is owned.
         public List<int> ownedBottleInstances = new();
 
-        public const int CurrentVersion = 3;
+        // v4: no shape change — bumped only to force the v3→v4 migration to WIPE ownedBottleInstances.
+        // Early v3 builds (and a prior null-SO respawn bug) left stale per-instance ownership in saved
+        // files, so purchasable bottles came back owned/free without being paid for. Clearing the list
+        // on migration returns them to "for sale"; ownership earned afterwards (by grabbing/paying in the
+        // shop) is permanent as designed.
+        public const int CurrentVersion = 4;
     }
 
     /// <summary>Purchased stock for one bottle, in millilitres, keyed by IngredientId (as int).</summary>

@@ -40,13 +40,14 @@ namespace Gameplay.Liquid
         private bool _registered;
         private bool _pouring;
         private int _pourLoopHandle;
-        private float _diagCooldown;   // throttles the tilt-but-no-pour diagnostic
         private float _splashTimer;    // throttles the splash burst (fixed update is ~50 fps)
 
         private const float SplashInterval = 0.08f;
 
-        public bool IsPouring => _pouring;
-        public event System.Action<float> Poured; // volume ml per tick
+        // Services resolved lazily once and reused, instead of a ServiceLocator.TryGet every fixed tick.
+        private IAudioService _audio;
+        private IVfxService _vfx;
+        private IHapticService _haptics;
 
         void Awake()
         {
@@ -107,7 +108,6 @@ namespace Gameplay.Liquid
             }
             svc.AddFixedUpdateListener(this);
             _registered = true;
-            MyLogger.LogInfo($"[PourDetector:{name}] registered for tick (so={(_bottle.SO != null ? _bottle.SO.name : "NULL")}).");
         }
 
         private void UnregisterFromTick()
@@ -120,8 +120,6 @@ namespace Gameplay.Liquid
 
         public void MyFixedUpdate()
         {
-            if (_diagCooldown > 0f) _diagCooldown -= Time.fixedDeltaTime;
-
             float tiltDeg = Vector3.Angle(_neck.up, Vector3.up);
             bool tilted = tiltDeg >= _tiltThresholdDeg;
 
@@ -131,14 +129,12 @@ namespace Gameplay.Liquid
             // we treat the bottle as not-held and refuse to pour rather than leak.
             if (_grab == null || !_grab.IsHeld)
             {
-                if (tilted) Diag($"bailed: not held (grab={(_grab != null ? "ok" : "NULL")})");
                 StopPouring();
                 return;
             }
 
             if (_bottle.SO == null || _bottle.IsEmpty)
             {
-                if (tilted) Diag($"bailed: SO={( _bottle.SO != null ? _bottle.SO.name : "NULL")} empty={_bottle.IsEmpty} remaining={_bottle.RemainingMl:0}");
                 StopPouring();
                 return;
             }
@@ -147,7 +143,6 @@ namespace Gameplay.Liquid
 
             if (_bottle.SO.Ingredient == null)
             {
-                Diag($"bailed: Ingredient NULL on {_bottle.SO.name}");
                 StopPouring();
                 return;
             }
@@ -155,9 +150,7 @@ namespace Gameplay.Liquid
             float t = Mathf.InverseLerp(_tiltThresholdDeg, _maxTiltDeg, tiltDeg);
             float rateMlSec = _bottle.SO.Ingredient.PourRateMlPerSec * t;
             float volume = _bottle.Consume(rateMlSec * Time.fixedDeltaTime);
-            if (volume <= 0f) { Diag($"bailed: volume<=0 (rate={rateMlSec:0.0} remaining={_bottle.RemainingMl:0})"); StopPouring(); return; }
-
-            Diag($"POURING tilt={tiltDeg:0} vol={volume:0.00} ing={_bottle.SO.Ingredient.name}");
+            if (volume <= 0f) { StopPouring(); return; }
 
             _pouring = true;
 
@@ -194,48 +187,38 @@ namespace Gameplay.Liquid
             // Splash droplets where the stream lands (only when it actually hits a container),
             // throttled so the 50 fps fixed tick doesn't flood particles.
             if (_splashTimer > 0f) _splashTimer -= Time.fixedDeltaTime;
-            if (target != null && _splashTimer <= 0f
-                && ServiceLocator.TryGet<IVfxService>(out var vfx))
+            if (_vfx == null) ServiceLocator.TryGet<IVfxService>(out _vfx);
+            if (target != null && _splashTimer <= 0f && _vfx != null)
             {
                 _splashTimer = SplashInterval;
-                vfx.PlayBurst(VfxId.Splash, streamEnd, _bottle.SO.Ingredient.LiquidColor);
+                _vfx.PlayBurst(VfxId.Splash, streamEnd, _bottle.SO.Ingredient.LiquidColor);
             }
 
-            if (_pourLoopHandle == 0 && _pourSfx != SfxId.None
-                && ServiceLocator.TryGet<IAudioService>(out var audio))
+            if (_audio == null) ServiceLocator.TryGet<IAudioService>(out _audio);
+            if (_pourLoopHandle == 0 && _pourSfx != SfxId.None && _audio != null)
             {
                 // Cap hard at 0.05 so the liquid is a barely-there trickle regardless of any louder
                 // value still serialized on existing bottle instances.
-                _pourLoopHandle = audio.StartLoop(_pourSfx, _neck, _neck.position, Mathf.Min(_pourVolume, 0.05f));
+                _pourLoopHandle = _audio.StartLoop(_pourSfx, _neck, _neck.position, Mathf.Min(_pourVolume, 0.05f));
             }
 
             // Light sustained buzz on the pouring hand. Re-issued each fixed tick (just over one
             // tick long) so it stays alive while pouring and dies on its own when we stop.
-            if (_grab != null && _grab.HeldByHand >= 0
-                && ServiceLocator.TryGet<IHapticService>(out var hap))
+            if (_haptics == null) ServiceLocator.TryGet<IHapticService>(out _haptics);
+            if (_grab != null && _grab.HeldByHand >= 0 && _haptics != null)
             {
                 var ctrl = _grab.HeldByHand == 0 ? OVRInput.Controller.LTouch : OVRInput.Controller.RTouch;
-                hap.Pulse(ctrl, 0.18f, Time.fixedDeltaTime + 0.02f);
+                _haptics.Pulse(ctrl, 0.18f, Time.fixedDeltaTime + 0.02f);
             }
-
-            Poured?.Invoke(volume);
-        }
-
-        // Throttled per-bottle diagnostic: prints at most ~once/sec so logcat shows the
-        // real pour gate for each bottle without flooding. Remove once the pour bug is closed.
-        private void Diag(string msg)
-        {
-            if (_diagCooldown > 0f) return;
-            _diagCooldown = 1f;
-            MyLogger.LogInfo($"[PourDetector:{name}] {msg}");
         }
 
         private void StopPouring()
         {
             if (_pouring && _stream != null) _stream.Hide();
-            if (_pourLoopHandle != 0 && ServiceLocator.TryGet<IAudioService>(out var audio))
+            if (_pourLoopHandle != 0)
             {
-                audio.StopLoop(_pourLoopHandle);
+                if (_audio == null) ServiceLocator.TryGet<IAudioService>(out _audio);
+                _audio?.StopLoop(_pourLoopHandle);
                 _pourLoopHandle = 0;
             }
             _pouring = false;
