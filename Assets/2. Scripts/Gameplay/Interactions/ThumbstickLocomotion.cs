@@ -367,6 +367,11 @@ namespace Gameplay.Interactions
                 var col = go.GetComponent<Collider>();
                 if (col != null) Destroy(col);
                 go.transform.localScale = new Vector3(0.4f, 0.01f, 0.4f);
+                // CreatePrimitive assigns the built-in (non-URP) default material, which renders as
+                // invisible/magenta under URP — that's why the arc showed but the reticle didn't. Give it
+                // the same URP-friendly Sprites/Default shader the arc uses so it's visible and .color tints.
+                var rend = go.GetComponent<Renderer>();
+                if (rend != null) rend.sharedMaterial = new Material(Shader.Find("Sprites/Default"));
                 _reticle = go.transform;
             }
         }
