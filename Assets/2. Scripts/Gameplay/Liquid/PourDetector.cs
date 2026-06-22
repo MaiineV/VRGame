@@ -121,6 +121,17 @@ namespace Gameplay.Liquid
             float tiltDeg = Vector3.Angle(_neck.up, Vector3.up);
             bool tilted = tiltDeg >= _tiltThresholdDeg;
 
+            // Pour only while a player hand actually holds the bottle. A tilted bottle sitting on the
+            // shelf (or knocked over) must NOT leak liquid. _grab is resolved in OnEnable (with a
+            // GetComponent fallback) so it's reliably non-null for a real bottle; if it somehow isn't,
+            // we treat the bottle as not-held and refuse to pour rather than leak.
+            if (_grab == null || !_grab.IsHeld)
+            {
+                if (tilted) Diag($"bailed: not held (grab={(_grab != null ? "ok" : "NULL")})");
+                StopPouring();
+                return;
+            }
+
             if (_bottle.SO == null || _bottle.IsEmpty)
             {
                 if (tilted) Diag($"bailed: SO={( _bottle.SO != null ? _bottle.SO.name : "NULL")} empty={_bottle.IsEmpty} remaining={_bottle.RemainingMl:0}");
