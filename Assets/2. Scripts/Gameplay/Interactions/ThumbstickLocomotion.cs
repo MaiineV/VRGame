@@ -175,7 +175,28 @@ namespace Gameplay.Interactions
             forward.y = 0f; right.y = 0f;
             forward.Normalize(); right.Normalize();
 
-            transform.position += (forward * input.y + right * input.x) * (_speed * Time.deltaTime);
+            Vector3 move = (forward * input.y + right * input.x) * (_speed * Time.deltaTime);
+            transform.position += ClampMoveForObstacles(move);
+        }
+
+        // Block gliding through solid scene geometry (bar, shelves, walls, tables). Sweeps a body-sized
+        // capsule at the headset's floor position along the move direction and stops short of any
+        // non-trigger collider. Held objects are triggers, so they're ignored and never block the player.
+        private Vector3 ClampMoveForObstacles(Vector3 move)
+        {
+            if (_head == null) return move;
+            float dist = move.magnitude;
+            if (dist < 1e-4f) return move;
+            Vector3 dir = move / dist;
+
+            const float radius = 0.22f;
+            const float skin = 0.05f;
+            Vector3 p0 = new Vector3(_head.position.x, transform.position.y + radius, _head.position.z);
+            Vector3 p1 = new Vector3(_head.position.x, Mathf.Max(_head.position.y - radius, p0.y), _head.position.z);
+
+            if (Physics.CapsuleCast(p0, p1, radius, dir, out var hit, dist + skin, ~0, QueryTriggerInteraction.Ignore))
+                return dir * Mathf.Max(0f, hit.distance - skin);
+            return move;
         }
 
         private void HandleTeleport()
