@@ -11,6 +11,10 @@ namespace Gameplay.Interactions
     public sealed class Bottle : MonoBehaviour
     {
         [SerializeField] private BottleSO _so;
+        [Tooltip("Unique id for THIS physical bottle in the scene (0 = none/free). Purchasable bottles " +
+                 "need a distinct value so two bottles of the same ingredient are bought independently. " +
+                 "BottleRespawner re-applies it when it recreates an owned bottle.")]
+        [SerializeField] private int _instanceId;
         [SerializeField] private Transform _neck;
         [Tooltip("This bottle's own prefab. Set each bottle prefab to reference itself so BottleRespawner " +
                  "can destroy and recreate it at its origin when a night ends.")]
@@ -29,6 +33,10 @@ namespace Gameplay.Interactions
         private bool _filled;
 
         public BottleSO SO => _so;
+        /// <summary>Unique scene-instance id for per-bottle ownership (0 = none/free bottle).</summary>
+        public int InstanceId => _instanceId;
+        /// <summary>Re-apply the instance id after BottleRespawner recreates this bottle from its prefab.</summary>
+        public void SetInstanceId(int id) => _instanceId = id;
         public GameObject SourcePrefab => _sourcePrefab;
         public Transform Neck => _neck != null ? _neck : transform;
         public float RemainingMl { get { EnsureFilled(); return _remainingMl; } }

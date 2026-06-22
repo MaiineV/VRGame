@@ -3617,6 +3617,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 1150732726}
     - target: {fileID: 5796560675331658518, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
+      propertyPath: _instanceId
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5796560675331658518, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
       propertyPath: _sourcePrefab
       value: 
       objectReference: {fileID: 1807891072526499448, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
@@ -5011,6 +5015,10 @@ PrefabInstance:
     - target: {fileID: 2408662550552234382, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: m_Name
       value: Bottle_JackDaniel (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 7496848170536477920, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
+      propertyPath: _instanceId
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 7496848170536477920, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: _sourcePrefab
@@ -7555,6 +7563,10 @@ PrefabInstance:
       value: Bottle_Hennessy (1)
       objectReference: {fileID: 0}
     - target: {fileID: 7057250441751907437, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
+      propertyPath: _instanceId
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 7057250441751907437, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
       propertyPath: _sourcePrefab
       value: 
       objectReference: {fileID: 2924821334212583683, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
@@ -8956,6 +8968,10 @@ PrefabInstance:
       propertyPath: m_Material
       value: 
       objectReference: {fileID: 108579391}
+    - target: {fileID: 5796560675331658518, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
+      propertyPath: _instanceId
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5796560675331658518, guid: b6aaadc3bae494f4580dabf65583db1d, type: 3}
       propertyPath: _sourcePrefab
       value: 
@@ -10368,6 +10384,10 @@ PrefabInstance:
       value: Bottle_Hennessy
       objectReference: {fileID: 0}
     - target: {fileID: 7057250441751907437, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
+      propertyPath: _instanceId
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7057250441751907437, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
       propertyPath: _sourcePrefab
       value: 
       objectReference: {fileID: 2924821334212583683, guid: bd1e455fbc95bb84cb9370953b39d540, type: 3}
@@ -11326,6 +11346,10 @@ PrefabInstance:
     - target: {fileID: 2408662550552234382, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: m_Name
       value: Bottle_JackDaniel
+      objectReference: {fileID: 0}
+    - target: {fileID: 7496848170536477920, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
+      propertyPath: _instanceId
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7496848170536477920, guid: 260276595cbac2a41995ee3e4b0c13d3, type: 3}
       propertyPath: _sourcePrefab

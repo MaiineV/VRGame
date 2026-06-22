@@ -72,13 +72,23 @@ namespace Gameplay.Interactions
         {
             get
             {
-                var ing = IngredientId();
-                if (ing == Data.Enums.IngredientId.None || _progression == null) return true;
-                if (_progression.IsBottleUnlocked(ing)) return true;          // owned: grab freely
+                if (_bottle == null || _bottle.SO == null) return true;
+                if (IsOwned()) return true;                                   // owned (or free): grab freely
                 if (_state == null || _state.Current != GameState.DayShop) return false; // locked outside shop
                 int cost = Mathf.Max(0, _bottle.SO.UnlockCost);               // for sale: only if affordable
                 return _economy != null && _economy.Cash >= cost;
             }
+        }
+
+        /// <summary>This SPECIFIC physical bottle is owned: a free bottle (UnlockCost &lt;= 0), or one whose
+        /// scene instance id has been bought. Per-instance so two bottles of the same ingredient are
+        /// independent. Returns true while services are unresolved so the bottle isn't force-hidden.</summary>
+        private bool IsOwned()
+        {
+            if (_bottle == null || _bottle.SO == null) return true;
+            if (_bottle.SO.UnlockCost <= 0) return true;                      // free bottle: always owned
+            if (_progression == null) return true;                           // services not ready: leave as-is
+            return _progression.IsBottleInstanceOwned(_bottle.InstanceId);
         }
 
         // --- binding -----------------------------------------------------------------------------
@@ -107,11 +117,11 @@ namespace Gameplay.Interactions
         {
             var ing = IngredientId();
             if (ing == Data.Enums.IngredientId.None || _progression == null) return;
-            if (_progression.IsBottleUnlocked(ing)) return;                  // already owned: normal grab
+            if (IsOwned()) return;                                           // free or already-bought: normal grab
             if (_state == null || _state.Current != GameState.DayShop) return;
-            // Affordability was already gated by CanGrab; UnlockBottle re-checks and charges + unlocks
-            // the bottle and its recipe, then fires UnlocksChanged.
-            _progression.UnlockBottle(ing);
+            // Affordability was already gated by CanGrab. Buy THIS physical bottle by its instance id;
+            // the service charges, marks the ingredient usable + recipe serveable, and fires UnlocksChanged.
+            _progression.UnlockBottleInstance(_bottle.InstanceId, ing, Mathf.Max(0, _bottle.SO.UnlockCost));
         }
 
         // --- visibility --------------------------------------------------------------------------
@@ -136,10 +146,9 @@ namespace Gameplay.Interactions
 
         private bool ShouldBeVisible()
         {
-            var ing = IngredientId();
             // Until services are available, leave the bottle as-is (visible).
-            if (_progression == null || ing == Data.Enums.IngredientId.None) return true;
-            if (_progression.IsBottleUnlocked(ing)) return true;             // owned: always
+            if (_progression == null) return true;
+            if (IsOwned()) return true;                                      // owned (or free): always visible
             return _state != null && _state.Current == GameState.DayShop;    // locked: only for sale in DayShop
         }
 

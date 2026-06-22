@@ -129,7 +129,15 @@ namespace UI.Diegetic
         {
             if (_label == null || _bottle == null || _bottle.Ingredient == null) return;
 
-            bool owned = _progression != null && _progression.IsBottleUnlocked(_bottle.Ingredient.Id);
+            // Per-instance ownership: this tag hides only when ITS physical bottle is bought (or free),
+            // not when any bottle of the same ingredient is owned — otherwise buying one of two
+            // identical bottles would wrongly hide the price on the still-for-sale twin.
+            if (_bottleInstance == null) _bottleInstance = FindBottleInstance();
+            bool owned;
+            if (_bottle.UnlockCost <= 0) owned = true;                       // free bottle
+            else if (_bottleInstance != null && _progression != null)
+                owned = _progression.IsBottleInstanceOwned(_bottleInstance.InstanceId);
+            else owned = false;
             // Show the price only while it's actually buyable: locked AND in the day shop.
             bool inShop = _state == null || _state.Current == GameState.DayShop;
             bool show = !owned && inShop;

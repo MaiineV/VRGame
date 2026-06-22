@@ -58,7 +58,10 @@ namespace Services.Night
             {
                 var b = bottles[i];
                 if (b == null || b.SO == null || b.SO.Ingredient == null) { b?.SetRemaining(0f); continue; }
-                bool owned = progression == null || progression.IsBottleUnlocked(b.SO.Ingredient.Id);
+                // Per-instance ownership: a bottle is full only if it's free or THIS physical bottle was
+                // bought. An un-bought duplicate of an owned ingredient stays empty (it's hidden anyway).
+                bool free = b.SO.UnlockCost <= 0;
+                bool owned = progression == null || free || progression.IsBottleInstanceOwned(b.InstanceId);
                 b.SetRemaining(owned ? b.SO.CapacityMl : 0f);
             }
 

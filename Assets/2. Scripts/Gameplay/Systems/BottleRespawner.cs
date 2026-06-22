@@ -28,6 +28,8 @@ namespace Gameplay.Systems
             public Quaternion Rotation;
             public Transform Parent;
             public IngredientId Ingredient;
+            public int InstanceId;   // per-bottle ownership id; re-applied to the recreated bottle
+            public bool Free;        // UnlockCost <= 0: owned from the start, always respawns
         }
 
         private readonly List<Origin> _origins = new();
@@ -72,6 +74,8 @@ namespace Gameplay.Systems
                     Rotation = t.rotation,
                     Parent = t.parent,
                     Ingredient = IngredientOf(b),
+                    InstanceId = b.InstanceId,
+                    Free = b.SO == null || b.SO.UnlockCost <= 0,
                 });
             }
 
@@ -84,20 +88,21 @@ namespace Gameplay.Systems
             // destroying/recreating them can't flip their lock state.
             ServiceLocator.TryGet<IProgressionService>(out var progression);
 
-            // Destroy only the live bottles whose ingredient is currently owned.
+            // Destroy only the live bottles the player OWNS (free, or this specific instance bought).
             var live = Object.FindObjectsByType<Bottle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < live.Length; i++)
             {
                 var b = live[i];
                 if (b == null) continue;
-                if (IsOwned(progression, IngredientOf(b))) Destroy(b.gameObject);
+                bool free = b.SO == null || b.SO.UnlockCost <= 0;
+                if (IsOwned(progression, b.InstanceId, free)) Destroy(b.gameObject);
             }
 
             // Recreate only the owned origins.
             int recreated = 0;
             for (int i = 0; i < _origins.Count; i++)
             {
-                if (!IsOwned(progression, _origins[i].Ingredient)) continue;
+                if (!IsOwned(progression, _origins[i].InstanceId, _origins[i].Free)) continue;
                 Spawn(_origins[i]);
                 recreated++;
             }
@@ -105,12 +110,12 @@ namespace Gameplay.Systems
             MyLogger.LogInfo($"[BottleRespawner] Respawned {recreated} owned bottle(s) at origin (for-sale bottles left untouched).");
         }
 
-        // A bottle with no progression service or no ingredient is treated as owned (default-usable),
-        // so the reset still works in setups without the shop economy.
-        private static bool IsOwned(IProgressionService progression, IngredientId ingredient)
+        // A free bottle (or one with no progression service) is treated as owned (default-usable), so the
+        // reset still works in setups without the shop economy. Otherwise ownership is per physical instance.
+        private static bool IsOwned(IProgressionService progression, int instanceId, bool free)
         {
-            if (ingredient == IngredientId.None) return true;
-            return progression == null || progression.IsBottleUnlocked(ingredient);
+            if (free) return true;
+            return progression == null || progression.IsBottleInstanceOwned(instanceId);
         }
 
         private static IngredientId IngredientOf(Bottle b) =>
@@ -119,7 +124,11 @@ namespace Gameplay.Systems
         private static void Spawn(Origin o)
         {
             if (o.Prefab == null) return;
-            Object.Instantiate(o.Prefab, o.Position, o.Rotation, o.Parent);
+            var go = Object.Instantiate(o.Prefab, o.Position, o.Rotation, o.Parent);
+            // The prefab carries instance id 0; re-stamp the scene-assigned id so the recreated bottle
+            // keeps its per-instance ownership identity across nights.
+            var b = go.GetComponent<Bottle>();
+            if (b != null) b.SetInstanceId(o.InstanceId);
         }
     }
 }
