@@ -36,10 +36,8 @@ namespace UI.Diegetic
         private IProgressionService _progression;
         private IGameStateService _state;
         private bool _subscribed;
-        private Transform _cam;
         private Gameplay.Interactions.Bottle _bottleInstance;
         private bool? _lastShow;
-        private bool _oriented;   // true once the tag has been locked to its static facing
 
         void Awake()
         {
@@ -78,17 +76,9 @@ namespace UI.Diegetic
             // sync with the owned/shop state even if a StateChanged/UnlocksChanged event was missed.
             Apply();
 
-            // Orient once toward the player, yaw only (upright), then leave it static. A full per-frame
-            // LookRotation pitched the tag up/down as the player tilted their head to look at the shelf,
-            // which read as "broken" text. Static + upright + facing the player fixes that.
-            if (!_faceCamera || _oriented) return;
-            if (_cam == null && Camera.main != null) _cam = Camera.main.transform;
-            if (_cam == null) return;
-            Vector3 away = transform.position - _cam.position; // TMP's readable face is -Z, so +Z points away from the viewer
-            away.y = 0f;
-            if (away.sqrMagnitude < 1e-4f) return;
-            transform.rotation = Quaternion.LookRotation(away.normalized, Vector3.up);
-            _oriented = true;
+            // No runtime re-orientation: the tags are authored facing the player (identity rotation, +Z
+            // toward where the player stands in front of the shelf). The old camera-facing billboard
+            // locked a bad early frame and left the text sideways — so we just keep the authored rotation.
         }
 
         // Bind to the NEAREST bottle matching the SO, not just the first. With duplicate bottles of the

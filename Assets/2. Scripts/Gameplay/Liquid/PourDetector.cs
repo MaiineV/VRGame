@@ -31,7 +31,7 @@ namespace Gameplay.Liquid
         [Tooltip("Multiplier on the pour loop's configured volume. Kept low so the liquid sound is a " +
                  "subtle background trickle, not a roar.")]
         [Range(0f, 1f)]
-        [SerializeField] private float _pourVolume = 0.18f;
+        [SerializeField] private float _pourVolume = 0.05f;
 
         private Bottle _bottle;
         private GrabBridge _grab;
@@ -204,7 +204,9 @@ namespace Gameplay.Liquid
             if (_pourLoopHandle == 0 && _pourSfx != SfxId.None
                 && ServiceLocator.TryGet<IAudioService>(out var audio))
             {
-                _pourLoopHandle = audio.StartLoop(_pourSfx, _neck, _neck.position, _pourVolume);
+                // Cap hard at 0.05 so the liquid is a barely-there trickle regardless of any louder
+                // value still serialized on existing bottle instances.
+                _pourLoopHandle = audio.StartLoop(_pourSfx, _neck, _neck.position, Mathf.Min(_pourVolume, 0.05f));
             }
 
             // Light sustained buzz on the pouring hand. Re-issued each fixed tick (just over one

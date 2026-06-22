@@ -28,7 +28,7 @@ namespace Gameplay.Interactions
         [Tooltip("Override the auto seat count. 0 = count CustomerSeatPoints in the scene.")]
         [SerializeField] private int _seatCountOverride = 0;
         [Tooltip("Hard ceiling on glasses live in the world at once, regardless of seats + buffer.")]
-        [SerializeField] private int _maxGlasses = 6;
+        [SerializeField] private int _maxGlasses = 12;
         [Tooltip("Dispense one glass at scene start so the bar isn't empty.")]
         [SerializeField] private bool _spawnOneOnStart = true;
         [Tooltip("Auto-dispense a replacement whenever a glass leaves play (a customer carries it " +

@@ -37,6 +37,10 @@ namespace Gameplay.Interactions
         public int InstanceId => _instanceId;
         /// <summary>Re-apply the instance id after BottleRespawner recreates this bottle from its prefab.</summary>
         public void SetInstanceId(int id) => _instanceId = id;
+        /// <summary>Re-apply the BottleSO after a respawn (the prefab may not carry it). Without this a
+        /// recreated bottle has a null SO, which BottleUnlockGate reads as "free/owned" — making
+        /// for-sale bottles grabbable for free. Resets the fill so it refills from the new SO.</summary>
+        public void SetSO(BottleSO so) { _so = so; _filled = false; }
         public GameObject SourcePrefab => _sourcePrefab;
         public Transform Neck => _neck != null ? _neck : transform;
         public float RemainingMl { get { EnsureFilled(); return _remainingMl; } }

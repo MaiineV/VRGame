@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data.Enums;
+using Data.SO;
 using Gameplay.Interactions;
 using Services;
 using Services.Night;
@@ -30,6 +31,7 @@ namespace Gameplay.Systems
             public IngredientId Ingredient;
             public int InstanceId;   // per-bottle ownership id; re-applied to the recreated bottle
             public bool Free;        // UnlockCost <= 0: owned from the start, always respawns
+            public BottleSO SO;      // re-applied on recreate (the prefab may not carry it)
         }
 
         private readonly List<Origin> _origins = new();
@@ -76,6 +78,7 @@ namespace Gameplay.Systems
                     Ingredient = IngredientOf(b),
                     InstanceId = b.InstanceId,
                     Free = b.SO == null || b.SO.UnlockCost <= 0,
+                    SO = b.SO,
                 });
             }
 
@@ -113,7 +116,11 @@ namespace Gameplay.Systems
             // The prefab carries instance id 0; re-stamp the scene-assigned id so the recreated bottle
             // keeps its per-instance ownership identity across nights.
             var b = go.GetComponent<Bottle>();
-            if (b != null) b.SetInstanceId(o.InstanceId);
+            if (b != null)
+            {
+                if (o.SO != null) b.SetSO(o.SO);   // prefab may not carry the SO; without it the bottle reads as free
+                b.SetInstanceId(o.InstanceId);
+            }
         }
     }
 }
