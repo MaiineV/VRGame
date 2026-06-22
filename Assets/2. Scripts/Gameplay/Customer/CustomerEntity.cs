@@ -9,6 +9,7 @@ using Services.Audio;
 using Services.Recipe;
 using Services.UpdateService;
 using UnityEngine;
+using UnityEngine.AI;
 using Utilities;
 
 namespace Gameplay.Customer
@@ -55,6 +56,7 @@ namespace Gameplay.Customer
         [SerializeField] private float _walkSpeedThreshold = 0.05f;
 
         private Animator _animator;
+        private NavMeshAgent _agent;   // optional; drives pathing when a runtime navmesh exists (else straight-line)
         private readonly int _hashIdle = Animator.StringToHash("Idle");
         private readonly int _hashWalking = Animator.StringToHash("Walking");
         private readonly int _hashDrunk = Animator.StringToHash("Drunk");
@@ -105,6 +107,21 @@ namespace Gameplay.Customer
             Drunkenness = 0f;
             ServedGlass = null;
             Stand();
+
+            // NavMesh pathing (optional): we keep moving the ROOT manually (so Sit/Stand/animation stay
+            // as-is) but steer toward the agent's path corners so NPCs route AROUND the bar/furniture.
+            // updatePosition/Rotation are off — the agent only computes the path; we drive the transform.
+            if (_agent == null) _agent = GetComponent<NavMeshAgent>();
+            if (_agent != null)
+            {
+                _agent.updatePosition = false;
+                _agent.updateRotation = false;
+                _agent.speed = so.WalkSpeed;
+                _agent.enabled = true;
+                // Seat the agent on the baked navmesh near the spawn so SetDestination works.
+                if (NavMesh.SamplePosition(transform.position, out var navHit, 3f, NavMesh.AllAreas))
+                    _agent.Warp(navHit.position);
+            }
 
             // Build the machine once; on recycle, shut it down and restart to avoid
             // allocating new state objects on every spawn (allocation-conscious reuse).
@@ -201,16 +218,36 @@ namespace Gameplay.Customer
 
         public bool MoveTowards(Vector3 target, float arriveDistance = 0.05f)
         {
-            var step = So.WalkSpeed * Time.deltaTime;
             var pos = transform.position;
-            var dir = target - pos;
-            dir.y = 0f;
-            float dist = dir.magnitude;
-            if (dist <= arriveDistance) return true;
+            // Arrival is judged against the REAL target on the ground plane.
+            Vector2 here2 = new Vector2(pos.x, pos.z);
+            if (Vector2.Distance(here2, new Vector2(target.x, target.z)) <= arriveDistance) return true;
 
-            transform.position = pos + dir.normalized * Mathf.Min(step, dist);
-            transform.rotation = Quaternion.Slerp(transform.rotation,
-                Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
+            var step = So.WalkSpeed * Time.deltaTime;
+
+            // Where to head this frame. With a navmesh, follow the path's next corner so we route AROUND
+            // obstacles; without one (no bake / off-mesh), fall back to heading straight at the target.
+            Vector3 waypoint = target;
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.speed = So.WalkSpeed;
+                if (!_agent.pathPending && (_agent.destination - target).sqrMagnitude > 0.01f)
+                    _agent.SetDestination(target);
+                if (_agent.hasPath) waypoint = _agent.steeringTarget;
+            }
+
+            var dir = waypoint - pos;
+            dir.y = 0f;
+            float d = dir.magnitude;
+            if (d > 0.0001f)
+            {
+                transform.position = pos + dir.normalized * Mathf.Min(step, d);
+                transform.rotation = Quaternion.Slerp(transform.rotation,
+                    Quaternion.LookRotation(dir.normalized, Vector3.up), 10f * Time.deltaTime);
+            }
+
+            // Keep the agent's internal position synced to the manually-moved root.
+            if (_agent != null && _agent.isOnNavMesh) _agent.nextPosition = transform.position;
             return false;
         }
 
