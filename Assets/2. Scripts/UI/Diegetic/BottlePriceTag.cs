@@ -38,6 +38,22 @@ namespace UI.Diegetic
         private bool _subscribed;
         private Gameplay.Interactions.Bottle _bottleInstance;
         private bool? _lastShow;
+        // True once a ShelfSlot has bound this tag directly to its bottle. Then we never do the
+        // nearest-bottle search (which broke with duplicate SOs / recreated objects) and we stop
+        // following by offset — the tag is a child of the slot and sits at its authored local pose.
+        private bool _bound;
+
+        /// <summary>Bind this tag directly to the bottle instance of its <see cref="Gameplay.Systems.ShelfSlot"/>.
+        /// Replaces the nearest-bottle lookup: the tag tracks exactly THIS bottle and reads THIS SO.</summary>
+        public void Bind(Gameplay.Interactions.Bottle instance, BottleSO so)
+        {
+            _bottle = so;
+            _bottleInstance = instance;
+            _bound = true;
+            _followBottle = false; // child of the slot; authored local pose places it (no per-frame snap)
+            _lastShow = null;      // force a re-evaluate on the new binding
+            Apply();
+        }
 
         void Awake()
         {
@@ -134,7 +150,7 @@ namespace UI.Diegetic
             // Per-instance ownership: this tag hides only when ITS physical bottle is bought (or free),
             // not when any bottle of the same ingredient is owned — otherwise buying one of two
             // identical bottles would wrongly hide the price on the still-for-sale twin.
-            if (_bottleInstance == null) _bottleInstance = FindBottleInstance();
+            if (_bottleInstance == null && !_bound) _bottleInstance = FindBottleInstance();
             bool owned;
             if (_bottle.UnlockCost <= 0) owned = true;                       // free bottle
             else if (_bottleInstance != null && _progression != null)

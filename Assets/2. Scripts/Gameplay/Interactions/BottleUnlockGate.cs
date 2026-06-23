@@ -49,7 +49,14 @@ namespace Gameplay.Interactions
 
         // Events drive most updates; this poll guarantees eventual consistency. It's a bool compare per
         // frame unless the desired visibility actually changed (then it toggles renderers once).
-        void Update() => Apply();
+        // Also keep retrying the service bind until it resolves: a bottle spawned at runtime (ShelfSlot)
+        // may run its OnEnable/Start before the services are registered. Without this retry the gate would
+        // stay bound to null services forever — reading the bottle as "owned" so grabbing never charges.
+        void Update()
+        {
+            if (!_subscribed) Bind();
+            Apply();
+        }
 
         void OnDisable()
         {
