@@ -40,6 +40,5 @@ namespace Gameplay.Liquid
         public static Color ColorForRatio(float ratio) => ColorOf(BucketOf(ratio));
         public static float RatioOf(int index) => Ratios[Clamp(index)];
         public static int PercentOf(int index) => Mathf.RoundToInt(RatioOf(index) * 100f);
-        public static int PercentForRatio(float ratio) => PercentOf(BucketOf(ratio));
     }
 }

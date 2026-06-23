@@ -6,9 +6,9 @@ using Gameplay.Liquid;
 using Gameplay.Systems;
 using Services;
 using Services.Audio;
-using Services.Recipe;
 using Services.UpdateService;
 using UnityEngine;
+using UnityEngine.AI;
 using Utilities;
 
 namespace Gameplay.Customer
@@ -41,9 +41,11 @@ namespace Gameplay.Customer
         public Transform ExitPoint { get; private set; }
         public StateMachine<CustomerStateId, CustomerEntity> Machine { get; private set; }
 
-        public float WaitTimer;
-        public float DrinkTimer;
-        public float Drunkenness;
+        // FSM-internal state: read by UI/services across the assembly, but only the customer's
+        // states should mutate it — hence internal set.
+        public float WaitTimer { get; internal set; }
+        public float DrinkTimer { get; internal set; }
+        public float Drunkenness { get; internal set; }
 
         // --- Locomotion animation ---
         // The customer ROOT is moved by code (MoveTowards); the Animator on the model child plays the
@@ -69,6 +71,12 @@ namespace Gameplay.Customer
         [SerializeField] private float _strideLength = 0.55f;
         private float _stepDistance;
         private IAudioService _audio;
+
+        // NavMeshAgent drives movement (authoritative): it owns the transform position+rotation and paths
+        // around obstacles. MoveTowards feeds it a destination; we only re-path when the target changes.
+        private NavMeshAgent _agent;
+        private Vector3 _lastAgentDest;
+        private bool _hasAgentDest;
 
         public event System.Action<CustomerEntity, RecipeId, float, bool> Served;
         public event System.Action<CustomerEntity, bool> Left;
@@ -98,6 +106,21 @@ namespace Gameplay.Customer
             _currentAnimHash = 0;
             _hasAnimPos = false;
             _stepDistance = 0f;
+
+            // (Re)configure the NavMeshAgent each Init so pooled customers come back clean. Warp snaps the
+            // agent onto the navmesh at the spawn pose; from here all movement goes through the agent.
+            if (_agent == null) _agent = GetComponent<NavMeshAgent>();
+            if (_agent != null)
+            {
+                _agent.enabled = true;
+                _agent.speed = so.WalkSpeed;
+                _agent.updatePosition = true;
+                _agent.updateRotation = true;
+                _agent.Warp(transform.position);
+                _agent.isStopped = false;
+                if (_agent.isOnNavMesh) _agent.ResetPath();
+            }
+            _hasAgentDest = false;
 
             // Reset runtime state for clean reuse.
             WaitTimer = so.PatienceSeconds;
@@ -199,8 +222,30 @@ namespace Gameplay.Customer
             _audio?.PlayOneShot(SfxId.Footstep, transform.position);
         }
 
+        /// <summary>
+        /// Walks the customer toward <paramref name="target"/>, returning true once within
+        /// <paramref name="arriveDistance"/>. Uses the NavMeshAgent (paths around obstacles) when one is
+        /// available and on the navmesh; falls back to a straight-line move otherwise. Re-paths only when
+        /// the target actually changes, so calling it every frame with the same target is cheap.
+        /// </summary>
         public bool MoveTowards(Vector3 target, float arriveDistance = 0.05f)
         {
+            if (_agent != null && _agent.enabled && _agent.isOnNavMesh)
+            {
+                if (_agent.isStopped) _agent.isStopped = false;
+                _agent.speed = So.WalkSpeed;
+                _agent.stoppingDistance = arriveDistance;
+                if (!_hasAgentDest || (target - _lastAgentDest).sqrMagnitude > 0.0025f)
+                {
+                    _agent.SetDestination(target);
+                    _lastAgentDest = target;
+                    _hasAgentDest = true;
+                }
+                if (_agent.pathPending) return false;
+                return _agent.remainingDistance <= arriveDistance + 0.05f;
+            }
+
+            // Fallback: straight-line move when no navmesh/agent is available.
             var step = So.WalkSpeed * Time.deltaTime;
             var pos = transform.position;
             var dir = target - pos;
@@ -222,22 +267,43 @@ namespace Gameplay.Customer
         /// </summary>
         public void Sit()
         {
-            var p = transform.position;
-            transform.position = new Vector3(p.x, SeatLiftY, p.z);
+            // Stop the agent so it holds position while seated; FaceLookAt then turns to the bar (the
+            // stopped agent won't fight the manual rotation since it has no velocity).
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+                _hasAgentDest = false;
+            }
+            else
+            {
+                var p = transform.position;
+                transform.position = new Vector3(p.x, SeatLiftY, p.z);
+            }
             FaceLookAt();
         }
 
         /// <summary>Drops the customer back to the floor so it can walk away upright.</summary>
         public void Stand()
         {
-            var p = transform.position;
-            transform.position = new Vector3(p.x, 0f, p.z);
+            // Let the agent move again (it was stopped while seated).
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = false;
+            }
+            else
+            {
+                var p = transform.position;
+                transform.position = new Vector3(p.x, 0f, p.z);
+            }
         }
 
         /// <summary>
-        /// Attaches the served glass to the customer so it travels with them as they wander off and
-        /// leave, instead of staying on the bar. Parents it at a hold offset, freezes its physics, and
-        /// disables its colliders so the carried glass can't shove the customer or be grabbed. Idempotent.
+        /// "Accepts" the served glass: takes ownership of it so it leaves the bar with the customer and
+        /// is recycled when they despawn, but HIDES it. The carried glass was rendering at a hold offset
+        /// near the (scaled, possibly hand-less) customer and read as a glass floating in mid-air, so we
+        /// disable its renderers (kept alive/parented only for bookkeeping). Also freezes physics and
+        /// disables colliders so it can't shove the customer or be grabbed. Idempotent.
         /// </summary>
         public void CarryServedGlass()
         {
@@ -256,6 +322,11 @@ namespace Gameplay.Customer
 
             var cols = ServedGlass.GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
+
+            // Hide it so there's no glass floating beside the NPC. ResetForPool re-enables the renderers
+            // when the glass is recycled and reused.
+            var rends = ServedGlass.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < rends.Length; i++) rends[i].enabled = false;
         }
 
         /// <summary>

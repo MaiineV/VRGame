@@ -11,12 +11,19 @@ namespace Gameplay.Customer.States
     {
         private bool _published;
         private float _wobbleTime;
+        // Index of the next exit-route waypoint to walk to (before heading to the exit point).
+        private int _wp;
+
+        // Resolved once on Enter so ComputeWobble doesn't TryGet every tick. May be null.
+        private INightService _night;
 
         public void Enter(CustomerEntity c)
         {
             c.Stand();
             _published = false;
             _wobbleTime = 0f;
+            _wp = 0;
+            ServiceLocator.TryGet(out _night);
 
             // Take the glass along (covers the unhappy path that skips Wandering). It rides with the
             // customer and is recycled in CustomerEntity.DespawnNow when they leave the world.
@@ -34,6 +41,14 @@ namespace Gameplay.Customer.States
                 _published = true;
             }
 
+            // Walk the editable exit route first (seat → ... → near the door), then to the exit point.
+            var route = BarSceneRoot.Instance != null ? BarSceneRoot.Instance.ExitRoute : null;
+            if (route != null && _wp < route.Count)
+            {
+                if (c.MoveTowards(route.GetPoint(_wp), 0.25f)) _wp++;
+                return;
+            }
+
             var target = c.ExitPoint.position;
             target += ComputeWobble(c);
 
@@ -46,8 +61,8 @@ namespace Gameplay.Customer.States
         private Vector3 ComputeWobble(CustomerEntity c)
         {
             if (c.Drunkenness <= 0.01f) return Vector3.zero;
-            if (!ServiceLocator.TryGet<INightService>(out var n)) return Vector3.zero;
-            var cfg = (n as NightService)?.DrunkennessConfig;
+            if (_night == null) return Vector3.zero;
+            var cfg = (_night as NightService)?.DrunkennessConfig;
             if (cfg == null) return Vector3.zero;
 
             _wobbleTime += Time.deltaTime;

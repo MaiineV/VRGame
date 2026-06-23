@@ -6,9 +6,6 @@ namespace Gameplay.Interactions
     [RequireComponent(typeof(Rigidbody))]
     public sealed class Glass : LiquidContainer
     {
-        [Header("Identity")]
-        [SerializeField] private int _id;
-
         [Header("Physics (applied on Awake)")]
         [Tooltip("Mass in kg. A drinking glass is light (~0.3 kg).")]
         [SerializeField] private float _mass = 0.35f;
@@ -17,7 +14,6 @@ namespace Gameplay.Interactions
         [Tooltip("Angular damping. Kept high (with the low centre of mass) so the glass self-rights when set down.")]
         [SerializeField] private float _angularDamping = 0.6f;
 
-        public int Id => _id;
         public Rigidbody Body { get; private set; }
 
         /// <summary>
@@ -61,10 +57,14 @@ namespace Gameplay.Interactions
                 Body.angularVelocity = Vector3.zero;
             }
 
-            // Re-enable colliders in case the glass was carried off by a customer (which disables them
-            // so the in-hand glass can't shove the NPC or be grabbed). Pooling must restore a clean state.
+            // Re-enable colliders AND renderers in case the glass was carried off by a customer (which
+            // disables both: colliders so the in-hand glass can't shove the NPC or be grabbed, renderers
+            // so it isn't seen floating). Pooling must restore a clean, visible, solid state.
             var cols = GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = true;
+
+            var rends = GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < rends.Length; i++) rends[i].enabled = true;
 
             var grab = GetComponent<GrabBridge>();
             if (grab != null) grab.SetHeld(false);

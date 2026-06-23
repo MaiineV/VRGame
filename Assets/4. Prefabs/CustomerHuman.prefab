@@ -601,6 +601,7 @@ GameObject:
   - component: {fileID: 4023402404516659271}
   - component: {fileID: 2629731415708683502}
   - component: {fileID: 3509643737632359691}
+  - component: {fileID: 4965763414078415589}
   m_Layer: 0
   m_Name: CustomerHuman
   m_TagString: Untagged
@@ -618,7 +619,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.72, y: 0.72, z: 0.72}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 64622339649859750}
@@ -637,9 +638,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Customer.CustomerEntity
   _faceYawOffsetDeg: 0
+  _glassHoldOffset: {x: 0.16, y: 1.05, z: 0.18}
   WaitTimer: 0
   DrinkTimer: 0
   Drunkenness: 0
+  _drunkAnimThreshold: 0.4
+  _walkSpeedThreshold: 0.05
+  _strideLength: 0.55
 --- !u!136 &3509643737632359691
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -663,6 +668,28 @@ CapsuleCollider:
   m_Height: 1.8
   m_Direction: 1
   m_Center: {x: 0, y: 0.9, z: 0}
+--- !u!195 &4965763414078415589
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4297378467404803135}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.2
+  m_Speed: 1
+  m_Acceleration: 20
+  avoidancePriority: 50
+  m_AngularSpeed: 720
+  m_StoppingDistance: 0.1
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1 &4330702006245454550
 GameObject:
   m_ObjectHideFlags: 0

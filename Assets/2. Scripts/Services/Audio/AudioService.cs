@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Data.Enums;
 using Data.SO;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Services.Audio
         private AudioSource[] _sources;
         private ushort[] _generations;
         private bool[] _looping;
-        private float[] _lastPlayTime;   // per-SfxId, indexed by (byte)id
+        private readonly Dictionary<SfxId, float> _lastPlayTime = new();   // per-SfxId retrigger throttle
         private int _rrCursor;
         private Transform _root;
 
@@ -38,7 +39,6 @@ namespace Services.Audio
             _sources = new AudioSource[PoolSize];
             _generations = new ushort[PoolSize];
             _looping = new bool[PoolSize];
-            _lastPlayTime = new float[256];
 
             for (int i = 0; i < PoolSize; i++)
             {
@@ -115,8 +115,8 @@ namespace Services.Audio
         {
             if (!TryResolveHandle(handle, out int idx)) return;
             if (_db == null) return;
-            // Rescale from the clip's configured base volume if we can infer it — otherwise
-            // treat volumeScale as absolute. Keeping it absolute avoids a reverse lookup.
+            // volumeScale is treated as the absolute loop volume (0..1), not a multiplier of the
+            // clip's configured base volume.
             _sources[idx].volume = Mathf.Clamp01(volumeScale);
         }
 
@@ -128,9 +128,8 @@ namespace Services.Audio
             if (entry.minRetriggerInterval > 0f)
             {
                 float now = Time.unscaledTime;
-                int key = (byte)id;
-                if (now - _lastPlayTime[key] < entry.minRetriggerInterval) return false;
-                _lastPlayTime[key] = now;
+                if (_lastPlayTime.TryGetValue(id, out var last) && now - last < entry.minRetriggerInterval) return false;
+                _lastPlayTime[id] = now;
             }
 
             int idx = FindFreeSlot();

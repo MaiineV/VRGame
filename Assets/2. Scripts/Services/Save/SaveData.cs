@@ -23,7 +23,19 @@ namespace Services.Save
         public List<int> unlockedBottles = new();
         public List<StockEntry> stock = new();
 
-        public const int CurrentVersion = 2;
+        // --- v3: per-instance bottle ownership ------------------------------------------------
+        // Each purchasable bottle placed in the scene has a unique BottleUnlockGate._instanceId.
+        // Buying a bottle records its instance id here, so two bottles of the SAME ingredient are
+        // bought independently (buying one no longer unlocks both). unlockedBottles still tracks
+        // which INGREDIENTS are usable (recipe serveability / pour), granted when any instance is owned.
+        public List<int> ownedBottleInstances = new();
+
+        // v4: no shape change — bumped only to force the v3→v4 migration to WIPE ownedBottleInstances.
+        // Early v3 builds (and a prior null-SO respawn bug) left stale per-instance ownership in saved
+        // files, so purchasable bottles came back owned/free without being paid for. Clearing the list
+        // on migration returns them to "for sale"; ownership earned afterwards (by grabbing/paying in the
+        // shop) is permanent as designed.
+        public const int CurrentVersion = 4;
     }
 
     /// <summary>Purchased stock for one bottle, in millilitres, keyed by IngredientId (as int).</summary>

@@ -13,7 +13,6 @@ namespace Services.Progression
     public interface IProgressionService : IGameService
     {
         bool IsRecipeUnlocked(RecipeId recipe);
-        bool IsBottleUnlocked(IngredientId ingredient);
 
         IReadOnlyCollection<RecipeId> UnlockedRecipes { get; }
         IReadOnlyCollection<IngredientId> UnlockedBottles { get; }
@@ -26,6 +25,15 @@ namespace Services.Progression
         /// bottle be sold as a standalone item (independent of recipes, which still auto-unlock the
         /// bottles they use). No-op returning false if already unlocked, unknown, or unaffordable.</summary>
         bool UnlockBottle(IngredientId ingredient);
+
+        /// <summary>True if the specific physical bottle (by its unique scene instance id) has been
+        /// bought. Used by BottleUnlockGate so two bottles of the same ingredient are owned separately.</summary>
+        bool IsBottleInstanceOwned(int instanceId);
+
+        /// <summary>Buy ONE specific physical bottle by its unique scene instance id, charging
+        /// <paramref name="cost"/>. Also marks the ingredient usable (recipe serveability / pour) so the
+        /// bought bottle is functional. No-op returning false if already owned or unaffordable.</summary>
+        bool UnlockBottleInstance(int instanceId, IngredientId ingredient, int cost);
 
         /// <summary>Buy <paramref name="units"/> of stock for an already-unlocked bottle. Charges
         /// units * BottleSO.StockUnitPrice and adds units * BottleSO.MlPerStockUnit ml. Returns

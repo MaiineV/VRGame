@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 8201690634895536891}
   - component: {fileID: 2018273457959332384}
   - component: {fileID: 3054296036076649170}
+  - component: {fileID: 8206542290457252251}
   m_Layer: 0
   m_Name: CustomerKoboldFemale
   m_TagString: Untagged
@@ -69,9 +70,36 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6214fbc8c3f08794c9433c8603dc908d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Customer.CustomerEntity
+  _faceYawOffsetDeg: 0
+  _glassHoldOffset: {x: 0.16, y: 1.05, z: 0.18}
   WaitTimer: 0
   DrinkTimer: 0
   Drunkenness: 0
+  _drunkAnimThreshold: 0.4
+  _walkSpeedThreshold: 0.05
+  _strideLength: 0.55
+--- !u!195 &8206542290457252251
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6753822472143942800}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.2
+  m_Speed: 1
+  m_Acceleration: 20
+  avoidancePriority: 50
+  m_AngularSpeed: 720
+  m_StoppingDistance: 0.1
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 1.2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!1001 &3896247168745716267
 PrefabInstance:
   m_ObjectHideFlags: 0

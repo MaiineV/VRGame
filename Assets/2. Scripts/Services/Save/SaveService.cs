@@ -56,12 +56,6 @@ namespace Services.Save
             }
         }
 
-        public void ResetToDefaults()
-        {
-            Current = new SaveData { cash = StartingCash };
-            Save();
-        }
-
         private SaveData Load()
         {
             if (!File.Exists(_path)) return null;
@@ -102,6 +96,14 @@ namespace Services.Save
             data.unlockedRecipes ??= new System.Collections.Generic.List<int>();
             data.unlockedBottles ??= new System.Collections.Generic.List<int>();
             data.stock ??= new System.Collections.Generic.List<StockEntry>();
+
+            // v3→v4: wipe per-instance bottle ownership. Old v3 saves accumulated stale owned instance
+            // ids (a prior respawn bug marked for-sale bottles owned), which made purchasable bottles
+            // come back free without payment. Resetting returns them to "for sale"; purchases made after
+            // the migration persist normally (buy once, owned forever).
+            if (from < 4)
+                data.ownedBottleInstances = new System.Collections.Generic.List<int>();
+
             data.version = SaveData.CurrentVersion;
             MyLogger.LogInfo($"[SaveService] Migrated save v{from} -> v{SaveData.CurrentVersion}.");
         }

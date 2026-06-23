@@ -11,6 +11,10 @@ namespace Gameplay.Interactions
     public sealed class Bottle : MonoBehaviour
     {
         [SerializeField] private BottleSO _so;
+        [Tooltip("Unique id for THIS physical bottle in the scene (0 = none/free). Purchasable bottles " +
+                 "need a distinct value so two bottles of the same ingredient are bought independently. " +
+                 "BottleRespawner re-applies it when it recreates an owned bottle.")]
+        [SerializeField] private int _instanceId;
         [SerializeField] private Transform _neck;
         [Tooltip("This bottle's own prefab. Set each bottle prefab to reference itself so BottleRespawner " +
                  "can destroy and recreate it at its origin when a night ends.")]
@@ -29,6 +33,14 @@ namespace Gameplay.Interactions
         private bool _filled;
 
         public BottleSO SO => _so;
+        /// <summary>Unique scene-instance id for per-bottle ownership (0 = none/free bottle).</summary>
+        public int InstanceId => _instanceId;
+        /// <summary>Re-apply the instance id after BottleRespawner recreates this bottle from its prefab.</summary>
+        public void SetInstanceId(int id) => _instanceId = id;
+        /// <summary>Re-apply the BottleSO after a respawn (the prefab may not carry it). Without this a
+        /// recreated bottle has a null SO, which BottleUnlockGate reads as "free/owned" — making
+        /// for-sale bottles grabbable for free. Resets the fill so it refills from the new SO.</summary>
+        public void SetSO(BottleSO so) { _so = so; _filled = false; }
         public GameObject SourcePrefab => _sourcePrefab;
         public Transform Neck => _neck != null ? _neck : transform;
         public float RemainingMl { get { EnsureFilled(); return _remainingMl; } }
@@ -45,6 +57,10 @@ namespace Gameplay.Interactions
             Body.mass = _mass;
             Body.linearDamping = _linearDamping;
             Body.angularDamping = _angularDamping;
+            // Keep the bottle upright when set down: a low centre of mass plus the flat-bottomed
+            // BoxCollider on the prefab make it self-right instead of tipping (a CapsuleCollider's
+            // rounded base balances on a point and falls over). Same trick as Glass.
+            Body.centerOfMass = new Vector3(0f, -0.04f, 0f);
 
             if (_breakable == null) _breakable = GetComponent<Breakable>();
             if (_breakable != null) _breakable.Broken += HandleBroken;
@@ -71,11 +87,6 @@ namespace Gameplay.Interactions
             float actual = volumeMl > _remainingMl ? _remainingMl : volumeMl;
             _remainingMl -= actual;
             return actual;
-        }
-
-        public void Refill()
-        {
-            if (_so != null) { _remainingMl = _so.CapacityMl; _filled = true; }
         }
 
         /// <summary>

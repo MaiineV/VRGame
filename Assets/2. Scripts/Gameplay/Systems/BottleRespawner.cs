@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Data.Enums;
+using Data.SO;
 using Gameplay.Interactions;
 using Services;
 using Services.Night;
@@ -28,6 +29,9 @@ namespace Gameplay.Systems
             public Quaternion Rotation;
             public Transform Parent;
             public IngredientId Ingredient;
+            public int InstanceId;   // per-bottle ownership id; re-applied to the recreated bottle
+            public bool Free;        // UnlockCost <= 0: owned from the start, always respawns
+            public BottleSO SO;      // re-applied on recreate (the prefab may not carry it)
         }
 
         private readonly List<Origin> _origins = new();
@@ -72,6 +76,9 @@ namespace Gameplay.Systems
                     Rotation = t.rotation,
                     Parent = t.parent,
                     Ingredient = IngredientOf(b),
+                    InstanceId = b.InstanceId,
+                    Free = b.SO == null || b.SO.UnlockCost <= 0,
+                    SO = b.SO,
                 });
             }
 
@@ -80,37 +87,23 @@ namespace Gameplay.Systems
 
         private void RespawnAll()
         {
-            // Only touch OWNED bottles. For-sale (locked) bottles are left exactly where they are so
-            // destroying/recreating them can't flip their lock state.
-            ServiceLocator.TryGet<IProgressionService>(out var progression);
-
-            // Destroy only the live bottles whose ingredient is currently owned.
+            // Full clean rebuild: destroy every live bottle and recreate all captured origins, re-stamping
+            // their instance ids. Ownership now lives in ProgressionService/save (per instance), NOT in
+            // whether a bottle was recreated — so a rebuilt for-sale bottle still reads as for-sale and an
+            // owned one as owned. Rebuilding ALL (instead of only owned) guarantees every bottle is back on
+            // its shelf each night, fixing purchasable bottles that vanished and never returned.
             var live = Object.FindObjectsByType<Bottle>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             for (int i = 0; i < live.Length; i++)
-            {
-                var b = live[i];
-                if (b == null) continue;
-                if (IsOwned(progression, IngredientOf(b))) Destroy(b.gameObject);
-            }
+                if (live[i] != null) Destroy(live[i].gameObject);
 
-            // Recreate only the owned origins.
             int recreated = 0;
             for (int i = 0; i < _origins.Count; i++)
             {
-                if (!IsOwned(progression, _origins[i].Ingredient)) continue;
                 Spawn(_origins[i]);
                 recreated++;
             }
 
-            MyLogger.LogInfo($"[BottleRespawner] Respawned {recreated} owned bottle(s) at origin (for-sale bottles left untouched).");
-        }
-
-        // A bottle with no progression service or no ingredient is treated as owned (default-usable),
-        // so the reset still works in setups without the shop economy.
-        private static bool IsOwned(IProgressionService progression, IngredientId ingredient)
-        {
-            if (ingredient == IngredientId.None) return true;
-            return progression == null || progression.IsBottleUnlocked(ingredient);
+            MyLogger.LogInfo($"[BottleRespawner] Rebuilt {recreated} bottle(s) at origin (full reset; ownership is per-instance in save).");
         }
 
         private static IngredientId IngredientOf(Bottle b) =>
@@ -119,7 +112,15 @@ namespace Gameplay.Systems
         private static void Spawn(Origin o)
         {
             if (o.Prefab == null) return;
-            Object.Instantiate(o.Prefab, o.Position, o.Rotation, o.Parent);
+            var go = Object.Instantiate(o.Prefab, o.Position, o.Rotation, o.Parent);
+            // The prefab carries instance id 0; re-stamp the scene-assigned id so the recreated bottle
+            // keeps its per-instance ownership identity across nights.
+            var b = go.GetComponent<Bottle>();
+            if (b != null)
+            {
+                if (o.SO != null) b.SetSO(o.SO);   // prefab may not carry the SO; without it the bottle reads as free
+                b.SetInstanceId(o.InstanceId);
+            }
         }
     }
 }

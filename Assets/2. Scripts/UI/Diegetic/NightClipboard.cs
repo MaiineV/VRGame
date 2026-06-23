@@ -34,6 +34,12 @@ namespace UI.Diegetic
                  "clipboard rests on the bar too.")]
         [SerializeField] private bool _requireHeld = false;
 
+        [Header("Input guard")]
+        [Tooltip("After any button press, ALL clipboard buttons go non-interactive for this long. Stops a " +
+                 "single poke (or a finger still in range) from also triggering the button that swaps into " +
+                 "its place when the state changes, and prevents spamming. ~1-2s feels right.")]
+        [SerializeField] private float _buttonCooldownSeconds = 1.5f;
+
         [Header("Groups (one active per state)")]
         [SerializeField] private GameObject _idleGroup;
         [SerializeField] private GameObject _runningGroup;
@@ -51,10 +57,17 @@ namespace UI.Diegetic
         [SerializeField] private TMP_Text _summaryExpenses;
         [SerializeField] private TMP_Text _summaryNightlyEarnings;
 
-        // Idle progression (night/best/cash) now lives solely on the ProgressionBoard.
-
         private IGameStateService _state;
         private IEconomyService _economy;
+        private float _cooldownRemaining;
+
+        void Update()
+        {
+            // Tick down the post-press guard; re-enable the buttons the moment it expires.
+            if (_cooldownRemaining <= 0f) return;
+            _cooldownRemaining -= Time.deltaTime;
+            if (_cooldownRemaining <= 0f) RefreshInteractable();
+        }
 
         void OnEnable()
         {
@@ -94,14 +107,23 @@ namespace UI.Diegetic
 
         private void OnStartPressed()
         {
-            if (!IsActive() || _state == null) return;
+            if (_cooldownRemaining > 0f || !IsActive() || _state == null) return;
             // Start works in any non-running state. After a night we sit in NightSummary; acknowledge
             // it first (resets the per-night economy) so the next night starts clean.
             if (_state.Current == Services.GameState.GameState.NightSummary) _state.AcknowledgeSummary();
             _state.BeginNight();
+            BeginCooldown();
         }
-        private void OnAbortPressed()    { if (IsActive()) _state?.AbortNight(); }
-        private void OnContinuePressed() { if (IsActive()) _state?.AcknowledgeSummary(); }
+        private void OnAbortPressed()    { if (_cooldownRemaining <= 0f && IsActive()) { _state?.AbortNight(); BeginCooldown(); } }
+        private void OnContinuePressed() { if (_cooldownRemaining <= 0f && IsActive()) { _state?.AcknowledgeSummary(); BeginCooldown(); } }
+
+        // Lock out all buttons briefly after a press, then refresh so the now-relevant button stays dead
+        // until the guard expires (handled in Update).
+        private void BeginCooldown()
+        {
+            _cooldownRemaining = Mathf.Max(0f, _buttonCooldownSeconds);
+            RefreshInteractable();
+        }
 
         private bool IsActive() => !_requireHeld || _grab == null || _grab.IsHeld;
 
@@ -118,6 +140,14 @@ namespace UI.Diegetic
             if (_runningGroup != null) _runningGroup.SetActive(running);
             if (_summaryGroup != null) _summaryGroup.SetActive(s == Services.GameState.GameState.NightSummary);
 
+            // The idle/running groups aren't wired in this scene, so toggle the physical buttons
+            // directly: only the button relevant to the current state is shown. SetActive(false) hides
+            // AND makes it non-interactive (so Start and Stop are mutually exclusive — Start while the
+            // night isn't running, Stop only while it runs; Continue only in the summary).
+            if (_startButton != null)    _startButton.gameObject.SetActive(!running);
+            if (_abortButton != null)    _abortButton.gameObject.SetActive(running);
+            if (_continueButton != null) _continueButton.gameObject.SetActive(s == Services.GameState.GameState.NightSummary);
+
             if (s == Services.GameState.GameState.NightSummary) FillSummary();
             RefreshInteractable();
         }
@@ -125,10 +155,11 @@ namespace UI.Diegetic
         private void RefreshInteractable()
         {
             bool held = IsActive();
+            bool ready = _cooldownRemaining <= 0f;   // post-press guard blocks every button while active
             bool running = _state != null && _state.Current == Services.GameState.GameState.NightRunning;
-            if (_startButton != null)    _startButton.Interactable    = held && _state != null && !running;
-            if (_abortButton != null)    _abortButton.Interactable    = held && running;
-            if (_continueButton != null) _continueButton.Interactable = held && _state != null && _state.Current == Services.GameState.GameState.NightSummary;
+            if (_startButton != null)    _startButton.Interactable    = ready && held && _state != null && !running;
+            if (_abortButton != null)    _abortButton.Interactable    = ready && held && running;
+            if (_continueButton != null) _continueButton.Interactable = ready && held && _state != null && _state.Current == Services.GameState.GameState.NightSummary;
         }
 
         private void FillSummary()

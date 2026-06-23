@@ -44,6 +44,8 @@ namespace Gameplay.Interactions
         private GrabBridge _held;
         private Rigidbody _heldRb;
         private Transform _heldOriginalParent;
+        private Vector3 _heldLocalPos;        // pose of the held object relative to the hand, captured at grab
+        private Quaternion _heldLocalRot;
         private bool _heldWasKinematic;
         private Collider[] _heldColliders;
         private bool[] _heldOriginalTriggerStates;
@@ -111,8 +113,11 @@ namespace Gameplay.Interactions
 
             if (_held != null && _heldRb != null && _heldRb.isKinematic)
             {
-                _heldRb.MovePosition(transform.position);
-                _heldRb.MoveRotation(transform.rotation);
+                // Hold the object at the pose it had RELATIVE to the hand when grabbed, instead of
+                // snapping its pivot onto the hand anchor each frame. Snapping the pivot made the object
+                // jump to an offset (the glass "floated" away from the hand and never looked attached).
+                _heldRb.MovePosition(transform.TransformPoint(_heldLocalPos));
+                _heldRb.MoveRotation(transform.rotation * _heldLocalRot);
             }
         }
 
@@ -230,6 +235,11 @@ namespace Gameplay.Interactions
             _heldRb = best.GetComponent<Rigidbody>();
             _heldOriginalParent = best.transform.parent;
             best.transform.SetParent(transform, true);
+            // Remember where the object sat relative to the hand at the moment of grab, so Update can
+            // hold it there (it stays attached where you grabbed it instead of snapping its pivot onto
+            // the controller and appearing to float).
+            _heldLocalPos = best.transform.localPosition;
+            _heldLocalRot = best.transform.localRotation;
             if (_heldRb != null)
             {
                 _heldWasKinematic = _heldRb.isKinematic;

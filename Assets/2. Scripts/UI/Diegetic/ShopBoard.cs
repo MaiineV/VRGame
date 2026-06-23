@@ -188,21 +188,9 @@ namespace UI.Diegetic
                     }
                 }
 
-                // Locked bottles for sale as standalone items (recipes still auto-unlock their own
-                // bottles; these are the ones not covered that way).
-                var bottles = _db.AllBottles;
-                if (bottles != null && _progression != null)
-                {
-                    for (int i = 0; i < bottles.Count; i++)
-                    {
-                        var b = bottles[i];
-                        if (b == null || b.Ingredient == null) continue;
-                        var ing = b.Ingredient.Id;
-                        if (ing == IngredientId.None) continue;
-                        if (!_progression.IsBottleUnlocked(ing))
-                            _entries.Add(new ShopEntry { kind = EntryKind.UnlockBottle, ingredient = ing });
-                    }
-                }
+                // NOTE: locked bottles are NOT listed here. Each physical bottle is bought individually by
+                // grabbing it on the shelf (BottleUnlockGate.OnGrabbed → UnlockBottleInstance), so a menu
+                // entry keyed by ingredient would wrongly buy every bottle of that type at once.
 
                 if (_progression != null)
                 {

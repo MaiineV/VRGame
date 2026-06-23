@@ -30,7 +30,6 @@ namespace Gameplay.Interactions
 
         /// <summary>Fired once when a glass is served. bool = the fill level matched the order.</summary>
         public event System.Action<Glass, bool> Served;
-        public event System.Action<Glass> GlassRemoved;
 
         private bool _servedThisPlacement;
         private float _lastFill = -1f;
@@ -58,11 +57,9 @@ namespace Gameplay.Interactions
         {
             var glass = other.GetComponentInParent<Glass>();
             if (glass == null || glass != CurrentGlass) return;
-            var leaving = CurrentGlass;
-            leaving.RequestedLevel = null; // no longer at a customer → hide the target marker
+            CurrentGlass.RequestedLevel = null; // no longer at a customer → hide the target marker
             CurrentGlass = null;
             _servedThisPlacement = false;
-            GlassRemoved?.Invoke(leaving);
         }
 
         void Update()

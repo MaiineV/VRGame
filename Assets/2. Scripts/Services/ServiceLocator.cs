@@ -50,13 +50,6 @@ namespace Services
             }
         }
 
-        public static void Unregister<T>() where T : IGameService
-        {
-            var lType = typeof(T);
-            Assert.IsFalse(!ServiceDefinitions.ContainsKey(lType), $"Service {lType} is not registered");
-            ServiceDefinitions.Remove(lType);
-        }
-
         public static T Get<T>() where T : IGameService
         {
             var lType = typeof(T);
@@ -170,21 +163,6 @@ namespace Services
             return (IGameService)Activator.CreateInstance(pConcreteType, lInstanceParameters);
         }
 
-        public static void TearDown()
-        {
-            foreach (var lType in ServiceDefinitions.Keys)
-            {
-                if (!ServiceInstances.ContainsKey(lType))
-                    continue;
-
-                if (ServiceInstances[lType] is IDisposable lTarget)
-                {
-                    lTarget.Dispose();
-                }
-
-                ServiceInstances.Remove(lType);
-            }
-        }
         private static void SceneManagerOnSceneUnloaded(Scene pArg0)
         {
             foreach (var lType in ServiceDefinitions.Keys)
@@ -202,19 +180,6 @@ namespace Services
 
                 ServiceInstances.Remove(lType);
             }
-        }
-        
-        public static void RegisterInstance<TInterface>(TInterface instance, bool pIsSceneUnloaded = false)
-            where TInterface : class, IGameService
-        {
-            var iface = typeof(TInterface);
-            Assert.IsFalse(ServiceDefinitions.ContainsKey(iface) || ServiceInstances.ContainsKey(iface),
-                $"Service {iface} is already registered");
-            
-            ServiceDefinitions.Add(iface, new ServiceDefinition(instance.GetType(), pIsSceneUnloaded));
-
-            ServiceInstances.Add(iface, instance);
-            instance.Initialize();
         }
     }
 

@@ -24,7 +24,8 @@ namespace UI.Diegetic
         [SerializeField] private BottleSO _bottle;
         [Tooltip("Label to write the price into. Defaults to a TMP_Text on this object or its children.")]
         [SerializeField] private TMP_Text _label;
-        [Tooltip("If true, the tag rotates to face the main camera each frame (billboard).")]
+        [Tooltip("If true, the tag orients ONCE toward the player (yaw only, kept upright) and then stays " +
+                 "static. The old per-frame billboard tilted with the head and read as 'broken'.")]
         [SerializeField] private bool _faceCamera = true;
         [Tooltip("If true, the tag snaps above the matching bottle each frame so it stays aligned even " +
                  "if the bottle is moved, duplicated, or respawned. Off keeps the tag at its fixed spot.")]
@@ -35,13 +36,24 @@ namespace UI.Diegetic
         private IProgressionService _progression;
         private IGameStateService _state;
         private bool _subscribed;
-        private Transform _cam;
         private Gameplay.Interactions.Bottle _bottleInstance;
         private bool? _lastShow;
 
         void Awake()
         {
             if (_label == null) _label = GetComponentInChildren<TMP_Text>(true);
+
+            // Center the price over the bottle. The authored label sat offset to the right (a non-zero
+            // anchoredPosition.x plus a right margin), which — combined with the tag facing away — read as
+            // "shifted right". Zero the horizontal offset/margins and center the text so it sits squarely
+            // above the bottle.
+            if (_label != null)
+            {
+                var rt = _label.rectTransform;
+                var ap = rt.anchoredPosition; ap.x = 0f; rt.anchoredPosition = ap;
+                var m = _label.margin; m.x = 0f; m.z = 0f; _label.margin = m;
+                _label.alignment = TMPro.TextAlignmentOptions.Center;
+            }
         }
 
         void OnEnable() => Bind();
@@ -76,10 +88,9 @@ namespace UI.Diegetic
             // sync with the owned/shop state even if a StateChanged/UnlocksChanged event was missed.
             Apply();
 
-            if (!_faceCamera) return;
-            if (_cam == null && Camera.main != null) _cam = Camera.main.transform;
-            if (_cam != null)
-                transform.rotation = Quaternion.LookRotation(transform.position - _cam.position);
+            // No runtime re-orientation: the tags keep their authored (fixed) rotation. They're rotated
+            // in the scene to face the player — NO camera billboard (that tilted/followed the head and
+            // read as broken). The tag follows the bottle's POSITION only; its rotation stays put.
         }
 
         // Bind to the NEAREST bottle matching the SO, not just the first. With duplicate bottles of the
@@ -120,7 +131,15 @@ namespace UI.Diegetic
         {
             if (_label == null || _bottle == null || _bottle.Ingredient == null) return;
 
-            bool owned = _progression != null && _progression.IsBottleUnlocked(_bottle.Ingredient.Id);
+            // Per-instance ownership: this tag hides only when ITS physical bottle is bought (or free),
+            // not when any bottle of the same ingredient is owned — otherwise buying one of two
+            // identical bottles would wrongly hide the price on the still-for-sale twin.
+            if (_bottleInstance == null) _bottleInstance = FindBottleInstance();
+            bool owned;
+            if (_bottle.UnlockCost <= 0) owned = true;                       // free bottle
+            else if (_bottleInstance != null && _progression != null)
+                owned = _progression.IsBottleInstanceOwned(_bottleInstance.InstanceId);
+            else owned = false;
             // Show the price only while it's actually buyable: locked AND in the day shop.
             bool inShop = _state == null || _state.Current == GameState.DayShop;
             bool show = !owned && inShop;

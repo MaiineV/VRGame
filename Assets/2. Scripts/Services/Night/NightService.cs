@@ -17,15 +17,19 @@ namespace Services.Night
         private readonly IUpdateService _updates;
         private readonly IEconomyService _economy;
 
+        // Once the clock hits zero, remaining customers get this long to finish naturally before
+        // they're force-despawned. Prevents a stuck/orphaned customer from keeping the night open forever.
+        private const float EndGracePeriodSeconds = 20f;
+
         private NightConfigSO _config;
         private float _timeRemaining;
         private float _spawnTimer;
+        private float _graceRemaining;
         private readonly List<CustomerEntity> _active = new(8);
         private RecipeId[] _availableRecipes = System.Array.Empty<RecipeId>();
 
         public bool IsRunning { get; private set; }
         public float TimeRemaining => _timeRemaining;
-        public int ActiveCustomers => _active.Count;
         public Data.SO.DrunkennessConfigSO DrunkennessConfig => _config != null ? _config.DrunkennessConfig : null;
 
         public event System.Action NightStarted;
@@ -48,6 +52,7 @@ namespace Services.Night
             _config = config;
             _timeRemaining = config.DurationSeconds;
             _spawnTimer = 0f;
+            _graceRemaining = EndGracePeriodSeconds;
             IsRunning = true;
 
             // Owned bottles start full each night (a purchased bottle is yours permanently, no per-night
@@ -58,7 +63,10 @@ namespace Services.Night
             {
                 var b = bottles[i];
                 if (b == null || b.SO == null || b.SO.Ingredient == null) { b?.SetRemaining(0f); continue; }
-                bool owned = progression == null || progression.IsBottleUnlocked(b.SO.Ingredient.Id);
+                // Per-instance ownership: a bottle is full only if it's free or THIS physical bottle was
+                // bought. An un-bought duplicate of an owned ingredient stays empty (it's hidden anyway).
+                bool free = b.SO.UnlockCost <= 0;
+                bool owned = progression == null || free || progression.IsBottleInstanceOwned(b.InstanceId);
                 b.SetRemaining(owned ? b.SO.CapacityMl : 0f);
             }
 
@@ -103,8 +111,40 @@ namespace Services.Night
                 _spawnTimer = _config.SpawnIntervalSeconds;
             }
 
-            if (_timeRemaining <= 0f && _active.Count == 0)
-                EndNight();
+            if (_timeRemaining <= 0f)
+            {
+                if (_active.Count == 0)
+                {
+                    EndNight();
+                    return;
+                }
+
+                // Normal path: the clock is up but customers are still being served. Give them a grace
+                // period to finish. If it elapses, force every remaining customer to despawn so the night
+                // can end — otherwise a single stuck customer (e.g. one that never reaches its seat or
+                // whose Left event never fires) would hang the night indefinitely.
+                _graceRemaining -= Time.deltaTime;
+                if (_graceRemaining <= 0f)
+                {
+                    MyLogger.LogWarning($"[NightService] Grace period elapsed with {_active.Count} customer(s) still active. Force-despawning to end the night.");
+                    ForceDespawnAll();
+                    EndNight();
+                }
+            }
+        }
+
+        private void ForceDespawnAll()
+        {
+            for (int i = _active.Count - 1; i >= 0; i--)
+            {
+                var c = _active[i];
+                if (c == null) continue;
+                c.Served -= HandleCustomerServed;
+                c.Left -= HandleCustomerLeft;
+                if (c.Seat != null) c.Seat.Clear();
+                c.DespawnNow();
+            }
+            _active.Clear();
         }
 
         private void CleanupDespawned()

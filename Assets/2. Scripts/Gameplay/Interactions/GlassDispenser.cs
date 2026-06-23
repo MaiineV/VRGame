@@ -27,6 +27,8 @@ namespace Gameplay.Interactions
         [SerializeField] private int _buffer = 2;
         [Tooltip("Override the auto seat count. 0 = count CustomerSeatPoints in the scene.")]
         [SerializeField] private int _seatCountOverride = 0;
+        [Tooltip("Hard ceiling on glasses live in the world at once, regardless of seats + buffer.")]
+        [SerializeField] private int _maxGlasses = 12;
         [Tooltip("Dispense one glass at scene start so the bar isn't empty.")]
         [SerializeField] private bool _spawnOneOnStart = true;
         [Tooltip("Auto-dispense a replacement whenever a glass leaves play (a customer carries it " +
@@ -82,7 +84,9 @@ namespace Gameplay.Interactions
 
             // Gray out the physical button while the budget is exhausted (PokeButton stays silent
             // when not interactable). With no pool service (no bootstrap) it's always interactable.
-            if (_spawnButton != null) _spawnButton.Interactable = _pool == null || _pool.CanSpawn;
+            // Interactable when a fresh glass can be spawned OR there's a live glass we could recycle to
+            // make room (TrySpawn evicts the oldest free one at the cap). Only goes dead with no pool.
+            if (_spawnButton != null) _spawnButton.Interactable = _pool == null || _pool.CanSpawn || _pool.LiveCount > 0;
 
             if (_enableControllerFallback && OVRInput.GetDown(_fallbackButton, _fallbackController))
                 TrySpawn();
@@ -97,8 +101,10 @@ namespace Gameplay.Interactions
             int seats = _seatCountOverride > 0
                 ? _seatCountOverride
                 : FindObjectsByType<CustomerSeatPoint>(FindObjectsSortMode.None).Length;
-            _pool.Capacity = Mathf.Max(1, seats + _buffer);
-            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = {seats} seats + {_buffer} = {_pool.Capacity}.");
+            int budget = Mathf.Max(1, seats + _buffer);
+            if (_maxGlasses > 0) budget = Mathf.Min(budget, _maxGlasses);
+            _pool.Capacity = budget;
+            MyLogger.LogInfo($"[GlassDispenser:{name}] Glass budget = min({seats} seats + {_buffer}, cap {_maxGlasses}) = {_pool.Capacity}.");
 
             SubscribePool();
         }
@@ -139,6 +145,9 @@ namespace Gameplay.Interactions
             var t = _spawnPoint != null ? _spawnPoint : transform;
             if (_pool != null)
             {
+                // At the cap, recycle the oldest free glass so the player can always get a fresh one
+                // instead of the dispenser going dead with stale glasses cluttering the bar.
+                if (!_pool.CanSpawn) _pool.RecycleOldestUnheld();
                 if (!_pool.CanSpawn) return;
                 _pool.Spawn(_glassPrefab, t.position, t.rotation);
             }

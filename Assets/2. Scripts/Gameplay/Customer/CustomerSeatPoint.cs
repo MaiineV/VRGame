@@ -21,8 +21,6 @@ namespace Gameplay.Customer
         public event System.Action<CustomerEntity> CustomerBound;
         public event System.Action CustomerCleared;
 
-        public void SetOccupied(bool occupied) => IsOccupied = occupied;
-
         public void Bind(CustomerEntity customer)
         {
             CurrentCustomer = customer;

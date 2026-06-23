@@ -33,6 +33,11 @@ namespace Gameplay.Systems
         /// <summary>Deactivates the glass, returns it to its bucket, and frees a budget slot.</summary>
         void Return(Glass instance);
 
+        /// <summary>Recycle the OLDEST live glass that isn't currently held by the player (and isn't
+        /// being carried by a customer), freeing a budget slot. Lets the dispenser hand out a fresh
+        /// glass at the cap instead of going dead. Returns false if every live glass is in use.</summary>
+        bool RecycleOldestUnheld();
+
         /// <summary>
         /// Raised right after a glass leaves play (served-and-carried-off, or trashed) and its
         /// budget slot is freed. Lets the dispenser auto-refill so the bar always has a glass ready.
@@ -43,6 +48,7 @@ namespace Gameplay.Systems
     public sealed class GlassPoolService : IGlassPoolService
     {
         private readonly Dictionary<GameObject, PoolGeneric<Glass>> _pools = new();
+        private readonly List<Glass> _live = new();   // spawn order, oldest first; for cap eviction
         private Transform _root;
 
         public int Capacity { get; set; }
@@ -70,12 +76,30 @@ namespace Gameplay.Systems
             inst.gameObject.SetActive(true);
             inst.ResetForPool();
             LiveCount++;
+            _live.Add(inst);
             return inst;
+        }
+
+        public bool RecycleOldestUnheld()
+        {
+            for (int i = 0; i < _live.Count; i++)
+            {
+                var g = _live[i];
+                if (g == null) continue;
+                // Skip a glass the player is holding or a customer is carrying (parented off the pool root).
+                var grab = g.GetComponent<Gameplay.Interactions.GrabBridge>();
+                if (grab != null && grab.IsHeld) continue;
+                if (g.transform.parent != null && g.transform.parent != _root) continue;
+                Return(g);
+                return true;
+            }
+            return false;
         }
 
         public void Return(Glass instance)
         {
             if (instance == null) return;
+            _live.Remove(instance);
             if (LiveCount > 0) LiveCount--;
             var prefab = instance.SourcePrefab;
             if (prefab == null) { Object.Destroy(instance.gameObject); Returned?.Invoke(instance); return; }

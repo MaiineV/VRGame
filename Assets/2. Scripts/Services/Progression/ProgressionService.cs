@@ -19,6 +19,7 @@ namespace Services.Progression
         private readonly HashSet<RecipeId> _recipes = new();
         private readonly HashSet<IngredientId> _bottles = new();
         private readonly Dictionary<IngredientId, int> _stockMl = new();
+        private readonly HashSet<int> _ownedInstances = new();   // per-physical-bottle ownership (scene instance ids)
 
         public IReadOnlyCollection<RecipeId> UnlockedRecipes => _recipes;
         public IReadOnlyCollection<IngredientId> UnlockedBottles => _bottles;
@@ -52,7 +53,27 @@ namespace Services.Progression
         }
 
         public bool IsRecipeUnlocked(RecipeId recipe) => _recipes.Contains(recipe);
-        public bool IsBottleUnlocked(IngredientId ingredient) => _bottles.Contains(ingredient);
+        public bool IsBottleInstanceOwned(int instanceId) => _ownedInstances.Contains(instanceId);
+
+        public bool UnlockBottleInstance(int instanceId, IngredientId ingredient, int cost)
+        {
+            if (_ownedInstances.Contains(instanceId)) return false;     // this physical bottle already bought
+            cost = Mathf.Max(0, cost);
+            if (_economy.Cash < cost) return false;                     // unaffordable
+
+            if (cost > 0) _economy.RegisterExpense(cost, $"Buy bottle #{instanceId} ({ingredient})");
+            _ownedInstances.Add(instanceId);
+            // Owning any instance makes the ingredient usable (pour) and its drinks serveable (recipe).
+            if (ingredient != IngredientId.None)
+            {
+                _bottles.Add(ingredient);
+                UnlockRecipesUsing(ingredient);
+            }
+            Persist();
+            UnlocksChanged?.Invoke();
+            MyLogger.LogInfo($"[Progression] Bought bottle instance #{instanceId} ({ingredient}) for {cost} -> cash {_economy.Cash}.");
+            return true;
+        }
 
         public float GetStockMl(IngredientId ingredient) =>
             _stockMl.TryGetValue(ingredient, out var ml) ? ml : 0f;
@@ -188,6 +209,7 @@ namespace Services.Progression
             _recipes.Clear();
             _bottles.Clear();
             _stockMl.Clear();
+            _ownedInstances.Clear();
 
             var d = _save.Current;
             if (d == null) return;
@@ -199,6 +221,8 @@ namespace Services.Progression
             if (d.stock != null)
                 foreach (var e in d.stock)
                     if (e.ml > 0) _stockMl[(IngredientId)e.ingredientId] = e.ml;
+            if (d.ownedBottleInstances != null)
+                foreach (var id in d.ownedBottleInstances) _ownedInstances.Add(id);
         }
 
         private void WriteToSave()
@@ -219,6 +243,10 @@ namespace Services.Progression
             d.stock.Clear();
             foreach (var kv in _stockMl)
                 if (kv.Value > 0) d.stock.Add(new StockEntry { ingredientId = (int)kv.Key, ml = kv.Value });
+
+            d.ownedBottleInstances ??= new List<int>();
+            d.ownedBottleInstances.Clear();
+            foreach (var id in _ownedInstances) d.ownedBottleInstances.Add(id);
         }
 
         /// <summary>Mirror in-memory state into SaveData, keep cash in sync (purchases happen

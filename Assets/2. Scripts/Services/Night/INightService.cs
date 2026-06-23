@@ -6,7 +6,6 @@ namespace Services.Night
     {
         bool IsRunning { get; }
         float TimeRemaining { get; }
-        int ActiveCustomers { get; }
 
         void StartNight(NightConfigSO config);
         void EndNight();

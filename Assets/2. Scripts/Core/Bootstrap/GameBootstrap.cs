@@ -7,7 +7,6 @@ using Services.GameState;
 using Services.Haptics;
 using Services.Night;
 using Services.Progression;
-using Services.Recipe;
 using Services.Save;
 using Services.UpdateService;
 using Services.Vfx;
@@ -56,6 +55,13 @@ namespace Core
             MyLogger.LogInfo("=== POUR DECISIONS BOOTSTRAP INITIALIZED ===");
         }
 
+        void OnDestroy()
+        {
+            // Clear the static so a fresh bootstrap (e.g. a later domain reload or scene reload)
+            // isn't permanently short-circuited by a stale reference to a destroyed instance.
+            if (_instance == this) _instance = null;
+        }
+
         void Start()
         {
             if (_started) return;
@@ -102,7 +108,6 @@ namespace Core
             ServiceLocator.Register<IUpdateService, UpdateService>();
             ServiceLocator.Register<IDatabaseService, DatabaseService>(mImmediateInit: true);
             ServiceLocator.Register<ISaveService, SaveService>(mImmediateInit: true);
-            ServiceLocator.Register<IRecipeService, RecipeService>(mImmediateInit: true);
             ServiceLocator.Register<IEconomyService, EconomyService>(mImmediateInit: true);
             ServiceLocator.Register<IProgressionService, ProgressionService>(mImmediateInit: true);
             ServiceLocator.Register<IBreakablePoolService, BreakablePoolService>(mImmediateInit: true);
@@ -116,8 +121,6 @@ namespace Core
             // Registered after GameStateService: AtmosphereService subscribes to it in Initialize(),
             // so the state service must already be registered when this immediate-inits.
             ServiceLocator.Register<IAtmosphereService, AtmosphereService>(mImmediateInit: true);
-            // TODO: registrar progresivamente segun se implementen
-            //   IUIService
         }
 
         private static void ConfigurePhysicsLayers()

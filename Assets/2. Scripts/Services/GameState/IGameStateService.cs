@@ -10,7 +10,7 @@ namespace Services.GameState
         /// <summary>Stage a config for the next night (e.g. MVP config loaded from Resources).</summary>
         void SetPendingConfig(NightConfigSO config);
 
-        /// <summary>Transition Idle → NightRunning using PendingConfig.</summary>
+        /// <summary>Begin the next night using PendingConfig (the flow routes through DayShop).</summary>
         void BeginNight();
 
         /// <summary>Force EndNight early (e.g. player quits).</summary>
