@@ -195,7 +195,17 @@ namespace Gameplay.Liquid
             }
 
             if (target != null)
+            {
                 target.Receive(_bottle.SO.Ingredient.Id, volume);
+
+                // "Topped up" cue the moment the glass reaches the brim. GlassFull's retrigger throttle
+                // (SfxDatabase) collapses the ~50 fps fixed tick down to a single ding.
+                if (target.IsFull)
+                {
+                    if (_audio == null) ServiceLocator.TryGet<IAudioService>(out _audio);
+                    _audio?.PlayOneShot(SfxId.GlassFull, streamEnd);
+                }
+            }
 
             if (_stream != null)
                 _stream.Show(_neck.position, streamEnd, _bottle.SO.Ingredient.LiquidColor);

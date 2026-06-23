@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5536631644906926492}
   - component: {fileID: 5584125433515135345}
   - component: {fileID: 8632864526032676554}
+  - component: {fileID: 7503563034311377776}
   m_Layer: 0
   m_Name: Bottle
   m_TagString: Untagged
@@ -137,6 +138,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.Bottle
   _so: {fileID: 0}
+  _instanceId: 0
   _neck: {fileID: 5319499548450612810}
   _sourcePrefab: {fileID: 0}
   _breakable: {fileID: 5536631644906926492}
@@ -164,6 +166,24 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.08, y: 0.3, z: 0.08}
   m_Center: {x: 0, y: 0.15, z: 0}
+--- !u!114 &7503563034311377776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 295445500223175711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 281173a5f2dd6bf4292c43bc47f86bec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.InteractionSfx
+  _grabSfx: 80
+  _releaseSfx: 81
+  _placeSfx: 23
+  _minImpulse: 0.35
+  _maxImpulse: 2.5
+  _placeVolume: 0.9
 --- !u!1 &1281180437778086052
 GameObject:
   m_ObjectHideFlags: 0

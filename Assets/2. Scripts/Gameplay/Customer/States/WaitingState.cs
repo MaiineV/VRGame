@@ -77,6 +77,8 @@ namespace Gameplay.Customer.States
                 {
                     var sfx = accepted ? SfxId.CustomerServed : SfxId.CustomerLeft;
                     _audio.PlayOneShot(sfx, c.transform.position);
+                    // Accepted = the customer takes the drink: layer a natural sip on top of the chime.
+                    if (accepted) _audio.PlayOneShot(SfxId.DrinkSip, c.transform.position);
                 }
 
                 // Serve confirmation: a satisfying double-tap feel on success, a softer nudge on a miss.

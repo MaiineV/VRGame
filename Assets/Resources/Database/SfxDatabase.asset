@@ -14,77 +14,149 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.SfxDatabase
   _entries:
   - id: 10
-    clip: {fileID: 8300000, guid: c8d2daf68156435e8b8be92034fcbbf1, type: 3}
+    clip: {fileID: 8300000, guid: 67829684e5adb8d41ba053c580f1e0db, type: 3}
     volume: 0.8
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0
     loop: 1
+  - id: 11
+    clip: {fileID: 8300000, guid: cf58f0ca3aa60f24f9fd50fd4fa04b9d, type: 3}
+    volume: 0.7
+    pitchMin: 0.98
+    pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 1
+    loop: 0
   - id: 20
-    clip: {fileID: 8300000, guid: f17eea8a7f2548dbab811dea2f36d956, type: 3}
-    volume: 0.8
+    clip: {fileID: 8300000, guid: 0b51168d4c656da4a8cc4a076660b5e0, type: 3}
+    volume: 0.9
     pitchMin: 0.95
     pitchMax: 1.05
     spatialBlend: 1
     minRetriggerInterval: 0.05
     loop: 0
   - id: 21
-    clip: {fileID: 8300000, guid: 01b58aac09d042b8bab952223f50d73a, type: 3}
-    volume: 0.8
-    pitchMin: 0.95
-    pitchMax: 1.05
+    clip: {fileID: 8300000, guid: 65860fcc60a1d2a40b35bd860959f2de, type: 3}
+    volume: 0.9
+    pitchMin: 0.9
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0.05
     loop: 0
-  - id: 30
-    clip: {fileID: 8300000, guid: 76e0ab8a983243109debe7f6463684ed, type: 3}
+  - id: 22
+    clip: {fileID: 8300000, guid: 4def844d883241448993a919f7cd07cf, type: 3}
     volume: 0.8
     pitchMin: 0.95
+    pitchMax: 1.1
+    spatialBlend: 1
+    minRetriggerInterval: 0.06
+    loop: 0
+  - id: 23
+    clip: {fileID: 8300000, guid: 11d540388c2ae0a419fcdb0fa4755b15, type: 3}
+    volume: 0.85
+    pitchMin: 0.9
     pitchMax: 1.05
+    spatialBlend: 1
+    minRetriggerInterval: 0.06
+    loop: 0
+  - id: 30
+    clip: {fileID: 8300000, guid: 5761d0f9ddaa15e4f91ceb2de88106d3, type: 3}
+    volume: 0.8
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0
     loop: 0
   - id: 31
-    clip: {fileID: 8300000, guid: 3af9ea4ee26a45c6968cea2e9699cbfe, type: 3}
+    clip: {fileID: 8300000, guid: 87fb583666a9b934db0eceb8cb58034d, type: 3}
     volume: 0.8
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0
     loop: 0
   - id: 40
     clip: {fileID: 8300000, guid: 28cde229658c81240aab6bd92fa3d7f2, type: 3}
     volume: 0.8
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0
     loop: 0
   - id: 41
     clip: {fileID: 8300000, guid: 7375cbd050c91fb438a8292d26344b6c, type: 3}
     volume: 0.8
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 1
     minRetriggerInterval: 0
+    loop: 0
+  - id: 42
+    clip: {fileID: 8300000, guid: 8b9e6c2ddd4bb894a8f148313d64de86, type: 3}
+    volume: 0.9
+    pitchMin: 0.95
+    pitchMax: 1.08
+    spatialBlend: 1
+    minRetriggerInterval: 0.1
     loop: 0
   - id: 50
     clip: {fileID: 8300000, guid: af23d93ef2beb4e4a8364a9de7f775c2, type: 3}
     volume: 0.7
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 0
     minRetriggerInterval: 0
     loop: 0
   - id: 51
     clip: {fileID: 8300000, guid: 6c7150aada6990541b8125e75e979f0c, type: 3}
     volume: 0.7
-    pitchMin: 0.95
-    pitchMax: 1.05
+    pitchMin: 1
+    pitchMax: 1
     spatialBlend: 0
     minRetriggerInterval: 0
     loop: 0
+  - id: 60
+    clip: {fileID: 8300000, guid: 05dbdae69403e3141808f0d497d8a994, type: 3}
+    volume: 0.6
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 70
+    clip: {fileID: 8300000, guid: 9a3f1b803a6286942a5320c3435c21e8, type: 3}
+    volume: 0.5
+    pitchMin: 0.9
+    pitchMax: 1.1
+    spatialBlend: 1
+    minRetriggerInterval: 0
+    loop: 0
+  - id: 80
+    clip: {fileID: 8300000, guid: 4ca2839a4453ddb4ca48564b64dc1597, type: 3}
+    volume: 0.55
+    pitchMin: 0.97
+    pitchMax: 1.06
+    spatialBlend: 1
+    minRetriggerInterval: 0.05
+    loop: 0
+  - id: 81
+    clip: {fileID: 8300000, guid: dbe0443a295974a45aac7ddbe038c4ab, type: 3}
+    volume: 0.55
+    pitchMin: 0.97
+    pitchMax: 1.06
+    spatialBlend: 1
+    minRetriggerInterval: 0.05
+    loop: 0
+  - id: 110
+    clip: {fileID: 8300000, guid: 1aafbb577c5cf824c8c35d39d67a67f0, type: 3}
+    volume: 0.5
+    pitchMin: 1
+    pitchMax: 1
+    spatialBlend: 0
+    minRetriggerInterval: 0
+    loop: 1
   - id: 120
     clip: {fileID: 8300000, guid: 694417a59d5e27641ac884864a69c729, type: 3}
     volume: 0.5
@@ -94,32 +166,8 @@ MonoBehaviour:
     minRetriggerInterval: 0
     loop: 1
   - id: 130
-    clip: {fileID: 8300000, guid: 3e16d7a876afd2148bc9fd2d726d1136, type: 3}
-    volume: 0.5
-    pitchMin: 1
-    pitchMax: 1
-    spatialBlend: 0
-    minRetriggerInterval: 0
-    loop: 1
-  - id: 60
-    clip: {fileID: 8300000, guid: 66f2e6318bb04ecebb1f489890bea609, type: 3}
-    volume: 0.7
-    pitchMin: 0.95
-    pitchMax: 1.05
-    spatialBlend: 1
-    minRetriggerInterval: 0.05
-    loop: 0
-  - id: 70
-    clip: {fileID: 8300000, guid: 9ed6c5a6ed4c41a7ad6e96068e58b497, type: 3}
-    volume: 0.5
-    pitchMin: 0.9
-    pitchMax: 1.1
-    spatialBlend: 1
-    minRetriggerInterval: 0
-    loop: 0
-  - id: 110
-    clip: {fileID: 8300000, guid: 25b7a9f6b8ce4a18953e15d2d5307202, type: 3}
-    volume: 0.3
+    clip: {fileID: 8300000, guid: 618d0ac01b237aa42936ad08239c3f20, type: 3}
+    volume: 0.4
     pitchMin: 1
     pitchMax: 1
     spatialBlend: 0

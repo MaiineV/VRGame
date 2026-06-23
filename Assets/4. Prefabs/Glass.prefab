@@ -271,6 +271,7 @@ GameObject:
   - component: {fileID: 6094741377964672787}
   - component: {fileID: 1704000051673963526}
   - component: {fileID: 2178163101643859887}
+  - component: {fileID: 7729179712202519613}
   m_Layer: 0
   m_Name: Glass
   m_TagString: Untagged
@@ -412,10 +413,27 @@ MonoBehaviour:
   _capacityMl: 300
   _renderer: {fileID: 0}
   _refreshEpsilon: 0.01
-  _id: 0
   _mass: 0.35
   _linearDamping: 0.05
   _angularDamping: 0.6
+--- !u!114 &7729179712202519613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6653518702084505019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 281173a5f2dd6bf4292c43bc47f86bec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.InteractionSfx
+  _grabSfx: 80
+  _releaseSfx: 81
+  _placeSfx: 22
+  _minImpulse: 0.35
+  _maxImpulse: 2.5
+  _placeVolume: 0.9
 --- !u!1001 &3114098014550056162
 PrefabInstance:
   m_ObjectHideFlags: 0
