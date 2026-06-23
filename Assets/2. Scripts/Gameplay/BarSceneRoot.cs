@@ -25,6 +25,10 @@ namespace Gameplay
         [Tooltip("Editable path customers walk on the way OUT (seat → exit). Same idea as the entry route.")]
         [SerializeField] private Customer.CustomerRoute _exitRoute;
 
+        [Tooltip("Spots a served customer walks to in order to 'drink' before leaving (place on the NavMesh " +
+                 "near tables). Optional — if empty, served customers fall back to drinking in place.")]
+        [SerializeField] private Customer.CustomerTablePoint[] _tablePoints;
+
         [Header("Bottle storage positions (behind the bar)")]
         [SerializeField] private Transform[] _bottleShelfPoints;
 
@@ -41,6 +45,7 @@ namespace Gameplay
         public Transform CustomerExitPoint => _customerExitPoint;
         public Customer.CustomerRoute EntryRoute => _entryRoute;
         public Customer.CustomerRoute ExitRoute => _exitRoute;
+        public Customer.CustomerTablePoint[] TablePoints => _tablePoints;
         public Transform[] BottleShelfPoints => _bottleShelfPoints;
         public Transform CashRegisterAnchor => _cashRegisterAnchor;
 
@@ -81,6 +86,15 @@ namespace Gameplay
             for (int i = 0; i < _seats.Length; i++)
                 if (_seats[i] != null && !_seats[i].IsOccupied)
                     return _seats[i];
+            return null;
+        }
+
+        public Customer.CustomerTablePoint GetFreeTablePoint()
+        {
+            if (_tablePoints == null) return null;
+            for (int i = 0; i < _tablePoints.Length; i++)
+                if (_tablePoints[i] != null && !_tablePoints[i].IsOccupied)
+                    return _tablePoints[i];
             return null;
         }
     }

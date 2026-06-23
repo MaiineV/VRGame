@@ -25,9 +25,11 @@ namespace Gameplay.Customer.States
             _wp = 0;
             ServiceLocator.TryGet(out _night);
 
-            // Take the glass along (covers the unhappy path that skips Wandering). It rides with the
-            // customer and is recycled in CustomerEntity.DespawnNow when they leave the world.
-            c.CarryServedGlass();
+            // Keep the glass visible if they actually drank at a table; otherwise (rejected serve or
+            // patience timeout) carry it hidden so there's no glass floating beside the NPC. Either way it
+            // rides with the customer and is recycled in CustomerEntity.DespawnNow.
+            if (c.DrankAtTable) c.CarryServedGlassVisible();
+            else c.CarryServedGlassHidden();
         }
 
         public void Update(CustomerEntity c)

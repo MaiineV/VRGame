@@ -47,6 +47,11 @@ namespace Gameplay.Customer
         public float DrinkTimer { get; internal set; }
         public float Drunkenness { get; internal set; }
 
+        // The table spot the customer reserved to drink at (null until reserved / after release).
+        public CustomerTablePoint Table { get; internal set; }
+        // True once the customer reached a table and drank; drives whether they leave holding the glass.
+        public bool DrankAtTable { get; internal set; }
+
         // --- Locomotion animation ---
         // The customer ROOT is moved by code (MoveTowards); the Animator on the model child plays the
         // matching clip. We pick the clip from the root's real per-frame speed (so pauses, approach,
@@ -61,7 +66,11 @@ namespace Gameplay.Customer
         private readonly int _hashWalking = Animator.StringToHash("Walking");
         private readonly int _hashDrunk = Animator.StringToHash("Drunk");
         private readonly int _hashDrunkWalk = Animator.StringToHash("Drunk Walk");
+        private readonly int _hashDrinking = Animator.StringToHash("Drinking");
         private int _currentAnimHash;
+        // When non-zero, UpdateAnimator forces this clip instead of the speed/drunkenness selection.
+        // Used for the "grab the glass" beat (Idle) and the drink-at-table pose (Drinking). 0 = automatic.
+        private int _forcedAnimHash;
         private Vector3 _lastAnimPos;
         private bool _hasAnimPos;
 
@@ -104,6 +113,7 @@ namespace Gameplay.Customer
             // stays null and all animation calls are harmless no-ops). Reset anim tracking for reuse.
             if (_animator == null) _animator = GetComponentInChildren<Animator>();
             _currentAnimHash = 0;
+            _forcedAnimHash = 0;
             _hasAnimPos = false;
             _stepDistance = 0f;
 
@@ -127,6 +137,8 @@ namespace Gameplay.Customer
             DrinkTimer = so.DrinkSeconds;
             Drunkenness = 0f;
             ServedGlass = null;
+            DrankAtTable = false;
+            ReleaseTable();   // defensive: never inherit a table reservation across pooled reuse
             Stand();
 
             // Build the machine once; on recycle, shut it down and restart to avoid
@@ -136,6 +148,8 @@ namespace Gameplay.Customer
                 Machine = new StateMachine<CustomerStateId, CustomerEntity>(this);
                 Machine.AddState(CustomerStateId.Approaching, new ApproachingState());
                 Machine.AddState(CustomerStateId.Waiting, new WaitingState());
+                Machine.AddState(CustomerStateId.GoingToTable, new GoingToTableState());
+                Machine.AddState(CustomerStateId.Drinking, new DrinkingState());
                 Machine.AddState(CustomerStateId.Wandering, new WanderingState());
                 Machine.AddState(CustomerStateId.Leaving, new LeavingState());
             }
@@ -163,6 +177,7 @@ namespace Gameplay.Customer
             // (scene teardown or pool.ClearData). The normal despawn path is ReturnToPool.
             UnregisterTick();
             if (Seat != null && Seat.CurrentCustomer == this) Seat.Clear();
+            ReleaseTable();
             Machine?.Shutdown();
         }
 
@@ -198,9 +213,18 @@ namespace Gameplay.Customer
 
             if (_animator == null) return;
 
-            bool drunk = Drunkenness > _drunkAnimThreshold;
-            int hash = moving ? (drunk ? _hashDrunkWalk : _hashWalking)
+            int hash;
+            if (_forcedAnimHash != 0)
+            {
+                // A state is forcing a specific clip (grab beat / drinking) — bypass locomotion selection.
+                hash = _forcedAnimHash;
+            }
+            else
+            {
+                bool drunk = Drunkenness > _drunkAnimThreshold;
+                hash = moving ? (drunk ? _hashDrunkWalk : _hashWalking)
                               : (drunk ? _hashDrunk : _hashIdle);
+            }
 
             if (hash != _currentAnimHash)
             {
@@ -221,6 +245,15 @@ namespace Gameplay.Customer
             if (_audio == null) ServiceLocator.TryGet<IAudioService>(out _audio);
             _audio?.PlayOneShot(SfxId.Footstep, transform.position);
         }
+
+        /// <summary>Forces the drink-at-table pose until <see cref="ClearForcedAnim"/> (no-op without an Animator).</summary>
+        public void PlayDrink() => _forcedAnimHash = _hashDrinking;
+
+        /// <summary>Forces a short Idle "grab the glass" beat until <see cref="ClearForcedAnim"/>.</summary>
+        public void PlayGrabBeat() => _forcedAnimHash = _hashIdle;
+
+        /// <summary>Returns to speed/drunkenness-driven locomotion animation.</summary>
+        public void ClearForcedAnim() => _forcedAnimHash = 0;
 
         /// <summary>
         /// Walks the customer toward <paramref name="target"/>, returning true once within
@@ -298,14 +331,48 @@ namespace Gameplay.Customer
             }
         }
 
+        /// <summary>Halts the NavMeshAgent in place (used when the customer settles at a table to drink).</summary>
+        public void StopAgent()
+        {
+            if (_agent != null && _agent.isOnNavMesh)
+            {
+                _agent.isStopped = true;
+                _agent.ResetPath();
+                _hasAgentDest = false;
+            }
+        }
+
+        /// <summary>Yaws the customer to face a world point (horizontal only), honouring the model yaw offset.</summary>
+        public void FaceWorldPoint(Vector3 worldPoint)
+        {
+            Vector3 dir = worldPoint - transform.position;
+            dir.y = 0f;
+            if (dir.sqrMagnitude <= 0.0001f) return;
+            var look = Quaternion.LookRotation(dir.normalized, Vector3.up);
+            if (Mathf.Abs(_faceYawOffsetDeg) > 0.01f)
+                look *= Quaternion.Euler(0f, _faceYawOffsetDeg, 0f);
+            transform.rotation = look;
+        }
+
+        /// <summary>Releases the reserved table point (if any). Idempotent — safe to call from any path.</summary>
+        public void ReleaseTable()
+        {
+            if (Table == null) return;
+            if (Table.CurrentCustomer == this) Table.Clear();
+            Table = null;
+        }
+
         /// <summary>
         /// "Accepts" the served glass: takes ownership of it so it leaves the bar with the customer and
-        /// is recycled when they despawn, but HIDES it. The carried glass was rendering at a hold offset
-        /// near the (scaled, possibly hand-less) customer and read as a glass floating in mid-air, so we
-        /// disable its renderers (kept alive/parented only for bookkeeping). Also freezes physics and
-        /// disables colliders so it can't shove the customer or be grabbed. Idempotent.
+        /// is recycled when they despawn. Freezes physics and disables colliders so it can't shove the
+        /// customer or be grabbed. <paramref name="visible"/> controls the renderers — the glass is shown
+        /// while the customer carries it to a table and drinks, and hidden on the rejected/timeout path
+        /// where a glass floating beside the NPC reads badly. We parent to the customer ROOT (not the hand
+        /// bone): the model's non-uniform child scales would reactivate the scale-grab bug, and the root
+        /// keeps the glass scale-invariant. <see cref="Gameplay.Interactions.Glass.ResetForPool"/> re-shows
+        /// and re-scales the glass on recycle. Idempotent.
         /// </summary>
-        public void CarryServedGlass()
+        private void AttachServedGlass(bool visible)
         {
             if (ServedGlass == null) return;
 
@@ -323,11 +390,15 @@ namespace Gameplay.Customer
             var cols = ServedGlass.GetComponentsInChildren<Collider>(true);
             for (int i = 0; i < cols.Length; i++) cols[i].enabled = false;
 
-            // Hide it so there's no glass floating beside the NPC. ResetForPool re-enables the renderers
-            // when the glass is recycled and reused.
             var rends = ServedGlass.GetComponentsInChildren<Renderer>(true);
-            for (int i = 0; i < rends.Length; i++) rends[i].enabled = false;
+            for (int i = 0; i < rends.Length; i++) rends[i].enabled = visible;
         }
+
+        /// <summary>Carries the served glass in hand, kept VISIBLE (walk to the table + drink there).</summary>
+        public void CarryServedGlassVisible() => AttachServedGlass(true);
+
+        /// <summary>Carries the served glass but HIDDEN (rejected/timeout path — no table visit).</summary>
+        public void CarryServedGlassHidden() => AttachServedGlass(false);
 
         /// <summary>
         /// Recycles the served glass (pool return, or Destroy fallback) and clears the reference.
@@ -401,6 +472,8 @@ namespace Gameplay.Customer
 
             if (Seat != null && Seat.CurrentCustomer == this) Seat.Clear();
             Seat = null;
+
+            ReleaseTable();
 
             Machine?.Shutdown();
 
