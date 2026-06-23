@@ -46,6 +46,7 @@ namespace Gameplay.Interactions
         private Transform _heldOriginalParent;
         private Vector3 _heldLocalPos;        // pose of the held object relative to the hand, captured at grab
         private Quaternion _heldLocalRot;
+        private Vector3 _heldWorldScale;      // world (lossy) scale at grab, re-imposed after each reparent
         private bool _heldWasKinematic;
         private Collider[] _heldColliders;
         private bool[] _heldOriginalTriggerStates;
@@ -234,7 +235,13 @@ namespace Gameplay.Interactions
             ResetVelocityTracking();
             _heldRb = best.GetComponent<Rigidbody>();
             _heldOriginalParent = best.transform.parent;
+            // Capture the object's true world size BEFORE reparenting onto the hand. SetParent with
+            // worldPositionStays recomputes localScale to preserve world scale, but that only round-trips
+            // cleanly when the hand is uniformly scaled; re-imposing the captured world scale keeps the
+            // object from growing/shrinking in hand regardless of the rig's scale.
+            _heldWorldScale = best.transform.lossyScale;
             best.transform.SetParent(transform, true);
+            TransformScaleUtil.SetWorldScale(best.transform, _heldWorldScale);
             // Remember where the object sat relative to the hand at the moment of grab, so Update can
             // hold it there (it stays attached where you grabbed it instead of snapping its pivot onto
             // the controller and appearing to float).
@@ -271,6 +278,9 @@ namespace Gameplay.Interactions
                 hap.Pulse(_controller, 0.25f, 0.04f);
 
             _held.transform.SetParent(_heldOriginalParent, true);
+            // Re-impose the grab-time world size so the round trip back to the original parent can't
+            // leave a drifted scale.
+            TransformScaleUtil.SetWorldScale(_held.transform, _heldWorldScale);
 
             if (_heldColliders != null)
             {

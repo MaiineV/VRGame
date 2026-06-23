@@ -16,6 +16,11 @@ namespace Gameplay.Interactions
 
         public Rigidbody Body { get; private set; }
 
+        // The prefab's design scale, captured once on Awake. ResetForPool restores it so a pooled glass
+        // can never come back mis-sized — even if a reparent (e.g. onto a scaled customer) ever bakes a
+        // non-design localScale into it.
+        private Vector3 _designLocalScale;
+
         /// <summary>
         /// Fill level the nearby customer requested (index into FillLevels), or null when the glass
         /// isn't sitting in a serve socket. Set by <see cref="ServeSocket"/> on enter/exit and read by
@@ -29,6 +34,7 @@ namespace Gameplay.Interactions
         protected override void Awake()
         {
             base.Awake();
+            _designLocalScale = transform.localScale;
             Body = GetComponent<Rigidbody>();
             Body.interpolation = RigidbodyInterpolation.Interpolate;
             Body.mass = _mass;
@@ -48,6 +54,10 @@ namespace Gameplay.Interactions
         public void ResetForPool()
         {
             Empty();
+
+            // Normalise scale on every reuse: a glass carried by a (scaled) customer or moved through any
+            // reparent must always respawn at its design size, never a baked-in or drifted scale.
+            transform.localScale = _designLocalScale;
 
             if (Body != null)
             {
