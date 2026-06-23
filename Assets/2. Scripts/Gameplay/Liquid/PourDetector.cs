@@ -38,6 +38,7 @@ namespace Gameplay.Liquid
         private Transform _neck;
         private readonly RaycastHit[] _hits = new RaycastHit[4];
         private bool _registered;
+        private bool _warnedNotReady;   // log the "service not ready" warning once, not every retry frame
         private bool _pouring;
         private int _pourLoopHandle;
         private float _splashTimer;    // throttles the splash burst (fixed update is ~50 fps)
@@ -74,6 +75,15 @@ namespace Gameplay.Liquid
             if (_grab != null && _grab.IsHeld) HandleGrabbed();
         }
 
+        // Retry the tick registration until it succeeds. A bottle instantiated at runtime (ShelfSlot) can
+        // run OnEnable before IUpdateService is registered; without this retry RegisterForTick would log
+        // "will NOT pour" once and give up, leaving a shop-spawned bottle permanently unable to pour. The
+        // check is a single bool once registered (no per-frame TryGet after that).
+        void Update()
+        {
+            if (!_registered) RegisterForTick();
+        }
+
         void OnDisable()
         {
             if (_grab != null)
@@ -103,7 +113,13 @@ namespace Gameplay.Liquid
             if (_registered) return;
             if (!ServiceLocator.TryGet<IUpdateService>(out var svc))
             {
-                MyLogger.LogWarning($"[PourDetector:{name}] UpdateService NOT ready at register time — this bottle will NOT pour.");
+                // Not ready yet — Update() will retry. Warn only once so a few frames of startup lag
+                // (runtime-spawned bottle racing service registration) don't flood the console.
+                if (!_warnedNotReady)
+                {
+                    MyLogger.LogWarning($"[PourDetector:{name}] UpdateService not ready yet — retrying until available.");
+                    _warnedNotReady = true;
+                }
                 return;
             }
             svc.AddFixedUpdateListener(this);

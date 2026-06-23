@@ -95,6 +95,16 @@ namespace Gameplay.Systems
                 Utilities.MyLogger.LogWarning($"[ShelfSlot:{name}] Prefab '{_bottle.Prefab.name}' has no Bottle component.");
                 return;
             }
+
+            // Guarantee the shop gate exists on the spawned bottle. The visual prefabs only carry
+            // Bottle/GrabBridge/etc — the BottleUnlockGate that hides non-owned bottles, vetoes grabbing an
+            // unaffordable one and charges on grab-to-buy was historically added per-instance in the scene.
+            // Adding it here makes the slot the single source of truth: any bottle prefab (current or a new
+            // one the user drops in) gets the full shop behaviour without hand-wiring, so the shop can never
+            // silently regress to "all visible / can't buy / no charge" again.
+            if (_instance.GetComponent<BottleUnlockGate>() == null)
+                _instance.gameObject.AddComponent<BottleUnlockGate>();
+
             _instance.SetSO(_bottle);
             _instance.SetInstanceId(_slotId);
         }

@@ -32,12 +32,24 @@ namespace Gameplay.Systems
             for (int i = 0; i < _slots.Count; i++)
                 if (_slots[i] != null) _slots[i].Configure(StableId(i));
 
+            BindNight();
+            MyLogger.LogInfo($"[ShopShelf] Configured {_slots.Count} slot(s).");
+        }
+
+        // Keep retrying the night-service bind until it resolves. ShopShelf.Start can run before the
+        // services are registered (bottles spawn during scene load, ahead of GameBootstrap finishing) — a
+        // one-shot bind in Start would silently miss INightService and the bottles would never reset
+        // between nights. Once bound the poll stops doing any work.
+        void Update()
+        {
+            if (_night == null) BindNight();
+        }
+
+        private void BindNight()
+        {
+            if (_night != null) return;
             if (ServiceLocator.TryGet<INightService>(out _night))
                 _night.NightEnded += ResetAll;
-            else
-                MyLogger.LogWarning("[ShopShelf] INightService not found; bottles won't reset on night end.");
-
-            MyLogger.LogInfo($"[ShopShelf] Configured {_slots.Count} slot(s).");
         }
 
         void OnDestroy()
