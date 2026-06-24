@@ -11977,6 +11977,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1659968851}
   - component: {fileID: 1659968850}
+  - component: {fileID: 1659968852}
   m_Layer: 0
   m_Name: Navigation
   m_TagString: Untagged
@@ -12019,6 +12020,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1659968852
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659968849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cef949c5e1f14d548ba3d01492bfc10c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Systems.ShaderWarmup
+  _prefabs:
+  - {fileID: 710579741521488924, guid: 5ee0c19961c4afa46a89490e7e57c3b9, type: 3}
+  - {fileID: 4297378467404803135, guid: 41184938e55b2054eab7f3aad2fe832a, type: 3}
+  - {fileID: 6753822472143942800, guid: 818a24a5859e3d04194d7fcd4138867b, type: 3}
+  - {fileID: 451239037055270922, guid: 3e5b9c3360a4d27448582d81c9c766c4, type: 3}
+  - {fileID: 6653518702084505019, guid: ae95ce5878435e64f801ebc3cff2d32b, type: 3}
+  _materials: []
 --- !u!1 &1671930535
 GameObject:
   m_ObjectHideFlags: 0

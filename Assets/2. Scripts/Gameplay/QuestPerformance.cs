@@ -46,6 +46,21 @@ namespace Gameplay
                     Debug.LogWarning($"[QuestPerformance] Could not set foveated rendering: {e.Message}");
                 }
             }
+
+            // Pin the CPU/GPU clocks high. By default the Quest's power governor downclocks during
+            // low-load moments (cold start, the lull at each day/night transition) to save battery,
+            // which is exactly the ~40 FPS valley seen before the clocks ramp back up. SustainedHigh
+            // tells the runtime to hold high clocks instead of dropping them — the steady, sustainable
+            // tier (Boost is only for brief transitions and the runtime ignores it as a permanent ask).
+            try
+            {
+                OVRManager.suggestedCpuPerfLevel = OVRManager.ProcessorPerformanceLevel.SustainedHigh;
+                OVRManager.suggestedGpuPerfLevel = OVRManager.ProcessorPerformanceLevel.SustainedHigh;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[QuestPerformance] Could not set processor perf levels: {e.Message}");
+            }
         }
     }
 }
