@@ -98,6 +98,11 @@ namespace Gameplay.Customer.States
                 }
                 else
                 {
+                    // Red puff above the unhappy customer — a visual fail cue so the rejection reads
+                    // without sound (accessibility: feedback must not be audio-only).
+                    _vfx?.PlayBurst(VfxId.ServeFail, c.transform.position + Vector3.up * 1.2f,
+                                    new Color(1f, 0.3f, 0.25f, 1f));
+
                     // Both wrong: no sale; the customer leaves unhappy (counts as a failure).
                     c.Machine.TransitionTo(CustomerStateId.Leaving);
                 }

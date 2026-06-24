@@ -7,5 +7,10 @@ namespace Services.Atmosphere
     /// </summary>
     public interface IAtmosphereService : IGameService
     {
+        /// <summary>
+        /// Hold the screen black for <paramref name="holdSeconds"/> then fade in over
+        /// <paramref name="fadeSeconds"/>. Used to cover the device-clock warm-up right after a scene load.
+        /// </summary>
+        void CoverFadeIn(float holdSeconds, float fadeSeconds);
     }
 }

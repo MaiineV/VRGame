@@ -57,6 +57,14 @@ namespace Services.Atmosphere
         private float _targetNight;  // 0 day, 1 night
         private float _transition;   // 1 → 0 over a blink; 0 = idle
 
+        // Warm-up cover: hold the screen black after a scene load while the Quest CPU/GPU clocks ramp
+        // (the game starts ~40 FPS and climbs), then fade in so the ramp isn't seen. Darkens through the
+        // same exposure path as the blink; combined via max().
+        private float _coverLevel;   // 1 = full black, 0 = clear
+        private float _coverHold;    // seconds to stay fully black before fading in
+        private float _coverFade;    // seconds to fade from black to clear
+        private bool  _covering;
+
         public void Initialize()
         {
             if (ServiceLocator.TryGet<IUpdateService>(out _updates))
@@ -79,6 +87,22 @@ namespace Services.Atmosphere
             // Blink on the meaningful boundaries: lights coming up for the night, and night wrapping up.
             if (to == GameStateId.NightRunning || to == GameStateId.NightSummary)
                 _transition = 1f;
+        }
+
+        /// <summary>
+        /// Hold the screen black for <paramref name="holdSeconds"/> — e.g. right after the gameplay scene
+        /// becomes active, while the Quest clocks ramp from the cold-start low — then fade in over
+        /// <paramref name="fadeSeconds"/>. Reuses the blink's exposure path. Forces an immediate Volume
+        /// re-bind so the black applies to the new scene this tick instead of waiting the resolve cooldown.
+        /// </summary>
+        public void CoverFadeIn(float holdSeconds, float fadeSeconds)
+        {
+            _coverLevel = 1f;
+            _coverHold = Mathf.Max(0f, holdSeconds);
+            _coverFade = Mathf.Max(0.01f, fadeSeconds);
+            _covering = true;
+            _resolved = false;       // rebind to the new scene's Volume now…
+            _resolveCooldown = 0f;   // …without waiting the 1s throttle (ramp must not be visible)
         }
 
         public void MyUpdate()
@@ -111,16 +135,28 @@ namespace Services.Atmosphere
             }
             float blink = _transition > 0f ? Mathf.Sin(_transition * Mathf.PI) : 0f;
 
-            ApplyGrading(blink);
+            // Warm-up cover: stay fully black for the hold, then ramp the cover down to clear.
+            if (_covering)
+            {
+                if (_coverHold > 0f) _coverHold -= dt;
+                else
+                {
+                    _coverLevel -= dt / _coverFade;
+                    if (_coverLevel <= 0f) { _coverLevel = 0f; _covering = false; }
+                }
+            }
+
+            // Blink and cover both darken through the same exposure; the stronger one wins.
+            ApplyGrading(Mathf.Max(blink, _coverLevel));
             ApplyLights();
         }
 
-        private void ApplyGrading(float blink)
+        private void ApplyGrading(float dark)
         {
             if (_grading != null)
             {
                 float exposure = Mathf.Lerp(DayExposure, NightExposure, _night);
-                exposure = Mathf.Lerp(exposure, DarkExposure, blink);
+                exposure = Mathf.Lerp(exposure, DarkExposure, dark);
                 _grading.postExposure.value = exposure;
                 _grading.colorFilter.value = Color.Lerp(Color.white, WarmFilter, _night);
                 _grading.saturation.value = Mathf.Lerp(0f, NightSaturation, _night);

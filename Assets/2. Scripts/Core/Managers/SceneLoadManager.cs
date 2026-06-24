@@ -1,5 +1,7 @@
 using System.Collections;
 using Data;
+using Services;
+using Services.Atmosphere;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Utilities;
@@ -90,6 +92,13 @@ namespace Core.Managers
                 var gp = SceneManager.GetSceneByName(gameplayScene);
                 if (gp.IsValid())
                     SceneManager.SetActiveScene(gp);
+
+                // Hold the screen black for a beat once gameplay is active, then fade in. The Quest CPU/GPU
+                // clocks ramp from a cold-start low (the game opens ~40 FPS and climbs to target over a few
+                // seconds); covering that ramp hides the visible judder. Fires while the Loading scene's
+                // own black quad is still up, so the handoff to this cover is seamless before it unloads.
+                if (ServiceLocator.TryGet<IAtmosphereService>(out var atmosphere))
+                    atmosphere.CoverFadeIn(1.5f, 0.6f);
 
                 if (!string.IsNullOrEmpty(loadingScene) && IsLoaded(loadingScene))
                 {

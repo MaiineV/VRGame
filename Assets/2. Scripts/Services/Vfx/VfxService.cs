@@ -73,6 +73,13 @@ namespace Services.Vfx
                 lifetime = 0.7f, speed = 1.2f, size = 0.025f, gravity = 2f, count = 8,
                 shape = ParticleSystemShapeType.Cone, coneAngle = 20f, radius = 0.02f, emitUpward = true
             });
+            // Rejected-serve cue: a brief red puff that drifts down (no upward sparkle) so it reads as a
+            // miss at a glance — gives the failure a VISUAL signal, not just audio/haptic.
+            Build(VfxId.ServeFail, new EffectConfig
+            {
+                lifetime = 0.5f, speed = 0.5f, size = 0.02f, gravity = 1f, count = 12,
+                shape = ParticleSystemShapeType.Hemisphere, radius = 0.06f
+            });
         }
 
         public void PlayBurst(VfxId id, Vector3 position, Color tint, int count = 0)

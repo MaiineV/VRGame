@@ -11,5 +11,6 @@ namespace Data.Enums
         Shatter      = 20,   // glass/bottle break burst
         ServeSuccess = 30,   // sparkle above a correctly served customer
         Coins        = 40,   // gold burst on a sale
+        ServeFail    = 50,   // red puff above a rejected serve (visual fail cue, not audio-only)
     }
 }
