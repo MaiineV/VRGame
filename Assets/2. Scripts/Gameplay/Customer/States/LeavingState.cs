@@ -25,11 +25,10 @@ namespace Gameplay.Customer.States
             _wp = 0;
             ServiceLocator.TryGet(out _night);
 
-            // Keep the glass visible if they actually drank at a table; otherwise (rejected serve or
-            // patience timeout) carry it hidden so there's no glass floating beside the NPC. Either way it
-            // rides with the customer and is recycled in CustomerEntity.DespawnNow.
-            if (c.DrankAtTable) c.CarryServedGlassVisible();
-            else c.CarryServedGlassHidden();
+            // Always carry the served glass HIDDEN: parented to the customer ROOT at a fixed offset, a
+            // visible glass just floats beside the NPC and flies across the room as they walk out. It still
+            // rides with the customer (frozen, no colliders) and is recycled in CustomerEntity.DespawnNow.
+            c.CarryServedGlassHidden();
         }
 
         public void Update(CustomerEntity c)

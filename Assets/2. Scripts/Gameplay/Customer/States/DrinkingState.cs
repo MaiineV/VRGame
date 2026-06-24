@@ -16,10 +16,13 @@ namespace Gameplay.Customer.States
         public void Enter(CustomerEntity c)
         {
             c.StopAgent();
-            // Drink in place at the bar seat: hold the served glass in hand and keep the seated facing
-            // (Sit() in WaitingState already turned the customer toward the serve point / bar). The table
-            // branch is kept only as a defensive no-op — this flow never reserves a table.
-            c.CarryServedGlassVisible();
+            // Drink in place at the bar seat, keeping the seated facing (Sit() in WaitingState already
+            // turned the customer toward the serve point / bar). The served glass rides with the customer
+            // but stays HIDDEN: it's parented to the customer ROOT (not the hand bone, to avoid the
+            // scale-grab bug) at a fixed offset, so showing it just reads as a glass floating beside the
+            // NPC and flying across the room as they leave. It's still frozen/recycled on despawn — just
+            // never rendered. The table branch is a defensive no-op — this flow never reserves a table.
+            c.CarryServedGlassHidden();
             if (c.Table != null) c.FaceWorldPoint(c.Table.LookAtPoint.position);
             c.DrankAtTable = true;
             c.PlayDrink();
