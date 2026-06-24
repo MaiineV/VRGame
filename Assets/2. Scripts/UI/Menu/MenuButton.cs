@@ -78,6 +78,14 @@ namespace UI.Menu
 
         // ── Unity ────────────────────────────────────────────────────────────────
 
+        void Awake()
+        {
+            // Self-wire so the button works without manual Inspector assignment: the background is the
+            // Image on this object, the label the first TMP text found in children.
+            if (_background == null) _background = GetComponent<Image>();
+            if (_label == null) _label = GetComponentInChildren<TMP_Text>(true);
+        }
+
         void OnEnable()  => RefreshVisuals();
         void OnDisable() => RefreshVisuals();
 

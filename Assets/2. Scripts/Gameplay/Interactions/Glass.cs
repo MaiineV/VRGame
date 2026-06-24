@@ -76,6 +76,11 @@ namespace Gameplay.Interactions
             var rends = GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < rends.Length; i++) rends[i].enabled = true;
 
+            // Re-show the diegetic fill gauge too: AttachServedGlass hides its Canvas while a customer
+            // carries the glass, and Canvases aren't Renderers so the loop above doesn't cover them.
+            var canvases = GetComponentsInChildren<Canvas>(true);
+            for (int i = 0; i < canvases.Length; i++) canvases[i].enabled = true;
+
             var grab = GetComponent<GrabBridge>();
             if (grab != null) grab.SetHeld(false);
         }

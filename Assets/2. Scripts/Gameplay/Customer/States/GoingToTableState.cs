@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Gameplay.Customer.States
 {
     /// <summary>
-    /// Post-serve: the customer takes the glass (made visible), plays a short "grab" beat at the bar, then
+    /// Post-serve: the customer takes the glass (hidden, along with its fill gauge), plays a short "grab"
+    /// beat at the bar, then
     /// walks to a reserved <see cref="CustomerTablePoint"/> to drink. Falls back to the legacy in-place
     /// dwell (<see cref="CustomerStateId.Wandering"/>) when no table point is free or authored, so the
     /// feature degrades gracefully. A walk timeout guards against a table point left off the NavMesh.
@@ -26,7 +27,7 @@ namespace Gameplay.Customer.States
             _walkTimer = WalkTimeoutSeconds;
 
             c.Stand();                    // release the seated agent so it can walk again
-            c.CarryServedGlassVisible();  // the glass is now visibly in hand
+            c.CarryServedGlassHidden();   // take the glass, but hide it and its fill gauge once grabbed
 
             var table = BarSceneRoot.Instance != null ? BarSceneRoot.Instance.GetFreeTablePoint() : null;
             _hasTable = table != null;

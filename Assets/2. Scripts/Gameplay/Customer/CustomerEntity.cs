@@ -365,9 +365,12 @@ namespace Gameplay.Customer
         /// <summary>
         /// "Accepts" the served glass: takes ownership of it so it leaves the bar with the customer and
         /// is recycled when they despawn. Freezes physics and disables colliders so it can't shove the
-        /// customer or be grabbed. <paramref name="visible"/> controls the renderers — the glass is shown
-        /// while the customer carries it to a table and drinks, and hidden on the rejected/timeout path
-        /// where a glass floating beside the NPC reads badly. We parent to the customer ROOT (not the hand
+        /// customer or be grabbed. <paramref name="visible"/> controls the glass renderers — shown while
+        /// the customer carries it out after drinking, hidden on the grab/rejected/timeout paths where a
+        /// glass floating beside the NPC reads badly. The diegetic fill gauge (a world-space Canvas under
+        /// the glass) is ALWAYS hidden here: it's a bar-serving aid with no meaning once the customer holds
+        /// the glass, and <see cref="GetComponentsInChildren{Renderer}"/> never touches UI CanvasRenderers,
+        /// so it would otherwise keep floating above the carried glass. We parent to the customer ROOT (not the hand
         /// bone): the model's non-uniform child scales would reactivate the scale-grab bug, and the root
         /// keeps the glass scale-invariant. <see cref="Gameplay.Interactions.Glass.ResetForPool"/> re-shows
         /// and re-scales the glass on recycle. Idempotent.
@@ -392,6 +395,12 @@ namespace Gameplay.Customer
 
             var rends = ServedGlass.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < rends.Length; i++) rends[i].enabled = visible;
+
+            // Always hide the glass's diegetic UI (fill gauge / tope) while a customer holds it — it's a
+            // serving aid for the bar, not something to float above an NPC. Canvases aren't Renderers, so
+            // the loop above never reaches them. Glass.ResetForPool re-enables these on recycle.
+            var canvases = ServedGlass.GetComponentsInChildren<Canvas>(true);
+            for (int i = 0; i < canvases.Length; i++) canvases[i].enabled = false;
         }
 
         /// <summary>Carries the served glass in hand, kept VISIBLE (walk to the table + drink there).</summary>

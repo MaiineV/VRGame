@@ -40,6 +40,8 @@ namespace UI.Diegetic
 
         void OnEnable()
         {
+            // Fallback so a TMP on the same GameObject is picked up without manual Inspector wiring.
+            if (_label == null) _label = GetComponent<TMP_Text>();
             _cam = Camera.main != null ? Camera.main.transform : null;
             if (!ServiceLocator.TryGet<IUpdateService>(out var svc)) return;
             svc.AddUpdateListener(this);
