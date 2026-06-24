@@ -24,11 +24,32 @@ namespace Services.Save
 
         public SaveData Current { get; private set; }
 
+        public bool HasSave => !string.IsNullOrEmpty(_path) && System.IO.File.Exists(_path);
+
         public void Initialize()
         {
             _path = Path.Combine(Application.persistentDataPath, FileName);
             _tempPath = _path + TempSuffix;
             Current = Load() ?? new SaveData { cash = StartingCash };
+        }
+
+        public void NewGame()
+        {
+            try
+            {
+                if (File.Exists(_path)) File.Delete(_path);
+            }
+            catch (System.Exception ex)
+            {
+                MyLogger.LogError($"[SaveService] NewGame delete failed: {ex.Message}");
+            }
+
+            Current = new SaveData { cash = StartingCash };
+
+            // Do NOT call Save() here: the save file will be written at the next night boundary,
+            // consistent with how the game normally persists progress. Writing immediately would
+            // make HasSave true again right away, defeating the "no prior save" check in the menu.
+            MyLogger.LogInfo("[SaveService] New game started (save wiped).");
         }
 
         public void Save()
