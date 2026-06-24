@@ -1,16 +1,21 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI.Menu
 {
     /// <summary>
-    /// A single laser-pointer–driven menu button for the main-menu scene.
-    /// Colour tinting is applied directly to an <see cref="Image"/> component;
-    /// no EventSystem or Selectable plumbing is used, keeping it consistent with
-    /// the project's custom OVR interaction conventions.
+    /// A single menu button for the main-menu scene. Colour tinting is applied directly to an
+    /// <see cref="Image"/> component.
+    ///
+    /// Driven by Meta Interaction SDK ray interaction: the menu Canvas carries a PointableCanvas +
+    /// RayInteractable, and the EventSystem runs a PointableCanvasModule, so the controller/hand rays
+    /// deliver standard uGUI pointer events. This button implements the pointer handlers to react to
+    /// hover (highlight) and click (invoke <see cref="Clicked"/>).
     /// </summary>
-    public sealed class MenuButton : MonoBehaviour
+    public sealed class MenuButton : MonoBehaviour,
+        IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         // ── visual refs ──────────────────────────────────────────────────────────
 
@@ -75,6 +80,12 @@ namespace UI.Menu
         /// Convenience wrapper — forwards to <c>gameObject.SetActive(v)</c>.
         /// </summary>
         public void SetActive(bool v) => gameObject.SetActive(v);
+
+        // ── uGUI pointer events (driven by the ISDK PointableCanvasModule) ───────────
+
+        public void OnPointerClick(PointerEventData eventData) => Click();
+        public void OnPointerEnter(PointerEventData eventData) => SetHighlighted(true);
+        public void OnPointerExit(PointerEventData eventData)  => SetHighlighted(false);
 
         // ── Unity ────────────────────────────────────────────────────────────────
 

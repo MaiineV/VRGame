@@ -70,6 +70,41 @@ namespace UI.Menu
 
             InitialiseUI();
             Subscribe();
+
+            // Place the menu in front of the player at their real eye height. A fixed world Y is
+            // fragile because the OVR tracking origin (eye-level vs floor) and seated/standing posture
+            // change where "eye level" actually is — anchoring to the live head pose fixes the
+            // "menu floats too high" problem regardless of setup.
+            StartCoroutine(PositionInFrontOfUser());
+        }
+
+        [Header("Placement")]
+        [Tooltip("Distance (m) the menu is placed in front of the player on start.")]
+        [SerializeField] private float _spawnDistance = 1.8f;
+
+        private System.Collections.IEnumerator PositionInFrontOfUser()
+        {
+            // The OVR head pose is NOT reliable for the first frames after load (it can read identity /
+            // backwards before tracking settles — which placed the menu behind the player). Wait a beat
+            // for a valid, settled pose, THEN snap the menu in front of wherever the player is looking.
+            Camera cam = Camera.main;
+            float waited = 0f;
+            while (waited < 0.8f)
+            {
+                if (cam == null) cam = Camera.main;
+                waited += Time.unscaledDeltaTime;
+                yield return null;
+            }
+            if (cam == null) yield break;
+
+            Transform head = cam.transform;
+            Vector3 fwd = head.forward;
+            fwd.y = 0f;
+            if (fwd.sqrMagnitude < 1e-4f) fwd = Vector3.forward;
+            fwd.Normalize();
+
+            transform.position = head.position + fwd * _spawnDistance;       // in front, at eye height
+            transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);   // face the player
         }
 
         void OnDisable()
