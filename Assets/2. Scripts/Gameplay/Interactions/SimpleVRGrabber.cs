@@ -48,8 +48,9 @@ namespace Gameplay.Interactions
         private Quaternion _heldLocalRot;
         private Vector3 _heldWorldScale;      // world (lossy) scale at grab, re-imposed after each reparent
         private bool _heldWasKinematic;
-        private Collider[] _heldColliders;
-        private bool[] _heldOriginalTriggerStates;
+        // Reusable buffers so grabbing an object doesn't allocate a Collider[]/bool[] every time.
+        private readonly System.Collections.Generic.List<Collider> _heldColliders = new System.Collections.Generic.List<Collider>(8);
+        private readonly System.Collections.Generic.List<bool> _heldOriginalTriggerStates = new System.Collections.Generic.List<bool>(8);
 
         private readonly Collider[] _hits = new Collider[16];
 
@@ -254,11 +255,11 @@ namespace Gameplay.Interactions
                 _heldRb.linearVelocity = Vector3.zero;
                 _heldRb.angularVelocity = Vector3.zero;
             }
-            _heldColliders = best.GetComponentsInChildren<Collider>();
-            _heldOriginalTriggerStates = new bool[_heldColliders.Length];
-            for (int i = 0; i < _heldColliders.Length; i++)
+            best.GetComponentsInChildren<Collider>(_heldColliders);   // fills the reused buffer, no alloc
+            _heldOriginalTriggerStates.Clear();
+            for (int i = 0; i < _heldColliders.Count; i++)
             {
-                _heldOriginalTriggerStates[i] = _heldColliders[i].isTrigger;
+                _heldOriginalTriggerStates.Add(_heldColliders[i].isTrigger);
                 _heldColliders[i].isTrigger = true;
             }
 
@@ -282,16 +283,13 @@ namespace Gameplay.Interactions
             // leave a drifted scale.
             TransformScaleUtil.SetWorldScale(_held.transform, _heldWorldScale);
 
-            if (_heldColliders != null)
+            for (int i = 0; i < _heldColliders.Count; i++)
             {
-                for (int i = 0; i < _heldColliders.Length; i++)
-                {
-                    if (_heldColliders[i] != null)
-                        _heldColliders[i].isTrigger = _heldOriginalTriggerStates[i];
-                }
-                _heldColliders = null;
-                _heldOriginalTriggerStates = null;
+                if (_heldColliders[i] != null)
+                    _heldColliders[i].isTrigger = _heldOriginalTriggerStates[i];
             }
+            _heldColliders.Clear();
+            _heldOriginalTriggerStates.Clear();
 
             if (_heldRb != null)
             {
