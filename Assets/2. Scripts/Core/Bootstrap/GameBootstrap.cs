@@ -23,7 +23,8 @@ namespace Core
         private static GameBootstrap _instance;
 
         [Header("Scene Settings")]
-        [SerializeField] private string firstSceneName = "Bar";
+        // Actual value is serialized on the Boot scene's GameBootstrap component — update it there in the Editor too.
+        [SerializeField] private string firstSceneName = "MainMenu";
 
         [Header("Loading Settings")]
         [SerializeField] private string loadingSceneName = "Loading";

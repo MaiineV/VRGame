@@ -3,12 +3,13 @@ using UnityEngine;
 namespace Gameplay
 {
     /// <summary>
-    /// Locks the render rate to the headset's refresh (72 Hz on Quest 2). Stable frame pacing
-    /// is critical for VR comfort: dropped frames cause reprojection judder that induces nausea.
+    /// Locks the render rate to the headset's native refresh. Targets 90 Hz on Quest 3;
+    /// Quest 2 falls back to 72 Hz when 90 is not available. Stable frame pacing is critical
+    /// for VR comfort: dropped frames cause reprojection judder that induces nausea.
     /// </summary>
     public sealed class QuestPerformance : MonoBehaviour
     {
-        [SerializeField] private int _targetHz = 72;
+        [SerializeField] private int _targetHz = 90;
         [Tooltip("Fixed Foveated Rendering reduces GPU cost toward the lens edges (where the eye " +
                  "can't resolve detail), buying frame-budget headroom so we hold the refresh rate. " +
                  "Stable pacing = far less judder-induced nausea. Dynamic auto-adjusts with load.")]
