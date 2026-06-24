@@ -28,8 +28,11 @@ namespace Services.Atmosphere
         private const float NightExposure = -0.6f;
         private const float NightSaturation = -10f;        // ColorAdjustments saturation is -100..100
         private const float DayBloom = 0.4f;
-        private const float NightBloom = 1.2f;
-        private const float BloomThreshold = 0.9f;
+        // Night bloom trimmed (1.2→0.8) and threshold raised (0.9→1.1) — full-screen bloom is a heavy
+        // per-frame GPU cost on Quest and the night look was the main reason FPS dropped from 90 (shop)
+        // to 60-70 (night). Keeps the warm glow, fewer pixels bloom.
+        private const float NightBloom = 0.8f;
+        private const float BloomThreshold = 1.1f;
         private const float NightPointLightScale = 0.6f;   // dim the room lights at night
         private const float NightDirLightScale = 0.8f;     // dim the sun only slightly (keep legibility)
         private const float DarkExposure = -8f;            // blink peak (near black)
