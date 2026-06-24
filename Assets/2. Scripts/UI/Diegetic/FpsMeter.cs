@@ -21,7 +21,7 @@ namespace UI.Diegetic
 
         private bool      _registered;
         private Transform _cam;
-        private float     _smoothedFps;
+        private float     _currentFps;
 
         // Frame-counting window: averaging real frames over a fixed interval is accurate and stable,
         // unlike 1/deltaTime which swings wildly on any single-frame hitch (the "30..80 jumping" bug).
@@ -60,9 +60,10 @@ namespace UI.Diegetic
             _frameCount += 1;
             if (_accumTime < SampleInterval) return;
 
-            float windowFps = _frameCount / _accumTime;
-            // Light EMA across windows so the number settles instead of ticking by a few each refresh.
-            _smoothedFps = _smoothedFps <= 0f ? windowFps : Mathf.Lerp(_smoothedFps, windowFps, 0.5f);
+            // Show the true windowed average directly — no smoothing. Averaging real frames over the
+            // 0.5s window is already stable (unlike 1/deltaTime), so any extra EMA only made the number
+            // lag reality: it crawled up to the real rate over seconds instead of just showing it.
+            _currentFps = _frameCount / _accumTime;
             _accumTime  = 0f;
             _frameCount = 0;
             UpdateLabel();
@@ -74,7 +75,7 @@ namespace UI.Diegetic
         {
             if (_label == null) return;
 
-            int fps = Mathf.RoundToInt(_smoothedFps);
+            int fps = Mathf.RoundToInt(_currentFps);
             _label.text = $"{fps} FPS";   // colour stays white (set in OnEnable)
         }
 
