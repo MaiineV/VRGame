@@ -92,9 +92,9 @@ namespace Gameplay.Customer.States
 
                     // Pay scales with score (full when perfect, half when one axis is wrong).
                     c.RaiseServed(c.TargetRecipe, score, isExact);
-                    // Take the glass and head to a table to drink (falls back to drinking in place
-                    // inside GoingToTableState when no table point is free/authored).
-                    c.Machine.TransitionTo(CustomerStateId.GoingToTable);
+                    // Take the glass and drink it right here at the bar seat, then leave through the
+                    // door — no detour to a table.
+                    c.Machine.TransitionTo(CustomerStateId.Drinking);
                 }
                 else
                 {
