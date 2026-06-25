@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Bitácora de desarrollo — Pour Decisions VR</title>
+<style>
+  :root{
+    --ink:#2b2520; --muted:#6b5d4f; --line:#e3d8c8;
+    --amber-bg:#fdf3df; --amber-bd:#d9a441;
+    --terra-bg:#f7e6dd; --terra-bd:#c0603c;
+    --blue-bg:#eaf1f6; --blue-bd:#3f6f96;
+    --phase:#7a3b1d; --accent:#9c4a23; --paper:#fffdf9;
+    --tbl-head:#efe6d6;
+  }
+  *{box-sizing:border-box;}
+  html{font-size:11px;}
+  body{
+    font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;
+    color:var(--ink); background:var(--paper); margin:0; line-height:1.5;
+  }
+  @page{ size:A4; margin:18mm 16mm 16mm 16mm; }
+  .page{ page-break-after:always; }
+  .page:last-child{ page-break-after:auto; }
+  h1,h2,h3,h4{ font-family:Georgia,"Times New Roman",serif; color:var(--ink); line-height:1.25; }
+  h2{ font-size:1.55rem; border-bottom:2px solid var(--accent); padding-bottom:.25em; margin:0 0 .7em; color:var(--accent);}
+  h3{ font-size:1.15rem; margin:1.3em 0 .4em; color:var(--phase); }
+  h4{ font-size:1rem; margin:1em 0 .3em; }
+  p{ margin:.5em 0; text-align:justify; }
+  code,.hash{ font-family:"Consolas","SF Mono",monospace; font-size:.92em; background:#f1ece2; padding:0 .25em; border-radius:3px; color:#5a3a1d; }
+  ul{ margin:.4em 0 .6em 1.1em; padding:0; }
+  li{ margin:.18em 0; }
+  small{ color:var(--muted); }
+
+  /* ---- Cover ---- */
+  .cover{ display:flex; flex-direction:column; min-height:255mm; }
+  .cover .kicker{ letter-spacing:.28em; text-transform:uppercase; font-size:.8rem; color:var(--accent); font-weight:700; }
+  .cover .title{ font-size:3.6rem; margin:.1em 0 0; color:var(--ink); }
+  .cover .subtitle{ font-size:1.25rem; color:var(--muted); font-style:italic; margin:.2em 0 1.4em; }
+  .cover .lead{ font-size:1rem; max-width:46em; color:#473d31; }
+  .cover .rule{ height:6px; width:120px; background:var(--accent); margin:1.2em 0; }
+  .meta-table{ margin-top:auto; border-collapse:collapse; font-size:.92rem; }
+  .meta-table td{ padding:.28em .9em .28em 0; vertical-align:top; }
+  .meta-table td.k{ color:var(--accent); font-weight:700; white-space:nowrap; }
+
+  /* ---- Boxes ---- */
+  .box{ border-left:5px solid; padding:.6em .9em; margin:.9em 0; border-radius:3px; }
+  .box .tag{ display:block; font-weight:700; letter-spacing:.06em; font-size:.78rem; text-transform:uppercase; margin-bottom:.2em; }
+  .supuesto{ background:var(--amber-bg); border-color:var(--amber-bd); }
+  .supuesto .tag{ color:#9c6a13; }
+  .bache{ background:var(--terra-bg); border-color:var(--terra-bd); }
+  .bache .tag{ color:var(--terra-bd); }
+  .conv{ background:var(--blue-bg); border-color:var(--blue-bd); }
+  .conv .tag{ color:var(--blue-bd); }
+  .nota{ background:#f3efe6; border-color:#8a7a63; }
+  .nota .tag{ color:#6b5d4f; }
+
+  /* ---- Phase banner + week ---- */
+  .phase{ background:var(--phase); color:#fdf3df; padding:.35em .8em; margin:1.6em 0 0; font-size:.82rem; letter-spacing:.1em; text-transform:uppercase; display:flex; justify-content:space-between; border-radius:3px 3px 0 0; }
+  .phase .when{ opacity:.85; letter-spacing:.04em; }
+  .weekhead{ border:1px solid var(--line); border-top:none; padding:.7em .9em .2em; border-radius:0 0 3px 3px; }
+  .metrics{ display:flex; gap:1.6em; margin:.5em 0 .2em; flex-wrap:wrap; }
+  .metric{ text-align:center; }
+  .metric .n{ font-family:Georgia,serif; font-size:1.5rem; color:var(--accent); font-weight:700; line-height:1; }
+  .metric .l{ font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+
+  /* ---- Tables ---- */
+  table.data{ width:100%; border-collapse:collapse; margin:.6em 0; font-size:.9rem; }
+  table.data th{ background:var(--tbl-head); text-align:left; padding:.4em .6em; border:1px solid var(--line); font-family:Georgia,serif; font-size:.85rem; }
+  table.data td{ padding:.35em .6em; border:1px solid var(--line); vertical-align:top; }
+  table.data tr:nth-child(even) td{ background:#faf6ee; }
+  .ficha td.k{ width:30%; color:var(--accent); font-weight:600; }
+
+  /* ---- Anexo ---- */
+  table.anexo{ width:100%; border-collapse:collapse; font-size:.74rem; }
+  table.anexo th{ background:var(--tbl-head); text-align:left; padding:.32em .45em; border:1px solid var(--line); position:sticky; }
+  table.anexo td{ padding:.26em .45em; border:1px solid var(--line); vertical-align:top; }
+  table.anexo td.hash{ font-family:Consolas,monospace; color:#5a3a1d; white-space:nowrap; }
+  table.anexo td.date{ white-space:nowrap; color:var(--muted); }
+  table.anexo td.auth{ white-space:nowrap; }
+  table.anexo td.chg{ white-space:nowrap; color:var(--muted); font-size:.92em; }
+  table.anexo .mtag{ font-size:.7rem; background:#e7ddcb; color:#6b5d4f; padding:0 .3em; border-radius:3px; }
+  table.anexo tr:nth-child(even) td{ background:#faf6ee; }
+
+  .toc{ font-size:1rem; }
+  .toc ol{ margin:.3em 0 .3em 1.3em; }
+  .toc ol ol{ color:var(--muted); font-size:.92em; }
+  .footer-note{ margin-top:2em; padding-top:.6em; border-top:1px solid var(--line); font-size:.82rem; color:var(--muted); }
+  .seclead{ color:var(--muted); font-size:.95rem; margin-bottom:1em; }
+  .commit-list{ font-size:.92rem; }
+  .commit-list li{ margin:.25em 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover">
+  <div class="kicker">Tecnologías Disruptivas · Bitácora de desarrollo</div>
+  <div class="title">Pour Decisions</div>
+  <div class="subtitle">Simulador de bartender en Realidad Virtual</div>
+  <div class="rule"></div>
+  <p class="lead">Registro semana a semana del desarrollo, reconstruido a partir del historial
+  completo de control de versiones (Git): <strong>114 commits</strong> entre el
+  <strong>8 de abril y el 24 de junio de 2026</strong>.</p>
+
+  <table class="meta-table">
+    <tr><td class="k">Materia</td><td>Tecnologías Disruptivas</td></tr>
+    <tr><td class="k">Proyecto</td><td>Pour Decisions VR — Management Sim en VR (Unity 6 + URP)</td></tr>
+    <tr><td class="k">Plataforma</td><td>Meta Quest 2/3 (standalone) · PC VR (OpenXR/SteamVR)</td></tr>
+    <tr><td class="k">Período</td><td>08/04/2026 — 24/06/2026 (12 semanas calendario)</td></tr>
+    <tr><td class="k">Equipo</td><td>SebastianLuser · Agustín Martínez · Ignacio Martínez · Santiago Bocco</td></tr>
+    <tr><td class="k">Documento generado</td><td>24/06/2026</td></tr>
+    <tr><td class="k">Fuente</td><td>Repositorio Git (rama <code>main</code> y ramas de feature)</td></tr>
+  </table>
+</section>
+
+<!-- ============ ÍNDICE ============ -->
+<section class="page">
+  <h2>Índice</h2>
+  <div class="toc">
+    <ol>
+      <li>Introducción y alcance del proyecto</li>
+      <li>Metodología de la bitácora
+        <ol>
+          <li>Cómo se reconstruyó</li>
+          <li>Tratamiento de baches y supuestos</li>
+          <li>Sobre la autoría en el historial</li>
+        </ol>
+      </li>
+      <li>Ficha técnica del proyecto</li>
+      <li>Bitácora semana a semana
+        <ol>
+          <li>Semanas 1–5 — Fundación, arquitectura y primer pase audiovisual (abril–mayo)</li>
+          <li>Semanas 6–10 — Baches, corrección de física y confort VR (mayo–junio)</li>
+          <li>Semanas 11–12 — Sprint mayor, pulido y release-prep (junio)</li>
+        </ol>
+      </li>
+      <li>Análisis transversal
+        <ol>
+          <li>Distribución del esfuerzo</li>
+          <li>Fases del proyecto</li>
+          <li>Baches y su interpretación</li>
+          <li>Deuda técnica y supuestos abiertos</li>
+        </ol>
+      </li>
+      <li>Conclusiones</li>
+      <li>Anexo A — Historial Git completo (114 commits)</li>
+      <li>Anexo B — Glosario técnico</li>
+    </ol>
+  </div>
+
+  <div class="box conv">
+    <span class="tag">Convenciones</span>
+    <strong>Caja terracota</strong> = semana sin registro en Git (bache). &nbsp;
+    <strong>Caja ámbar</strong> = supuesto / inferencia del autor de la bitácora. &nbsp;
+    <code>abc1234</code> = identificador de commit.
+  </div>
+</section>
+
+<!-- ============ 1. INTRODUCCIÓN ============ -->
+<section class="page">
+  <h2>1 · Introducción y alcance del proyecto</h2>
+  <p><strong>Pour Decisions</strong> es un juego de simulación y gestión en realidad virtual en el que el
+  jugador es el barman de su propio bar: prepara tragos con sus propias manos (interacción física en VR),
+  atiende clientes con paciencia y pedidos variables, gestiona la economía del negocio entre noches y lidia
+  con las consecuencias del alcohol —clientes que se emborrachan, propinas, caos y botellas rotas—. El
+  núcleo de identidad del proyecto es que cada trago se prepara agarrando botellas y vertiendo, sin menús, y
+  que el estado de embriaguez de los clientes modifica el gameplay en tiempo real.</p>
+
+  <p>El proyecto se desarrolló en <strong>Unity 6 (6000.3.11f1)</strong> con URP, apuntando a Meta Quest 2/3
+  en modo standalone y a PC VR vía OpenXR/SteamVR, con un presupuesto de framerate de 90 fps (Quest 3) /
+  72 fps (Quest 2). Es, por todas las señales del repositorio (ramas como <code>fix/vr-professor-feedback</code>,
+  documentos de High Concept y Technical Design, un GDD propio, y alcance acotado a un MVP de una noche),
+  un proyecto académico de desarrollo de videojuegos realizado por un equipo de cuatro personas.</p>
+
+  <p>Esta bitácora documenta, semana a semana, qué se construyó, qué decisiones técnicas se tomaron, qué
+  problemas aparecieron y cómo se resolvieron, a lo largo de las 12 semanas calendario que abarca el historial
+  (8 de abril – 24 de junio de 2026), de las cuales <strong>9 tuvieron actividad registrada y 3 fueron baches</strong>
+  sin commits.</p>
+</section>
+
+<!-- ============ 2. METODOLOGÍA ============ -->
+<section class="page">
+  <h2>2 · Metodología de la bitácora</h2>
+
+  <h3>2.1 · Cómo se reconstruyó</h3>
+  <p>Esta bitácora es una reconstrucción a posteriori: no se llevó un diario en tiempo real durante el
+  desarrollo, sino que se reconstruyó el recorrido a partir de la fuente de verdad más fiable disponible —el
+  historial completo de Git—. Para cada commit se analizó su fecha, autor, mensaje y el conjunto de archivos
+  modificados (cantidad de archivos, líneas agregadas y borradas). Los commits se agruparon por semana
+  calendario ISO (lunes a domingo) y, dentro de cada semana, se reagruparon temáticamente para construir la
+  narrativa. El contenido se cruzó además con los documentos de diseño del repositorio (High Concept,
+  Technical Design Document v1.1, el GDD de Pour Decisions) y con notas de sesión internas
+  (p. ej. <code>post-reset-unity-review.md</code>), que aportan el "por qué" detrás de varios commits.</p>
+
+  <h3>2.2 · Tratamiento de baches y supuestos</h3>
+  <p>El historial tiene tres semanas sin ningún commit. Estos baches no significan necesariamente inactividad:
+  en un proyecto académico VR es habitual que haya trabajo no versionado (investigación, diseño en papel,
+  playtesting presencial, modelado 3D fuera del repo, o simplemente semanas de parciales). En esos casos esta
+  bitácora marca explícitamente el bache y ofrece una interpretación razonada, siempre señalada como supuesto.</p>
+
+  <div class="box supuesto">
+    <span class="tag">Supuesto — ejemplo de convención</span>
+    Toda afirmación que no se desprende directamente del historial Git ni de un documento del repositorio se
+    presenta dentro de una caja ámbar como esta. Son inferencias del autor de la bitácora, no hechos
+    verificados, y se incluyen para dar continuidad narrativa sin presentarlas como certezas.
+  </div>
+
+  <h3>2.3 · Sobre la autoría en el historial</h3>
+  <p>El reparto de commits por autor es: <strong>SebastianLuser (83)</strong>, Agustín Martínez (10),
+  Ignacio Martínez (9), Santiago Bocco (7) y la cuenta de bot/merge <em>Sebas</em> (4). Conviene una
+  advertencia metodológica:</p>
+
+  <div class="box supuesto">
+    <span class="tag">Supuesto — identidades Git</span>
+    Las identidades "Ignacio Martínez" y "Agustín Martínez" comparten la misma dirección de correo
+    (<code>agustinmartinezbarrios2@gmail.com</code>), lo que sugiere que corresponden a la misma persona o a
+    una misma máquina con la configuración de Git cambiada en el tiempo. Por eso el conteo por autor refleja
+    configuración de Git, no necesariamente el reparto real de trabajo entre personas. Santiago Bocco aparece
+    asociado a commits de arte/modelado 3D ("Modelados", "Human voxel with animation", "deco + static", "Menu
+    escena arte", "Tutorial + Font"), lo que sugiere un rol artístico diferenciado.
+  </div>
+</section>
+
+<!-- ============ 3. FICHA TÉCNICA ============ -->
+<section class="page">
+  <h2>3 · Ficha técnica del proyecto</h2>
+  <table class="data ficha">
+    <tr><td class="k">Motor / Render pipeline</td><td>Unity 6 — 6000.3.11f1 (revisión 3000ef702840) · URP (Forward+, backend Vulkan para Quest)</td></tr>
+    <tr><td class="k">Stack VR</td><td>OpenXR + Oculus · XR Interaction Toolkit 3.x · New Input System · Meta XR Building Blocks (ISDK)</td></tr>
+    <tr><td class="k">Arquitectura</td><td>Service Locator + FSM genérica + datos por ScriptableObject + un único <code>UpdateService</code> (tick pump)</td></tr>
+    <tr><td class="k">Principios técnicos</td><td>VR-first (90 fps inquebrantable), cero <code>Update()</code> sueltos, datos en SO, eventos C# directos, cero allocations en hot paths, UI diegética estacionaria</td></tr>
+    <tr><td class="k">Física</td><td>PhysX nativo · líquidos por vertex shader (<code>_FillAmount</code> / <code>_LiquidColor</code>) · destrucción por swap a prefab pre-fracturado desde pool</td></tr>
+    <tr><td class="k">Tamaño del código</td><td>~179 scripts C# en <code>Assets/2. Scripts</code> al cierre del período</td></tr>
+    <tr><td class="k">Estilo de arte</td><td>"Pixel-Poly": low-poly con texturas de pixel art; paleta cálida de bar nocturno (ámbar, madera, neón tenue)</td></tr>
+    <tr><td class="k">Alcance MVP</td><td>1 noche jugable · recetas/tragos múltiples · clientes con personalidad · loop preparar-servir-cobrar + tienda diurna · menú principal + guardado · tutorial</td></tr>
+    <tr><td class="k">Volumen del historial</td><td>114 commits · 12 semanas calendario · 5 Pull Requests · ramas <code>feature/game-implementation</code>, <code>feature/audio-and-ui-wiring</code>, <code>fix/vr-professor-feedback</code>, <code>feat/day-shop-economy</code>, <code>fixes/bar-playtest</code>, <code>fixes/shop-slots</code></td></tr>
+  </table>
+</section>
+
+<!-- ============ 4. BITÁCORA SEMANA A SEMANA ============ -->
+<section class="page">
+  <h2>4 · Bitácora semana a semana</h2>
+  <p class="seclead">Cada semana indica su período, fase del proyecto, resumen, trabajo realizado (con
+  referencias a commits), análisis de decisiones técnicas, problemas/soluciones y métricas. Los baches se
+  documentan igual que las semanas activas.</p>
+
+  <!-- Semana 1 -->
+  <div class="phase"><span>Fase · Fundación</span><span class="when">6 – 12 abr 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 1 — Arranque del repositorio</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">3</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~9,4k</div><div class="l">Líneas (+)</div></div>
+      <div class="metric"><div class="n">3</div><div class="l">Autores</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Nacimiento del proyecto. Se inicializa el repositorio, se crea el proyecto Unity
+  y se incorpora el set de paquetes base (XR, Input System, URP).</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>7f4ffb1</code> — Initial commit: repositorio + <code>.gitignore</code> de Unity (8 abr).</li>
+    <li><code>1dcb8f9</code> — Init Project: estructura base del proyecto Unity (60 archivos).</li>
+    <li><code>9f063ab</code> — Packages added: manifiesto de paquetes y dependencias (39 archivos).</li>
+  </ul>
+  <h4>Análisis</h4>
+  <p>El día 0 ya define la cancha: un proyecto Unity con el tooling de XR. No hay gameplay todavía; es
+  andamiaje. La separación entre "Init Project" y "Packages added" sugiere que primero se subió el esqueleto y
+  enseguida se resolvió el set de dependencias VR.</p>
+
+  <!-- Semana 2 -->
+  <div class="phase"><span>Fase · Implementación inicial</span><span class="when">13 – 19 abr 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 2 — Primer juego jugable y demo</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">9</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~140k</div><div class="l">Líneas (+)</div></div>
+      <div class="metric"><div class="n">1</div><div class="l">Autor</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> La semana más densa de la fundación. Aterriza la primera implementación jugable
+  de Pour Decisions VR, un sistema de demo "one-click" y todo el setup de Unity. Es el salto de "proyecto
+  vacío" a "hay algo que se juega".</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>1534713</code> — feat: initial game implementation: el commit fundacional del gameplay (123 archivos, +6.427).</li>
+    <li><code>64a84ba</code> — feat(demo): auto-setup de demo "one-click" con controles IMGUI.</li>
+    <li><code>a9d9590</code> — Efectivamente cambios (todo el setup de unity): el commit más voluminoso de la semana (438 archivos, +121.769) — importación masiva de assets/configuración del editor.</li>
+    <li><code>e76edef</code> — Add mores features (+8.871) y <code>90b9c7c</code> — more??: iteración rápida de features.</li>
+    <li>Higiene de repo: <code>3d90eba</code>, <code>0cea0ec</code>, <code>098d996</code>, <code>c53b1d1</code> — orden de archivos versionados, docs (<code>.md</code>) y fixes menores.</li>
+  </ul>
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>Los volúmenes gigantescos (cientos de miles de líneas) corresponden a importación de assets y metadatos
+  del editor, no a código escrito a mano —un patrón típico de Unity bajo Git—. El uso de un demo auto-setup
+  con IMGUI revela una decisión pragmática: poder levantar una escena jugable con un clic para iterar y mostrar
+  avances sin depender de armar la escena a mano cada vez.</p>
+  <div class="box supuesto">
+    <span class="tag">Supuesto</span>
+    Los mensajes informales ("more??", "Efectivamente cambios") sugieren una fase de exploración rápida,
+    probablemente individual, donde el foco era "hacer que ande" antes que la prolijidad del historial. Es
+    coherente con las primeras semanas de un proyecto académico.
+  </div>
+</section>
+
+<section class="page">
+  <!-- Semana 3 -->
+  <div class="phase"><span>Fase · Arquitectura</span><span class="when">20 – 26 abr 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 3 — Refactor del FSM</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">1</div><div class="l">Commit</div></div>
+      <div class="metric"><div class="n">57</div><div class="l">Archivos</div></div>
+      <div class="metric"><div class="n">+1.981 / −977</div><div class="l">Líneas</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Una semana de una sola pieza, pero estructural: se reemplaza el framework de
+  máquina de estados jerárquica (HSM) por una FSM genérica simple.</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>ca43282</code> — refactor: replace HSM framework with simple generic FSM (57 archivos tocados).</li>
+  </ul>
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>Esta es una decisión arquitectónica de peso: cambiar un framework jerárquico (más potente pero más
+  pesado y verboso) por una FSM genérica liviana. En un proyecto VR donde el presupuesto de CPU y la
+  simplicidad mantenible importan, optar por lo simple es defendible. Que toque 57 archivos confirma que la
+  máquina de estados estaba ya extendida por el código (clientes, estados de juego) y que el refactor fue
+  transversal. La FSM genérica sobrevive en la arquitectura final (<code>Core/FSM/StateMachine.cs</code>, <code>IState.cs</code>).</p>
+
+  <!-- Semana 4 -->
+  <div class="phase"><span>Fase · Setup VR</span><span class="when">27 abr – 3 may 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 4 — Simulación y settings de VR</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">2</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">11</div><div class="l">Archivos</div></div>
+      <div class="metric"><div class="n">2</div><div class="l">Autores</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Se habilita poder simular VR sin casco y se afinan los settings de XR —un paso
+  clave para iterar rápido cuando no siempre se tiene el headset a mano—.</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>5732ed9</code> — Setup for simulate VR (8 archivos).</li>
+    <li><code>953b798</code> — VR settings.</li>
+  </ul>
+  <h4>Análisis</h4>
+  <p>Configurar la simulación de VR en el editor es una inversión en velocidad de iteración: permite probar
+  lógica de interacción sin ponerse el casco en cada cambio. Aparece aquí el segundo autor del equipo (Agustín
+  Martínez), señal de que el trabajo empieza a repartirse.</p>
+
+  <!-- Semana 5 -->
+  <div class="phase"><span>Fase · Audio + UI</span><span class="when">4 – 10 may 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 5 — Música, feedback de servir y UI de progresión</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">9</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~5,3k</div><div class="l">Líneas (+)</div></div>
+      <div class="metric"><div class="n">2</div><div class="l">Autores</div></div>
+      <div class="metric"><div class="n">#2</div><div class="l">PR</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Primer pase audiovisual y de UI sobre el gameplay existente. Se trabaja en una
+  rama <code>feature/audio-and-ui-wiring</code> que se mergea a fin de semana (PR #2). También se redacta
+  documentación: el Technical Design Document v1.1 lleva fecha de esta semana (04/05/2026).</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>6f2e06d</code> — feat: add music, serve feedback, recipe menu, and progression UI.</li>
+    <li><code>4e0b8d7</code> — feat: add audio assets, reorganize folder structure, wire <code>SfxDatabase</code> (33 archivos): aparecen los assets de audio y la base de datos de SFX.</li>
+    <li><code>cf49bb2</code> — fix(vr): make grabbers track controllers and unblock compile.</li>
+    <li><code>39f9ce2</code> — Clean and add documents: limpieza + documentación de diseño.</li>
+    <li><code>fc5913e</code> — Prefab playeranchor, <code>fdacf43</code> — Order on bar scene: ajustes de escena.</li>
+    <li>Integración: <code>84bcb23</code>, <code>3173ce7</code> (Fix de merge), <code>f0a44a5</code> — Merge PR #2.</li>
+  </ul>
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>Se consolida el pilar de datos por ScriptableObject: el <code>SfxDatabase</code> centraliza los clips por
+  <code>SfxId</code>, en línea con el principio "ninguna constante de diseño en código". La reorganización de
+  carpetas (la estructura numerada <code>1. Scenes</code>, <code>2. Scripts</code>…) es la que perdura hasta el
+  final. El trabajo en rama + PR marca la adopción de un flujo de integración más ordenado que las primeras
+  semanas.</p>
+</section>
+
+<section class="page">
+  <!-- Semana 6 (bache) -->
+  <div class="phase"><span>Bache</span><span class="when">11 – 17 may 2026 · sin commits</span></div>
+  <div class="weekhead"><h4>Semana 6 — Sin registro en Git</h4></div>
+  <div class="box bache">
+    <span class="tag">Bache documentado</span>
+    No hay ningún commit en este período. Junto con la Semana 7 forma un hueco de dos semanas entre el pase
+    de audio/UI (5 may) y la corrección de física (27 may).
+  </div>
+  <div class="box supuesto">
+    <span class="tag">Supuesto — interpretación del bache</span>
+    Lo más probable es trabajo no versionado: playtesting y detección de bugs (que recién se materializan en el
+    commit del 27 de mayo, donde se atacan problemas de locomoción, colisión de objetos sostenidos y vertido),
+    evaluación/feedback de diseño, o un parate académico (parciales / entregas de otras materias). El gran commit
+    que cierra el bache es de corrección de bugs, lo que respalda la hipótesis de un período de prueba intensiva
+    sin commits intermedios.
+  </div>
+
+  <!-- Semana 7 (bache) -->
+  <div class="phase"><span>Bache</span><span class="when">18 – 24 may 2026 · sin commits</span></div>
+  <div class="weekhead"><h4>Semana 7 — Sin registro en Git</h4></div>
+  <div class="box bache">
+    <span class="tag">Bache documentado</span>
+    Segunda semana consecutiva sin commits. Ver la interpretación de la Semana 6: el período 11–24 de mayo es
+    muy probablemente de prueba y diseño no versionado, cerrado por el commit correctivo del 27 de mayo.
+  </div>
+
+  <!-- Semana 8 -->
+  <div class="phase"><span>Fase · Corrección de física</span><span class="when">25 – 31 may 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 8 — Locomoción, colisiones y vertido</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">2</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~547</div><div class="l">Archivos*</div></div>
+      <div class="metric"><div class="n">1</div><div class="l">Autor</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Vuelta de la actividad tras el bache, con foco en bugs de jugabilidad VR:
+  locomoción, colisión de objetos en mano y el vertido de botellas.</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>390a7fe</code> — Scene fixes: ajustes de escena.</li>
+    <li><code>f23ec4b</code> — fix: locomotion, held-object collision, and bottle pouring bugs: tres problemas centrales de la experiencia VR en un solo commit.</li>
+  </ul>
+  <div class="box supuesto">
+    <span class="tag">Supuesto — métrica inflada</span>
+    El commit <code>f23ec4b</code> reporta 545 archivos y millones de líneas; ese número está dominado por
+    reimportación de binarios/assets de Unity y no refleja esfuerzo de programación. El valor informativo está
+    en el mensaje (locomoción + colisión + vertido), no en el volumen.
+  </div>
+  <h4>Análisis</h4>
+  <p>Los tres bugs atacados son exactamente los "satisfactorios y no frustrantes" que el High Concept anticipaba
+  como riesgo de diseño VR. Que la colisión de objetos sostenidos sea un tema recurrente (vuelve a aparecer en
+  junio) anticipa que la interacción mano-objeto fue una de las áreas más difíciles del proyecto.</p>
+</section>
+
+<section class="page">
+  <!-- Semana 9 -->
+  <div class="phase"><span>Fase · Economía + confort VR</span><span class="when">1 – 7 jun 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 9 — Economía de vasos, paciencia y pase de confort</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">4</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~11,7k</div><div class="l">Líneas (+)</div></div>
+      <div class="metric"><div class="n">1</div><div class="l">Autor</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> Dos frentes en paralelo: sistemas de gameplay (economía de vasos, barra de
+  paciencia del cliente, servir por nivel de llenado) y confort y performance VR (teleport por defecto, MSAA 2x,
+  Fixed Foveated Rendering).</p>
+  <h4>Trabajo realizado</h4>
+  <ul class="commit-list">
+    <li><code>c3909da</code> — feat: glass economy, VR comfort/perf pass, fill-level serve (152 archivos): los vasos pasan a ser un recurso; servir evalúa el nivel de llenado.</li>
+    <li><code>a640fc6</code> — feat: longer customer patience + patience bar, fix glass/night buttons.</li>
+    <li><code>9739cdb</code> — feat: VR comfort + perf pass (teleport default, MSAA 2x, FFR).</li>
+    <li><code>711702e</code> — fix: drop obsolete <code>Lightmapping.giWorkflowMode</code> (Unity 6 CS0618).</li>
+  </ul>
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>Esta semana traduce principios del Technical Doc en código real: el teleport como locomoción por defecto y
+  el FFR (Fixed Foveated Rendering) son decisiones de manual para Quest —reducen motion sickness y descargan la
+  GPU en los bordes del campo visual—. La economía de vasos (un vaso es un recurso que se ensucia/recicla) y el
+  servir por nivel de llenado profundizan el loop de gestión que pedía el High Concept. El fix de
+  <code>giWorkflowMode</code> muestra fricción real con la migración a Unity 6.</p>
+
+  <!-- Semana 10 (bache) -->
+  <div class="phase"><span>Bache</span><span class="when">8 – 14 jun 2026 · sin commits</span></div>
+  <div class="weekhead"><h4>Semana 10 — Sin registro en Git</h4></div>
+  <div class="box bache">
+    <span class="tag">Bache documentado</span>
+    Tercer y último bache del proyecto, justo antes del sprint más intenso (Semana 11). El silencio precede a una
+    explosión de actividad: el 16–17 de junio se vuelca muchísimo contenido de golpe.
+  </div>
+  <div class="box supuesto">
+    <span class="tag">Supuesto — interpretación del bache</span>
+    El patrón "silencio + avalancha inmediata" sugiere fuertemente trabajo offline preparándose para una entrega
+    o devolución de cátedra: modelado 3D (los "Modelados" y el "Human voxel" entran el 16–17 jun con +1,2
+    millones de líneas de assets), diseño de la fase de tienda y recopilación del feedback que da nombre a la
+    rama <code>fix/vr-professor-feedback</code>. Es coherente con que la semana siguiente sea, por lejos, la de
+    mayor producción del proyecto.
+  </div>
+</section>
+
+<section class="page">
+  <!-- Semana 11 -->
+  <div class="phase"><span>Fase · Feedback de cátedra + contenido (sprint mayor)</span><span class="when">15 – 21 jun 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 11 — El gran sprint</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">47</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~1,3M</div><div class="l">Líneas (+)*</div></div>
+      <div class="metric"><div class="n">3</div><div class="l">Autores</div></div>
+      <div class="metric"><div class="n">#1, #3</div><div class="l">PRs</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> La semana decisiva: 47 commits, casi la mitad del proyecto entero. Se incorpora
+  arte 3D (modelos, cliente humano animado, decoración), se reescribe la interacción de manos para usar
+  controladores Meta, se construye el sistema de identidad de tragos por color en 4 fases, se implementa la
+  tienda diurna (day shop economy), se hace el pase de feedback sensorial (audio/haptics/VFX/atmósfera) y se
+  introduce pathing por NavMesh para los NPC. Convergen las ramas <code>feature/game-implementation</code> y
+  <code>fix/vr-professor-feedback</code>.</p>
+
+  <h4>Trabajo realizado — por bloques temáticos</h4>
+  <p><strong>Arte y contenido 3D (16–17 jun).</strong></p>
+  <ul class="commit-list">
+    <li><code>e2ce11c</code> — Modelados (118 archivos, +1,22M): importación masiva de modelos 3D.</li>
+    <li><code>470c03f</code> — Human voxel with animation (+58.584), <code>0023589</code> — Font + baked light, <code>4ba5010</code> — deco + static.</li>
+  </ul>
+  <p><strong>Interacción de manos y VR.</strong></p>
+  <ul class="commit-list">
+    <li><code>6163c15</code> — feat(vr): teleport visual feedback, two-hand grab, clearer order UI, height adjust.</li>
+    <li><code>5187102</code> — feat(vr): replace grey poke-ball hands with Meta controller-driven hands.</li>
+    <li><code>39336ba</code> — feat(vr): toggle-grab on both hands + remove dead CashRegister.</li>
+    <li><code>e813105</code> — feat(vr): visible controllers, single-drink orders, glass auto-refill.</li>
+  </ul>
+  <p><strong>Botellas y variantes.</strong></p>
+  <ul class="commit-list">
+    <li><code>1320a74</code> — feat(bottles): swappable bottle prefab variants + new drinks in NPC pool (60 archivos).</li>
+    <li><code>8ced89f</code> — place the 5 bottle variants on the shelf, <code>270e740</code> — preserve FBX proportions, <code>fc4f867</code> — pour works on every bottle + refill each night.</li>
+  </ul>
+  <p><strong>Identidad de tragos por color (4 fases).</strong></p>
+  <ul class="commit-list">
+    <li><code>bd56d43</code> — (fase 1) paleta de identidad de tragos + tintado del vaso por ingrediente.</li>
+    <li><code>ba61b9c</code> — (fase 2) el trago ahora importa, con crédito parcial al servir.</li>
+    <li><code>7c64db1</code> — (fase 3) tag de color por botella en el color del trago.</li>
+    <li><code>cdefac2</code> — (fase 4) indicador de pedido sin texto: orbe de color + medidor de nivel.</li>
+  </ul>
+  <p><strong>Economía de tienda diurna.</strong></p>
+  <ul class="commit-list">
+    <li><code>a06784d</code> — feat(economy): day shop phase — buy bottle stock + unlock drinks (38 archivos).</li>
+    <li><code>f7f13a6</code> — feat(economy): grab-to-buy bottles + per-bottle unlocks (21 archivos, +5.031).</li>
+    <li><code>af62fc1</code> — Merge de <code>feat/day-shop-economy</code>.</li>
+  </ul>
+  <p><strong>NPC, noche y pase sensorial (20–21 jun).</strong></p>
+  <ul class="commit-list">
+    <li><code>3675c7b</code> — NPC wanders bar after serve + Human customer NPC (17 archivos).</li>
+    <li><code>b7c7ecc</code> — feat(bar): sensory feedback pass — audio, haptics, VFX, atmosphere (47 archivos).</li>
+    <li><code>d6f60a8</code> — enable camera post-processing so Volume effects render.</li>
+    <li><code>de2b361</code> — feat(ai): NavMesh pathing for NPCs (runtime-baked, no editor bake).</li>
+    <li><code>a615b2f</code> — player + NPCs collide with scene geometry, <code>c85ec85</code> — held objects stay attached, <code>b41c729</code> — auto-calibrate seated/standing eye height.</li>
+  </ul>
+
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>Esta semana es donde el proyecto pasa de "prototipo funcional" a "juego con identidad". Tres decisiones destacan:</p>
+  <ul>
+    <li><strong>Identidad de tragos por color en lugar de texto.</strong> Las 4 fases de color terminan en un indicador de pedido sin texto (orbe + medidor). En VR, leer texto flotante es incómodo y rompe inmersión; codificar el pedido en color es una decisión de diseño VR madura.</li>
+    <li><strong>NavMesh horneado en runtime.</strong> Evitar el bake en editor permite escenas generadas/ajustadas sin pipeline de horneado manual —pragmático para iterar rápido—.</li>
+    <li><strong>Pase sensorial mediante servicios.</strong> Haptics, VFX y Atmosphere se montan como servicios registrados en el bootstrap, respetando el Service Locator. La nota de sesión interna advierte el orden crítico: <code>AtmosphereService</code> debe registrarse después de <code>GameStateService</code> porque se suscribe a él.</li>
+  </ul>
+  <div class="box supuesto">
+    <span class="tag">Supuesto — disparador del sprint</span>
+    El nombre de la rama <code>fix/vr-professor-feedback</code> y el volcado simultáneo de arte sugieren que esta
+    semana respondió a una devolución de la cátedra y/o a la preparación de una entrega importante. Parte del
+    trabajo (audio sintético de placeholder, animación de "beber" no implementada) quedó explícitamente como
+    pendiente en las notas internas, lo que indica que se priorizó cobertura amplia sobre pulido fino bajo
+    presión de tiempo.
+  </div>
+</section>
+
+<section class="page">
+  <!-- Semana 12 -->
+  <div class="phase"><span>Fase · Pulido de playtest, menú y release-prep</span><span class="when">22 – 28 jun 2026 · activa</span></div>
+  <div class="weekhead">
+    <h4>Semana 12 — Tienda data-driven, menú, guardado y optimización para build</h4>
+    <div class="metrics">
+      <div class="metric"><div class="n">37</div><div class="l">Commits</div></div>
+      <div class="metric"><div class="n">~40k</div><div class="l">Líneas (+)*</div></div>
+      <div class="metric"><div class="n">4</div><div class="l">Autores</div></div>
+      <div class="metric"><div class="n">#4, #5</div><div class="l">PRs</div></div>
+    </div>
+  </div>
+  <p><strong>Resumen.</strong> La semana de cierre del período, y la segunda más productiva. Se desarrolla en
+  dos olas. La <strong>primera ola (22–23 jun)</strong> es de pulido a partir de playtests: tienda data-driven,
+  auditoría de código, botones Start/Stop con anti-spam, pathing por NavMesh con rutas editables y el
+  comportamiento de cliente que lleva el vaso a una mesa, bebe y se va borracho. La <strong>segunda ola (23–24
+  jun)</strong> abre un frente nuevo de <strong>release-prep</strong>: menú principal con guardado, medidor de
+  FPS / target 90 Hz, un pase grande de optimización gráfica para la build de Quest, una nueva lógica de tragos,
+  un tutorial y la documentación del proyecto (GDD + material de cátedra). Última fecha del historial: 24 de junio.</p>
+
+  <h4>Primera ola (22–23 jun) — pulido de playtest</h4>
+  <ul class="commit-list">
+    <li><code>5475647</code> — fix(bar): code audit cleanup + StartButton + save/glass/NPC fixes (41 archivos): auditoría y limpieza transversal del código.</li>
+    <li><code>e93c0cc</code> — feat(bar): NavMesh-driven NPC pathing with editable routes; fix price tags & 2-moment loop.</li>
+    <li><code>fe02342</code> — mutually-exclusive Start/Stop buttons + anti-spam cooldown.</li>
+    <li><code>0df0b6f</code> — feat(bar): data-driven shop slots — fix prices &amp; grab-to-buy (+853/−1.359): la tienda pasa a definirse por datos (slots).</li>
+    <li><code>9c68f9a</code> — restore shop behaviour — spawned bottles were missing <code>BottleUnlockGate</code> (fix de regresión).</li>
+    <li><code>700c72f</code> — for-sale bottles, quieter pour, price orientation, glass collider, buttons, revert navmesh.</li>
+    <li><code>c95e8dc</code> — SOUNDS (68 archivos, +1.523): incorporación grande de sonidos reales.</li>
+    <li><code>3b69034</code> — fix(vr): scale-invariant glass grab/release + pool reset.</li>
+    <li><code>f999b9d</code> — feat(npc): customers carry glass to a table, drink, then leave drunk (13 archivos): cierra el loop emocional del juego.</li>
+    <li>Playtest/escena/fuentes: <code>e0373f3</code>, <code>00c3f98</code>, <code>1729806</code>, <code>571345c</code>; merges PR #4 y #5 (<code>49011ec</code>, <code>081e2c0</code>).</li>
+  </ul>
+
+  <h4>Segunda ola (23–24 jun) — menú, guardado y optimización (release-prep)</h4>
+  <p><strong>Menú principal + guardado.</strong></p>
+  <ul class="commit-list">
+    <li><code>42abf29</code> — feat(menu): main-menu controller, laser pointer, scene wiring: <code>MainMenuController</code>, <code>MenuButton</code> y un <code>VrLaserPointer</code> para navegar el menú con el controlador.</li>
+    <li><code>1e0a989</code> — feat(save): <code>HasSave</code> + <code>NewGame</code> para continuar / partida nueva.</li>
+    <li><code>04e0428</code> — feat(menu+perf+save): integra FPS meter/90 Hz, save y scripts de menú (merge).</li>
+    <li><code>b622eab</code> — feat(menu+perf): main menu scene, FPS meter, save continue/new-game (17 archivos, +3.802).</li>
+    <li><code>eaadc70</code> — Menu escena arte (Santiago, +10.700) y <code>1548dac</code> — Menu con iconos: arte e iconografía del menú.</li>
+  </ul>
+  <p><strong>FPS meter / target 90 Hz.</strong></p>
+  <ul class="commit-list">
+    <li><code>5de363e</code> — feat(perf): on-screen FPS meter + target 90 Hz: <code>FpsMeter</code> diegético y fijación del target de refresco.</li>
+    <li><code>c217fab</code> — perf(ui): FPS meter sin suavizado + reposición en Bar (lectura instantánea, sin media móvil que esconda hitches).</li>
+  </ul>
+  <p><strong>Pase de optimización gráfica para Quest.</strong> El bloque más técnico de la semana: preparar la
+  build para correr a 90 fps en hardware móvil.</p>
+  <ul class="commit-list">
+    <li><code>b902bbb</code> — perf+fix: ASTC textures, mesh decimation, ISDK ray menu, FPS meter (127 archivos): compresión de texturas ASTC, decimación de mallas y menú por ray de Interaction SDK.</li>
+    <li><code>fba20cf</code> — fix+perf: full lightmap bake (UV2 on props), ASTC lightmaps, controller-driven hand poses: horneado completo de iluminación (con UV2 en props) y lightmaps comprimidos en ASTC.</li>
+    <li><code>fc45660</code> — feat(perf): hornear Occlusion Culling de la escena Bar: descarta geometría no visible para bajar draw calls.</li>
+    <li><code>8880167</code> — perf: audio SFX a Decompress On Load + cap de texturas a 1024 + micro-opts (87 archivos): los SFX dejan de descomprimirse en runtime y las texturas se topan en 1024 px.</li>
+    <li><code>c150b3b</code> — perf(night): NPCs sin castear sombras + Directional Soft→Hard + bloom de noche: optimización específica de la escena nocturna (menos coste de sombras, bloom para el mood de bar).</li>
+    <li><code>8bfe595</code> — perf(startup): NavMesh bake asíncrono + prewarm de shaders detrás del fade: la malla de navegación se hornea sin frenar el arranque y los shaders se precompilan ocultos tras el fundido inicial, evitando los hitches del primer frame.</li>
+  </ul>
+  <p><strong>Contenido, tutorial y arranque.</strong></p>
+  <ul class="commit-list">
+    <li><code>22e3277</code> — new drink logic (Ignacio, 4 archivos, +494): reescritura de la lógica de tragos.</li>
+    <li><code>05323db</code> — Tutorial + Font en precios bar (Santiago, +6.243): se agrega un tutorial y se afina la tipografía de los precios.</li>
+    <li><code>acbdabb</code> — perf+feat: fade de arranque (cubre warm-up) + cue visual de fallo: un fundido inicial enmascara el warm-up de carga y se añade una señal visual cuando el jugador falla.</li>
+    <li><code>c8090b0</code> — fix: ocultar el vaso servido cuando el cliente acepta el trago.</li>
+  </ul>
+  <p><strong>Tipografía, capturas y documentación.</strong></p>
+  <ul class="commit-list">
+    <li><code>bdc70a7</code> / <code>872d2fa</code> — chore(fonts): limpiar y re-hornear el atlas dinámico de PixelifySans SDF.</li>
+    <li><code>de5ea50</code> — chore: agregar capturas de pantalla de playtest (19 imágenes en <code>Assets/Screenshots</code>).</li>
+    <li><code>60303a3</code> — docs: GDD de Pour Decisions + material y rúbrica de Tecnologías Disruptivas (50 archivos, +2.546): se documenta formalmente el diseño del juego y el material de la cátedra.</li>
+  </ul>
+
+  <h4>Análisis y decisiones técnicas</h4>
+  <p>El espíritu de la primera ola es <strong>convertir hacks de demo en sistemas</strong>: la tienda data-driven
+  reemplaza lógica ad-hoc por slots configurables (más mantenible y balanceable, fiel al principio "datos en SO"),
+  y la auditoría de 41 archivos es señal de madurez de cierre. El fix de <em>scale-invariant glass grab</em> y el
+  cliente que lleva el vaso a la mesa cierran el loop de gameplay que prometía el High Concept.</p>
+  <p>La segunda ola marca el giro a <strong>preparación de release para Quest</strong>. Tres decisiones destacan:</p>
+  <ul>
+    <li><strong>Optimización gráfica de manual de Quest.</strong> Lightmaps horneados + ASTC, Occlusion Culling, decimación de mallas, cap de texturas a 1024, audio en Decompress-On-Load y NPCs que no castean sombras de noche: todo apunta al presupuesto de 90 fps en GPU/CPU móvil. La aparición del <code>FpsMeter</code> sin suavizado es la herramienta de verificación de ese presupuesto en el casco.</li>
+    <li><strong>Cierre de la experiencia: menú + guardado + tutorial.</strong> El juego deja de ser "una escena que se juega" y pasa a tener entrada (menú con continuar / partida nueva, navegado por laser pointer), persistencia (<code>HasSave</code>/<code>NewGame</code>) y onboarding (tutorial). Es el andamiaje que vuelve presentable un MVP.</li>
+    <li><strong>El fade de arranque como truco de percepción.</strong> Cubrir el warm-up de carga con un fundido es una decisión de UX VR fina: evita mostrar el primer frame "frío" (shaders compilando, GC) que rompería la inmersión apenas el jugador se pone el casco.</li>
+  </ul>
+  <p>El commit de documentación (<code>60303a3</code>, GDD + rúbrica) confirma el cierre académico del período: el
+  proyecto no solo quedó jugable sino documentado para la entrega.</p>
+  <div class="box supuesto">
+    <span class="tag">Supuesto — bug recurrente</span>
+    El fix de agarre de vaso "invariante a la escala" (y su memoria de proyecto asociada) indica que el agarre de
+    objetos escalados fue un bug difícil de reproducir y reincidente. Se optó por un hardening defensivo
+    (invariancia de escala) sin haber aislado el gatillo exacto —una decisión razonable de cierre bajo tiempo,
+    pero deuda técnica a vigilar—.
+  </div>
+</section>
+
+<!-- ============ 5. ANÁLISIS TRANSVERSAL ============ -->
+<section class="page">
+  <h2>5 · Análisis transversal</h2>
+
+  <h3>5.1 · Distribución del esfuerzo</h3>
+  <p>La actividad no fue uniforme: se concentró fuertemente al final. Las dos últimas semanas activas (11 y 12)
+  suman <strong>84 de los 114 commits (74%)</strong>. El historial dibuja un patrón de ráfagas alrededor de
+  hitos (entregas, devoluciones) más que un goteo constante.</p>
+  <table class="data">
+    <tr><th>Semana</th><th>Período</th><th>Estado</th><th>Commits</th><th>Foco</th></tr>
+    <tr><td>1</td><td>6–12 abr</td><td>Activa</td><td>3</td><td>Setup del repo y proyecto Unity</td></tr>
+    <tr><td>2</td><td>13–19 abr</td><td>Activa</td><td>9</td><td>Primera implementación jugable + demo</td></tr>
+    <tr><td>3</td><td>20–26 abr</td><td>Activa</td><td>1</td><td>Refactor HSM → FSM genérica</td></tr>
+    <tr><td>4</td><td>27 abr–3 may</td><td>Activa</td><td>2</td><td>Setup de simulación VR</td></tr>
+    <tr><td>5</td><td>4–10 may</td><td>Activa</td><td>9</td><td>Audio, música, UI de progresión (PR #2)</td></tr>
+    <tr><td>6</td><td>11–17 may</td><td>Bache</td><td>0</td><td>—</td></tr>
+    <tr><td>7</td><td>18–24 may</td><td>Bache</td><td>0</td><td>—</td></tr>
+    <tr><td>8</td><td>25–31 may</td><td>Activa</td><td>2</td><td>Fix locomoción / colisiones / vertido</td></tr>
+    <tr><td>9</td><td>1–7 jun</td><td>Activa</td><td>4</td><td>Economía de vasos + confort/perf VR</td></tr>
+    <tr><td>10</td><td>8–14 jun</td><td>Bache</td><td>0</td><td>—</td></tr>
+    <tr><td>11</td><td>15–21 jun</td><td>Activa</td><td>47</td><td>Arte, manos Meta, color, tienda, sensorial, NavMesh</td></tr>
+    <tr><td>12</td><td>22–28 jun</td><td>Activa</td><td>37</td><td>Tienda data-driven, menú+save, tutorial, optimización Quest, GDD</td></tr>
+    <tr><td colspan="3"><strong>Total</strong></td><td><strong>114</strong></td><td>9 semanas activas · 3 baches</td></tr>
+  </table>
+
+  <h3>5.2 · Fases del proyecto</h3>
+  <ol>
+    <li><strong>Fundación (abr):</strong> repo, proyecto Unity, primera implementación, refactor a FSM genérica.</li>
+    <li><strong>Primer pase audiovisual y de UI (may):</strong> música, SFX, UI de progresión, simulación VR.</li>
+    <li><strong>Corrección y profundización (fin may–ppios jun):</strong> bugs de física VR, economía de vasos, confort/perf (teleport, MSAA, FFR).</li>
+    <li><strong>Sprint mayor — contenido e identidad (15–21 jun):</strong> arte 3D, manos Meta, identidad por color, tienda diurna, pase sensorial, NavMesh. Respuesta a feedback de cátedra.</li>
+    <li><strong>Pulido de playtest (22–23 jun):</strong> tienda data-driven, auditoría de código, ajustes finos, cierre del loop de cliente borracho.</li>
+    <li><strong>Menú, guardado y optimización / release-prep (23–24 jun):</strong> menú principal + laser pointer, save (continuar / partida nueva), FPS meter / 90 Hz, pase de optimización (lightmap bake + ASTC, Occlusion Culling, mesh decimation, audio Decompress-On-Load, cap de texturas, perf nocturna, NavMesh bake asíncrono + prewarm de shaders), nueva lógica de tragos, tutorial, fade de arranque y documentación (GDD + material de cátedra).</li>
+  </ol>
+
+  <h3>5.3 · Baches y su interpretación</h3>
+  <p>Los tres baches (11–24 may y 8–14 jun) comparten un patrón: preceden a commits de corrección o a grandes
+  volcados de contenido. Esto es consistente con períodos de trabajo no versionado —playtesting, diseño,
+  modelado 3D— y/o pausas académicas. Ninguno representa abandono: el proyecto siempre retoma con fuerza
+  después. (Interpretación del autor de la bitácora; ver cajas de supuesto en las Semanas 6, 7 y 10.)</p>
+
+  <h3>5.4 · Deuda técnica y supuestos abiertos al cierre</h3>
+  <ul>
+    <li><strong>Animación de "beber":</strong> no implementada; el cliente bebe sin clip dedicado (solo Idle/Walking/Drunk). Documentado como pendiente en notas internas.</li>
+    <li><strong>SFX:</strong> el placeholder sintético (<code>gen_sfx.py</code>) fue reemplazado por sonidos reales (commit <code>SOUNDS</code>) y el audio pasó a Decompress-On-Load para bajar coste en runtime; queda afinar el mix final.</li>
+    <li><strong>Agarre de objetos escalados:</strong> bug reincidente mitigado con hardening de invariancia de escala, sin gatillo raíz aislado.</li>
+    <li><strong>Servicios sin tuning en inspector:</strong> Haptics/VFX/Atmosphere son clases planas con constantes en código; convertibles a MonoBehaviour si se quisiera ajustar en editor.</li>
+    <li><strong>Optimización validada en editor, no medida en casco:</strong> el pase de release-prep (lightmaps, ASTC, occlusion, decimation) y el <code>FpsMeter</code> están en su lugar, pero el historial no registra una medición sostenida de 90 fps en Quest; queda como verificación pendiente de hardware.</li>
+    <li><strong>Métricas de líneas no fiables:</strong> los grandes números de "líneas cambiadas" están dominados por reimportación de assets binarios de Unity, no por código.</li>
+  </ul>
+</section>
+
+<!-- ============ 6. CONCLUSIONES ============ -->
+<section class="page">
+  <h2>6 · Conclusiones</h2>
+  <p>En 12 semanas, Pour Decisions VR recorrió el camino completo de un proyecto académico de videojuego: de un
+  repositorio vacío a un MVP jugable con identidad propia —preparación física de tragos en VR, identidad de
+  tragos por color, economía de tienda diurna, NPCs que se emborrachan y cierran su propio mini-arco (piden, son
+  servidos, llevan el vaso a la mesa, beben y se van borrachos), un pase sensorial de audio/haptics/VFX/atmósfera
+  y, en la recta final, menú principal con guardado, tutorial y un pase de optimización para la build de Quest—.</p>
+
+  <p>Desde lo técnico, el proyecto sostuvo una arquitectura coherente (Service Locator + FSM genérica + datos en
+  ScriptableObject + un único pump de Update) y una disciplina VR-first explícita (teleport, FFR, UI diegética,
+  cero allocations en hot paths, y un cierre con lightmaps horneados, Occlusion Culling, texturas ASTC y un
+  medidor de FPS para custodiar el presupuesto de 90 Hz). El historial muestra una evolución sana del flujo de
+  trabajo: de commits sueltos y exploratorios al principio, a ramas con Pull Requests, auditorías de código y un
+  GDD documentado al final.</p>
+
+  <p>El ritmo fue de ráfagas: casi tres cuartos del trabajo se concentran en las últimas dos semanas activas,
+  alrededor de hitos de entrega y de la devolución de cátedra que da nombre a una de las ramas. Los baches del
+  historial no fueron abandono sino, muy probablemente, trabajo no versionado y pausas académicas, siempre
+  seguidos de retomes intensos. Quedan pendientes conscientes y bien documentados (animación de beber, mix de
+  audio definitivo, robustez del agarre escalado, medición de performance en casco) que marcan con honestidad el
+  estado real del MVP al cierre del período.</p>
+
+  <div class="box nota">
+    <span class="tag">Nota final de método</span>
+    Esta bitácora es una reconstrucción fiel pero no exhaustiva del proceso: se apoya en lo que el equipo dejó
+    registrado (commits + documentos). Donde el registro calla, se indicó explícitamente con supuestos. Para una
+    versión definitiva, sería ideal validar las interpretaciones de los baches con el equipo y, a futuro, llevar
+    un breve diario semanal en paralelo al código.
+  </div>
+</section>
+
+<!-- ============ ANEXO A ============ -->
+<section class="page">
+  <h2>Anexo A — Historial Git completo</h2>
+  <p class="seclead"><strong>{{COMMIT_COUNT}} commits</strong>, del más reciente al más antiguo.
+  <span class="mtag" style="background:#e7ddcb;color:#6b5d4f;padding:0 .3em;border-radius:3px;">merge</span>
+  marca commits de fusión de ramas. La columna "cambios" resume archivos / líneas según
+  <code>git log --shortstat</code> (los volúmenes grandes incluyen reimportación de assets de Unity).</p>
+  <table class="anexo">
+    <thead>
+      <tr><th>Hash</th><th>Fecha</th><th>Autor</th><th>Mensaje</th><th>Cambios</th></tr>
+    </thead>
+    <tbody>
+<!--APPENDIX_ROWS-->
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ ANEXO B — GLOSARIO ============ -->
+<section class="page">
+  <h2>Anexo B — Glosario técnico</h2>
+  <table class="data">
+    <tr><th style="width:26%">Término</th><th>Definición en el contexto del proyecto</th></tr>
+    <tr><td>FSM (Finite State Machine)</td><td>Máquina de estados finita genérica que rige el comportamiento de clientes y del estado de juego. Reemplazó a un framework jerárquico (HSM) en la Semana 3.</td></tr>
+    <tr><td>Service Locator</td><td>Patrón de arquitectura: los sistemas se obtienen por interfaz (<code>ServiceLocator.Get&lt;IRecipeService&gt;()</code>) en lugar de singletons o referencias directas.</td></tr>
+    <tr><td>ScriptableObject (SO)</td><td>Asset de datos de Unity. Todas las constantes de diseño (recetas, ingredientes, clientes, noches) viven en SO, no en código.</td></tr>
+    <tr><td>UpdateService</td><td>Único punto de tick del juego. Los componentes se suscriben como listeners en vez de tener su propio <code>Update()</code>, para control y performance.</td></tr>
+    <tr><td>URP</td><td>Universal Render Pipeline de Unity, obligatoria para Quest. Configurada en Forward+ con backend Vulkan.</td></tr>
+    <tr><td>FFR (Fixed Foveated Rendering)</td><td>Técnica de Quest que renderiza con menor resolución los bordes del campo visual para ahorrar GPU sin pérdida perceptible.</td></tr>
+    <tr><td>MSAA</td><td>Multisample Anti-Aliasing. Configurado en 2x como compromiso calidad/performance para VR.</td></tr>
+    <tr><td>NavMesh</td><td>Malla de navegación para el pathing de NPCs. En este proyecto se hornea en runtime (sin bake en editor) y, en la Semana 12, con rutas editables.</td></tr>
+    <tr><td>Haptics</td><td>Retroalimentación por vibración de los controladores (al agarrar, servir, romper). Implementada como servicio.</td></tr>
+    <tr><td>Diegético</td><td>UI integrada en el mundo del juego (clipboard, pizarra, FPS meter, precios) en vez de flotar como HUD — reduce motion sickness.</td></tr>
+    <tr><td>Day shop economy</td><td>Fase de tienda entre noches: comprar stock de botellas y desbloquear tragos con el dinero ganado. En la Semana 12 pasa a ser data-driven (slots configurables).</td></tr>
+    <tr><td>Pool (pooling)</td><td>Reutilización de objetos preasignados (chunks de rotura, AudioSources, vasos) para evitar allocations en runtime.</td></tr>
+    <tr><td>Lightmap bake</td><td>Pre-cálculo de la iluminación estática a texturas (lightmaps). En la Semana 12 se hace un bake completo con UV2 en los props y lightmaps comprimidos en ASTC.</td></tr>
+    <tr><td>ASTC</td><td>Formato de compresión de texturas eficiente en GPU móvil. Aplicado a texturas y lightmaps para bajar memoria y ancho de banda en Quest.</td></tr>
+    <tr><td>Occlusion Culling</td><td>Descarte en runtime de la geometría que queda oculta tras otra, para reducir draw calls. Horneado para la escena Bar en la Semana 12.</td></tr>
+    <tr><td>Mesh decimation</td><td>Reducción del número de polígonos de las mallas, para aliviar el coste de GPU/CPU en la build de Quest.</td></tr>
+    <tr><td>Decompress On Load</td><td>Modo de carga de audio que descomprime el clip al cargar en memoria (en lugar de en cada reproducción), reduciendo el coste de CPU en runtime a cambio de RAM.</td></tr>
+    <tr><td>Save system</td><td>Persistencia mínima del progreso: <code>HasSave</code> habilita "continuar" y <code>NewGame</code> reinicia, desde el menú principal.</td></tr>
+  </table>
+
+  <p class="footer-note">Documento generado el 24/06/2026 a partir del historial Git del repositorio
+  VRGame / Pour Decisions VR. Bitácora reconstructiva con fines académicos.</p>
+</section>
+
+</body>
+</html>
