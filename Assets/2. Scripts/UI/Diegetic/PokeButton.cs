@@ -72,8 +72,20 @@ namespace UI.Diegetic
             if (!IsPressLayer(other.gameObject.layer)) return;
             _contactCount++;
             StartTicking();
-            if (!_interactable || _cooldown > 0f) return;
+            TryPress();
+        }
+
+        /// <summary>
+        /// Fires the press (debounced, with SFX/haptics) if the button is interactable. Public so the
+        /// Meta Interaction SDK poke path (<see cref="PokeButtonSdkAdapter"/>) can drive this button —
+        /// the physical trigger path above stays for compatibility but the rig no longer carries
+        /// finger colliders.
+        /// </summary>
+        public bool TryPress()
+        {
+            if (!_interactable || _cooldown > 0f) return false;
             _cooldown = _debounceSeconds;
+            StartTicking();
             if (_pressSfx != SfxId.None && ServiceLocator.TryGet<IAudioService>(out var audio))
                 audio.PlayOneShot(_pressSfx, transform.position);
             // Crisp confirmation buzz. The poking hand isn't identified here, so pulse both briefly.
@@ -81,6 +93,7 @@ namespace UI.Diegetic
                 hap.PulseBoth(0.35f, 0.05f);
             _onPressed?.Invoke();
             Pressed?.Invoke();
+            return true;
         }
 
         void OnTriggerExit(Collider other)
