@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c17d6918ac08364b919fca99d66f666, type: 3}
-  m_Name: Bottle_Gin
+  m_Name: Bottle_Lime
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.BottleSO
-  _ingredient: {fileID: 11400000, guid: abcb76be9bd3245428c240e6fb79f697, type: 2}
+  _ingredient: {fileID: 11400000, guid: 887464b523bb7db40902995e3740c223, type: 2}
   _capacityMl: 1000000
   _prefab: {fileID: 7895120573952397308, guid: bc6f738c018375849aa964b6318ce021, type: 3}
   _brokenPrefab: {fileID: 0}
@@ -20,4 +20,4 @@ MonoBehaviour:
   _unlockCost: 0
   _stockUnitPrice: 4
   _mlPerStockUnit: 1000
-  _unlockedByDefault: 0
+  _unlockedByDefault: 1
