@@ -49,7 +49,7 @@ an Ogg *Skeleton* bitstream that Unity's audio importer rejects, so the equivale
 
 | File | SfxId | Source | License |
 |------|-------|--------|---------|
-| `MusicIdle.ogg` | MusicIdle | [Tavern](https://opengameart.org/content/tavern-0) | CC0 |
+| `MusicIdle.mp3` | MusicIdle | [Drunken Saloon](https://opengameart.org/content/drunken-saloon) by iamoneabe | CC0 |
 | `MusicNight.mp3` | MusicNight | [Happy Adventure (Loop)](https://opengameart.org/content/happy-adventure-loop) | CC0 |
 
 ## Notes / swap candidates
