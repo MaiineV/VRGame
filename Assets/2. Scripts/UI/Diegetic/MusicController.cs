@@ -49,7 +49,7 @@ namespace UI.Diegetic
         {
             if (_audio == null) return;
 
-            if (from == GameState.Idle && to == GameState.NightRunning)
+            if ((from == GameState.Idle || from == GameState.DayShop) && to == GameState.NightRunning)
                 _audio.PlayOneShot2D(SfxId.NightStart, _feedbackVolume);
             else if (from == GameState.NightRunning && to == GameState.NightSummary)
                 _audio.PlayOneShot2D(SfxId.NightEnd, _feedbackVolume);
@@ -64,6 +64,9 @@ namespace UI.Diegetic
 
             switch (current)
             {
+                // DayShop is the state the game actually boots into (Idle is legacy); without this
+                // case the opening had no music at all — only the BarAmbience room-tone.
+                case GameState.DayShop:
                 case GameState.Idle:
                     _musicHandle = _audio.StartLoop(SfxId.MusicIdle, null, Vector3.zero, _idleVolume);
                     break;

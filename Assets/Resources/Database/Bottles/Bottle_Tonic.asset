@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Data.SO.BottleSO
   _ingredient: {fileID: 11400000, guid: 459551a914b8b8049971819fed11dfd0, type: 2}
   _capacityMl: 1000000
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 7895120573952397308, guid: bc6f738c018375849aa964b6318ce021, type: 3}
   _brokenPrefab: {fileID: 0}
   _repairCost: 20
   _unlockCost: 0
   _stockUnitPrice: 2
   _mlPerStockUnit: 1000
-  _unlockedByDefault: 0
+  _unlockedByDefault: 1

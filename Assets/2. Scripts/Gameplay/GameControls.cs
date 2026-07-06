@@ -1,3 +1,5 @@
+using Core;
+using Core.Managers;
 using Data.SO;
 using Services;
 using Services.GameState;
@@ -10,7 +12,7 @@ namespace Gameplay
     /// diegetic poke clipboard (whose finger-collider setup is hard to verify).
     ///   A (right)  : Start night when idle / acknowledge the night summary.
     ///   B (right)  : Abort the running night.
-    ///   Hold Y (left, 1.5s): Quit the game.
+    ///   Hold Y (left, 1.5s): Exit to the main menu (its Salir button does the actual quit).
     /// </summary>
     public sealed class GameControls : MonoBehaviour
     {
@@ -42,7 +44,7 @@ namespace Gameplay
             if (OVRInput.Get(OVRInput.Button.Four))
             {
                 _quitHeld += Time.deltaTime;
-                if (_quitHeld >= _quitHoldSeconds) Quit();
+                if (_quitHeld >= _quitHoldSeconds) ExitToMenu();
             }
             else
             {
@@ -61,13 +63,16 @@ namespace Gameplay
             _state.BeginNight();
         }
 
-        private static void Quit()
+        /// <summary>
+        /// Leaves the bar for the main menu (whose Salir button owns the real Application.Quit).
+        /// A running night is aborted first so the persistent services don't come back to the menu
+        /// still in NightRunning.
+        /// </summary>
+        private void ExitToMenu()
         {
-#if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
-#else
-            Application.Quit();
-#endif
+            _quitHeld = 0f;
+            if (_state.Current == Services.GameState.GameState.NightRunning) _state.AbortNight();
+            SceneLoadManager.LoadWithLoading(SceneNames.MainMenu, SceneNames.Loading);
         }
     }
 }

@@ -129,16 +129,15 @@ namespace Gameplay.Customer.States
         }
 
         /// <summary>
-        /// True if the glass's dominant ingredient matches the recipe's main ingredient.
+        /// True if the glass's contents match the full recipe — every step's proportion within
+        /// tolerance and foreign ingredients within the recipe's allowance (see RecipeMatcher).
         /// Defensive defaults to true when we can't resolve the recipe (don't punish on missing data).
         /// </summary>
         private bool EvaluateDrink(CustomerEntity c, LiquidMix mix)
         {
             if (mix == null || mix.IsEmpty) return false;
             if (_db == null) return true;
-            var recipe = _db.GetRecipe(c.TargetRecipe);
-            if (recipe == null || recipe.Steps == null || recipe.Steps.Length == 0) return true;
-            return mix.DominantId() == recipe.Steps[0].id;
+            return RecipeMatcher.Matches(mix, _db.GetRecipe(c.TargetRecipe));
         }
 
         private float ComputeDrunkenness(LiquidMix mix)

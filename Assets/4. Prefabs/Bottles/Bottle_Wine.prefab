@@ -563,19 +563,55 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3158592978067931534, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7363748817272798164}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 295445500223175711, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6085659000923917020}
+    - targetCorrespondingSourceObject: {fileID: 295445500223175711, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4459127022923881646}
   m_SourcePrefab: {fileID: 100100000, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
 --- !u!54 &4442518519963819697 stripped
 Rigidbody:
   m_CorrespondingSourceObject: {fileID: 8882787435946179275, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
   m_PrefabInstance: {fileID: 5107362431627584634}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4825990797647960165 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 295445500223175711, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
+  m_PrefabInstance: {fileID: 5107362431627584634}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6085659000923917020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4825990797647960165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bf9d7ab08d0320488e38b3e953ba40a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.GrabBridgeAdapter
+  _grabbable: {fileID: 0}
+--- !u!114 &4459127022923881646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4825990797647960165}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1a966174a6448e448864a8400450653, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.GrabGateEnforcer
 --- !u!114 &6901412141684522823 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1812209383832689469, guid: fe65d4890c4fbaa48a4666d94c880747, type: 3}
   m_PrefabInstance: {fileID: 5107362431627584634}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 4825990797647960165}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43f86b14a27b52f4f9298c33015b5c26, type: 3}

@@ -21,6 +21,10 @@ namespace Gameplay.Interactions
         [SerializeField] private GameObject _glassPrefab;
         [Tooltip("Where each glass appears. Defaults to this transform if null.")]
         [SerializeField] private Transform _spawnPoint;
+        [Tooltip("Optional. When set, each spawn picks one of these at random (never the same one " +
+                 "twice in a row) so glasses appear at different spots along the bar. Empty = always " +
+                 "use Spawn Point above.")]
+        [SerializeField] private Transform[] _spawnPoints;
 
         [Header("Budget")]
         [Tooltip("Spare glasses on top of the seat count (re-pour mistakes / leftovers). Cap = seats + buffer.")]
@@ -47,6 +51,7 @@ namespace Gameplay.Interactions
         private IGlassPoolService _pool;
         private bool _disabled;
         private bool _subscribed;
+        private int _lastSpawnIndex = -1;
 
         void Start()
         {
@@ -142,7 +147,7 @@ namespace Gameplay.Interactions
             if (_disabled) return;
             EnsurePool();
 
-            var t = _spawnPoint != null ? _spawnPoint : transform;
+            var t = PickSpawnTransform();
             if (_pool != null)
             {
                 // At the cap, recycle the oldest free glass so the player can always get a fresh one
@@ -157,11 +162,35 @@ namespace Gameplay.Interactions
             }
         }
 
+        /// <summary>
+        /// Random point from <see cref="_spawnPoints"/>, avoiding an immediate repeat so consecutive
+        /// glasses visibly land in different spots. Falls back to the single point / own transform.
+        /// </summary>
+        private Transform PickSpawnTransform()
+        {
+            if (_spawnPoints == null || _spawnPoints.Length == 0)
+                return _spawnPoint != null ? _spawnPoint : transform;
+
+            int index = Random.Range(0, _spawnPoints.Length);
+            if (_spawnPoints.Length > 1 && index == _lastSpawnIndex)
+                index = (index + 1) % _spawnPoints.Length;
+            _lastSpawnIndex = index;
+
+            return _spawnPoints[index] != null ? _spawnPoints[index] : transform;
+        }
+
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
-            var t = _spawnPoint != null ? _spawnPoint : transform;
             Gizmos.color = new Color(0.3f, 0.7f, 1f, 0.5f);
+            if (_spawnPoints != null && _spawnPoints.Length > 0)
+            {
+                for (int i = 0; i < _spawnPoints.Length; i++)
+                    if (_spawnPoints[i] != null)
+                        Gizmos.DrawWireSphere(_spawnPoints[i].position, 0.05f);
+                return;
+            }
+            var t = _spawnPoint != null ? _spawnPoint : transform;
             Gizmos.DrawWireSphere(t.position, 0.05f);
         }
 #endif
