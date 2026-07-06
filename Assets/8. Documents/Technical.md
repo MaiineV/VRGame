@@ -27,9 +27,9 @@
 | Componente | Eleccion | Justificacion |
 |---|---|---|
 | **XR Plugin Management** | OpenXR + Oculus | Cobertura Quest + SteamVR con una sola capa de input. |
-| **XR Interaction Toolkit** | 3.x (XRI) | Grab, socket, direct interactor; integra con Input System. |
+| **XR Interaction** | Meta XR Interaction SDK (`com.meta.xr.sdk.interaction[.ovr]`, parte de `com.meta.xr.sdk.all`) | Grab, ray/distance grab, poke — via Building Blocks. Ver [InteractionSDK-Migration.md](InteractionSDK-Migration.md) para el plan de migracion desde el grab manual actual. |
 | **Render pipeline** | URP con Forward+ | Obligatorio para Quest. Vulkan backend. |
-| **Input** | New Input System + `InputSystem_Actions.inputactions` | Mapeado estandar XR: grip, trigger, thumbstick. |
+| **Input** | `OVRInput` | New Input System (`com.unity.inputsystem`) esta instalado pero sin uso (cero referencias en `Assets/2. Scripts`, `InputSystem_Actions.inputactions` es el template default sin modificar). Todo el input real es `OVRInput`. |
 | **Fisica** | PhysX (nativo Unity) | `Rigidbody` en botellas y vasos. Collision detection Continuous para objetos criticos. |
 | **Liquidos** | Vertex anim shader (`_FillAmount` + `_LiquidColor`) + volumen por float | Sin particles — demasiado caro en Quest. |
 | **Destruccion** | Swap a prefab pre-fracturado (3-5 chunks) desde pool | Nada de runtime mesh cutting. |

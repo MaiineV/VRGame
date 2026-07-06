@@ -10,8 +10,11 @@ namespace EditorTools
     /// <summary>
     /// Applies the VR comfort defaults to the locomotion instance already placed in the scene
     /// (its serialized values otherwise override the script defaults): switch to Teleport mode
-    /// and drop the smooth-move speed. The MSAA/foveation changes live in the RP asset and
-    /// QuestPerformance respectively, so this only touches the scene component.
+    /// and drop the smooth-move speed. In Teleport mode the aim/arc/reticle/commit itself is
+    /// owned by the SDK's installed Teleport Building Block, not by ThumbstickLocomotion — this
+    /// only flips which of the component's own features (smooth-move vs. staying out of the way)
+    /// is active. The MSAA/foveation changes live in the RP asset and QuestPerformance
+    /// respectively, so this only touches the scene component.
     /// </summary>
     public static class ComfortWirer
     {

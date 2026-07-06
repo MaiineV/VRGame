@@ -58,7 +58,8 @@ namespace UI.Menu
         // ── public API ───────────────────────────────────────────────────────────
 
         /// <summary>
-        /// Called by <see cref="VrLaserPointer"/> when the ray enters or leaves this button.
+        /// Called by this button's own <see cref="OnPointerEnter"/>/<see cref="OnPointerExit"/>,
+        /// driven by the SDK's PointableCanvasModule when the ray enters or leaves this button.
         /// </summary>
         public void SetHighlighted(bool on)
         {
@@ -68,7 +69,8 @@ namespace UI.Menu
 
         /// <summary>
         /// Fires <see cref="Clicked"/> if <see cref="Interactable"/> is true.
-        /// Called by <see cref="VrLaserPointer"/> on trigger input.
+        /// Called by this button's own <see cref="OnPointerClick"/>, driven by the SDK's
+        /// PointableCanvasModule on trigger input.
         /// </summary>
         public void Click()
         {

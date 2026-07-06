@@ -1,3 +1,5 @@
+using Oculus.Interaction;
+using Oculus.Interaction.HandGrab;
 using Services;
 using Services.Economy;
 using Services.GameState;
@@ -13,13 +15,16 @@ namespace Gameplay.Interactions
     ///     afford it. Grabbing it buys it (charges + unlocks the bottle and its recipe permanently).
     ///   - Locked + not DayShop (night): hidden and non-interactive.
     ///
-    /// Implements <see cref="IGrabGate"/> so <see cref="SimpleVRGrabber"/> won't pick up a for-sale
-    /// bottle the player can't afford. Visibility/physics are left untouched while the bottle is held
-    /// (the grabber owns it then). Keeps its own GameObject active so it keeps listening; toggles
-    /// renderers/colliders (or an optional child) instead.
+    /// Disables the Meta Interaction SDK grab/distance-grab interactables so a for-sale bottle the
+    /// player can't afford can't be picked up. This is polled independently from visibility: a for-sale
+    /// bottle stays VISIBLE even when unaffordable, so the grabbable-enabled state must be re-evaluated
+    /// on every cash change, not just on the DayShop/owned visibility transitions handled by Apply().
+    /// Visibility/physics are left untouched while the bottle is held (the grabber owns it then). Keeps
+    /// its own GameObject active so it keeps listening; toggles renderers/colliders (or an optional
+    /// child) instead.
     /// </summary>
     [RequireComponent(typeof(Bottle))]
-    public sealed class BottleUnlockGate : MonoBehaviour, IGrabGate
+    public sealed class BottleUnlockGate : MonoBehaviour
     {
         [Tooltip("Optional child to toggle via SetActive instead of toggling this object's renderers/" +
                  "colliders. Leave null to gate the renderers/colliders on this bottle. Must NOT be this " +
@@ -38,10 +43,19 @@ namespace Gameplay.Interactions
         // missed (service init-order races, a transition that didn't reach this gate, etc.).
         private bool? _lastVisible;
 
+        // Grab-enabled state, polled independently from visibility: a for-sale-but-unaffordable bottle
+        // stays visible, so CanGrab must be re-checked every frame (cash can change without a DayShop/
+        // owned transition), not just when Apply()'s visibility toggle fires.
+        private HandGrabInteractable[] _handGrabInteractables;
+        private DistanceHandGrabInteractable[] _distanceGrabInteractables;
+        private bool? _lastGrabbable;
+
         void Awake()
         {
             _bottle = GetComponent<Bottle>();
             _grab = GetComponent<GrabBridge>();
+            _handGrabInteractables = GetComponentsInChildren<HandGrabInteractable>(true);
+            _distanceGrabInteractables = GetComponentsInChildren<DistanceHandGrabInteractable>(true);
         }
 
         void OnEnable() => Bind();
@@ -56,6 +70,7 @@ namespace Gameplay.Interactions
         {
             if (!_subscribed) Bind();
             Apply();
+            ApplyGrabbable();
         }
 
         void OnDisable()
@@ -71,11 +86,12 @@ namespace Gameplay.Interactions
             _state = null;
             _economy = null;
             _lastVisible = null;
+            _lastGrabbable = null;
         }
 
-        // --- IGrabGate ---------------------------------------------------------------------------
+        // --- grab veto (purchase gate) ------------------------------------------------------------
 
-        public bool CanGrab
+        private bool CanGrab
         {
             get
             {
@@ -157,6 +173,21 @@ namespace Gameplay.Interactions
             if (_progression == null) return true;
             if (IsOwned()) return true;                                      // owned (or free): always visible
             return _state != null && _state.Current == GameState.DayShop;    // locked: only for sale in DayShop
+        }
+
+        private void ApplyGrabbable()
+        {
+            // While held, the grab system owns the interactable state — don't fight it.
+            if (_grab != null && _grab.IsHeld) return;
+
+            bool grabbable = CanGrab;
+            if (_lastGrabbable.HasValue && _lastGrabbable.Value == grabbable) return; // no change → skip
+            _lastGrabbable = grabbable;
+
+            for (int i = 0; i < _handGrabInteractables.Length; i++)
+                _handGrabInteractables[i].enabled = grabbable;
+            for (int i = 0; i < _distanceGrabInteractables.Length; i++)
+                _distanceGrabInteractables[i].enabled = grabbable;
         }
 
         private Data.Enums.IngredientId IngredientId() =>

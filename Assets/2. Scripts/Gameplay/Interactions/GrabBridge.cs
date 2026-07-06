@@ -1,3 +1,5 @@
+using Services;
+using Services.Haptics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -35,11 +37,13 @@ namespace Gameplay.Interactions
             {
                 _onGrabbed?.Invoke();
                 Grabbed?.Invoke();
+                if (ServiceLocator.TryGet<IHapticService>(out var hap)) hap.PulseBoth(0.4f, 0.06f);
             }
             else
             {
                 _onReleased?.Invoke();
                 Released?.Invoke();
+                if (ServiceLocator.TryGet<IHapticService>(out var hap)) hap.PulseBoth(0.25f, 0.04f);
             }
         }
 
