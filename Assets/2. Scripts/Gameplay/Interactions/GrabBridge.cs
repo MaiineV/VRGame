@@ -49,5 +49,16 @@ namespace Gameplay.Interactions
 
         public void OnGrab() => SetHeld(true);
         public void OnRelease() => SetHeld(false);
+
+#if UNITY_EDITOR
+        // Debug-only: outlines this grabbable's colliders in the Scene view so grab zones are easy
+        // to spot without hunting for the SDK interactable's own gizmo. Green while held, blue when free.
+        void OnDrawGizmosSelected()
+        {
+            Gizmos.color = IsHeld ? new Color(0.3f, 1f, 0.4f, 0.6f) : new Color(0.3f, 0.7f, 1f, 0.4f);
+            foreach (var col in GetComponentsInChildren<Collider>())
+                Gizmos.DrawWireCube(col.bounds.center, col.bounds.size);
+        }
+#endif
     }
 }

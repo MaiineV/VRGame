@@ -28,12 +28,23 @@ namespace UI
         private Transform _cam;
 
         private Transform _indicator;       // container toggled on/off
-        private Material _orbMat, _gaugeFillMat;
-        private Transform _gaugeFill;
-        private float _gaugeBottomY, _gaugeFillW, _gaugeX;
+        private Material _orbMat;
+        private Shader _unlitShader;
+        // One cube + material per recipe ingredient, stacked bottom-up in the gauge so the player
+        // sees a proportional colour band per ingredient instead of one blended colour.
+        private readonly System.Collections.Generic.List<Transform> _gaugeSegments = new();
+        private readonly System.Collections.Generic.List<Material> _gaugeSegmentMats = new();
+        private (Color color, float ratio)[] _segments = { (Color.white, 1f) };
+        private float _gaugeBottomY, _gaugeFillW, _gaugeX, _levelRatio;
 
         private Color _drinkColor = Color.white;
         private float _resultTimer;
+
+        // Non-colour signal for the serve result: colourblind players can't rely on green/amber/red
+        // alone, so each outcome also gets a distinct motion pattern on the indicator.
+        private enum ResultKind { None, Perfect, Partial, Bad }
+        private ResultKind _resultKind = ResultKind.None;
+        private Vector3 _indicatorBaseScale = Vector3.one;
 
         void OnEnable()
         {
@@ -62,10 +73,16 @@ namespace UI
             if (c != null) { c.Served += OnServed; c.Left += OnLeft; }
 
             EnsureVisuals();
-            _drinkColor = DrinkColorUtil.For(c != null ? c.TargetRecipe : RecipeId.None);
-            ApplyColor(_drinkColor);
-            SetGauge(FillLevels.RatioOf(c != null ? c.TargetLevel : 0));
+            RecipeId recipe = c != null ? c.TargetRecipe : RecipeId.None;
+            _drinkColor = DrinkColorUtil.For(recipe);
+            _segments = DrinkColorUtil.Segments(recipe);
+            _levelRatio = FillLevels.RatioOf(c != null ? c.TargetLevel : 0);
+            ApplyOrbColor(_drinkColor);
+            SetGauge(_levelRatio);
             _resultTimer = 0f;
+            _resultKind = ResultKind.None;
+            _indicator.localScale = _indicatorBaseScale; // clear any leftover pulse/shake from the previous customer
+            _indicator.localPosition = Vector3.zero;
             SetVisible(true);
         }
 
@@ -83,10 +100,10 @@ namespace UI
 
         private void OnServed(CustomerEntity c, RecipeId recipe, float score, bool isExact)
         {
-            Color flash = isExact
-                ? new Color(0.3f, 1f, 0.4f)                          // perfect: green
-                : (score > 0f ? new Color(1f, 0.8f, 0.3f)            // partial: amber
-                              : new Color(1f, 0.3f, 0.25f));         // bad: red
+            Color flash;
+            if (isExact) { flash = new Color(0.3f, 1f, 0.4f); _resultKind = ResultKind.Perfect; }
+            else if (score > 0f) { flash = new Color(1f, 0.8f, 0.3f); _resultKind = ResultKind.Partial; }
+            else { flash = new Color(1f, 0.3f, 0.25f); _resultKind = ResultKind.Bad; }
             ApplyColor(flash);
             _resultTimer = _resultSeconds;
         }
@@ -94,6 +111,7 @@ namespace UI
         private void OnLeft(CustomerEntity c, bool happy)
         {
             if (happy) return;
+            _resultKind = ResultKind.Bad;
             ApplyColor(new Color(1f, 0.3f, 0.25f));
             _resultTimer = _resultSeconds;
         }
@@ -107,11 +125,53 @@ namespace UI
             if (_resultTimer > 0f)
             {
                 _resultTimer -= Time.deltaTime;
+                float progress = 1f - Mathf.Clamp01(_resultTimer / _resultSeconds);
+                AnimateResult(_resultKind, progress);
+
                 if (_resultTimer <= 0f)
                 {
+                    _resultKind = ResultKind.None;
+                    if (_indicator != null)
+                    {
+                        _indicator.localScale = _indicatorBaseScale;
+                        _indicator.localPosition = Vector3.zero;
+                    }
                     if (_customer == null) SetVisible(false);
-                    else ApplyColor(_drinkColor); // back to the order colour
+                    else
+                    {
+                        ApplyOrbColor(_drinkColor);
+                        SetGauge(_levelRatio); // back to the per-ingredient segments
+                    }
                 }
+            }
+        }
+
+        /// <summary>Non-colour tell for the serve result: each outcome gets its own motion on the
+        /// indicator (scale pulse count, or a shake) so the result reads without relying on hue.</summary>
+        private void AnimateResult(ResultKind kind, float t)
+        {
+            if (_indicator == null) return;
+            switch (kind)
+            {
+                case ResultKind.Perfect: // one big pulse
+                    float pulse = Mathf.Sin(t * Mathf.PI) * 0.4f;
+                    _indicator.localScale = _indicatorBaseScale * (1f + pulse);
+                    _indicator.localPosition = Vector3.zero;
+                    break;
+                case ResultKind.Partial: // two short pulses
+                    float doublePulse = Mathf.Abs(Mathf.Sin(t * Mathf.PI * 2f)) * 0.2f;
+                    _indicator.localScale = _indicatorBaseScale * (1f + doublePulse);
+                    _indicator.localPosition = Vector3.zero;
+                    break;
+                case ResultKind.Bad: // rapid shake, decaying out
+                    float shakeX = Mathf.Sin(t * Mathf.PI * 24f) * 0.03f * (1f - t);
+                    _indicator.localScale = _indicatorBaseScale;
+                    _indicator.localPosition = new Vector3(shakeX, 0f, 0f);
+                    break;
+                default:
+                    _indicator.localScale = _indicatorBaseScale;
+                    _indicator.localPosition = Vector3.zero;
+                    break;
             }
         }
 
@@ -121,9 +181,9 @@ namespace UI
         {
             if (_indicator != null) return;
 
-            var unlit = Shader.Find("Universal Render Pipeline/Unlit")
-                     ?? Shader.Find("Unlit/Color")
-                     ?? Shader.Find("Sprites/Default");
+            _unlitShader = Shader.Find("Universal Render Pipeline/Unlit")
+                        ?? Shader.Find("Unlit/Color")
+                        ?? Shader.Find("Sprites/Default");
 
             var container = new GameObject("OrderIndicator");
             _indicator = container.transform;
@@ -139,6 +199,7 @@ namespace UI
                 Mathf.Abs(ls.x) > 1e-5f ? 1f / ls.x : 1f,
                 Mathf.Abs(ls.y) > 1e-5f ? 1f / ls.y : 1f,
                 Mathf.Abs(ls.z) > 1e-5f ? 1f / ls.z : 1f);
+            _indicatorBaseScale = _indicator.localScale;
 
             // Orb
             var orb = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -146,7 +207,7 @@ namespace UI
             StripCollider(orb);
             orb.transform.SetParent(_indicator, false);
             orb.transform.localScale = Vector3.one * _orbSize;
-            _orbMat = new Material(unlit);
+            _orbMat = new Material(_unlitShader);
             orb.GetComponent<Renderer>().sharedMaterial = _orbMat;
 
             // Gauge geometry (to the right of the orb)
@@ -161,32 +222,67 @@ namespace UI
             bg.transform.SetParent(_indicator, false);
             bg.transform.localScale = new Vector3(w, _gaugeHeight, 0.01f);
             bg.transform.localPosition = new Vector3(_gaugeX, 0f, 0.012f);
-            var bgMat = new Material(unlit);
+            var bgMat = new Material(_unlitShader);
             SetMatColor(bgMat, new Color(0.1f, 0.1f, 0.12f, 1f));
             bg.GetComponent<Renderer>().sharedMaterial = bgMat;
-
-            var fill = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            fill.name = "GaugeFill";
-            StripCollider(fill);
-            fill.transform.SetParent(_indicator, false);
-            _gaugeFillMat = new Material(unlit);
-            fill.GetComponent<Renderer>().sharedMaterial = _gaugeFillMat;
-            _gaugeFill = fill.transform;
         }
 
+        /// <summary>Grows/shrinks the pool of gauge-fill cubes to match the recipe's ingredient count.</summary>
+        private void EnsureGaugeSegmentCount(int count)
+        {
+            while (_gaugeSegments.Count < count)
+            {
+                var fill = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                fill.name = "GaugeFill" + _gaugeSegments.Count;
+                StripCollider(fill);
+                fill.transform.SetParent(_indicator, false);
+                var mat = new Material(_unlitShader);
+                fill.GetComponent<Renderer>().sharedMaterial = mat;
+                _gaugeSegments.Add(fill.transform);
+                _gaugeSegmentMats.Add(mat);
+            }
+            while (_gaugeSegments.Count > count)
+            {
+                int last = _gaugeSegments.Count - 1;
+                if (_gaugeSegments[last] != null) Destroy(_gaugeSegments[last].gameObject);
+                _gaugeSegments.RemoveAt(last);
+                _gaugeSegmentMats.RemoveAt(last);
+            }
+        }
+
+        /// <summary>Stacks one coloured band per recipe ingredient, bottom-up, each sized to its
+        /// share of the requested fill (ratio) times its share of the recipe (segment ratio) — so a
+        /// two-ingredient order reads as two distinct colours instead of one blended colour.</summary>
         private void SetGauge(float ratio)
         {
-            if (_gaugeFill == null) return;
+            if (_indicator == null) return;
             ratio = Mathf.Clamp01(ratio);
-            float fh = Mathf.Max(0.001f, _gaugeHeight * ratio);
-            _gaugeFill.localScale = new Vector3(_gaugeFillW, fh, 0.013f);
-            _gaugeFill.localPosition = new Vector3(_gaugeX, _gaugeBottomY + fh * 0.5f, 0f);
+            EnsureGaugeSegmentCount(_segments.Length);
+
+            float y = _gaugeBottomY;
+            for (int i = 0; i < _gaugeSegments.Count; i++)
+            {
+                float segRatio = i < _segments.Length ? _segments[i].ratio : 0f;
+                float fh = Mathf.Max(0f, _gaugeHeight * ratio * segRatio);
+                var t = _gaugeSegments[i];
+                t.localScale = new Vector3(_gaugeFillW, Mathf.Max(0.0001f, fh), 0.013f);
+                t.localPosition = new Vector3(_gaugeX, y + fh * 0.5f, 0f);
+                SetMatColor(_gaugeSegmentMats[i], i < _segments.Length ? _segments[i].color : Color.white);
+                y += fh;
+            }
         }
 
-        private void ApplyColor(Color c)
+        private void ApplyOrbColor(Color c)
         {
             if (_orbMat != null) SetMatColor(_orbMat, c);
-            if (_gaugeFillMat != null) SetMatColor(_gaugeFillMat, c);
+        }
+
+        /// <summary>Flashes the orb AND every gauge segment to one uniform colour — used for the
+        /// serve-result flash, where a single alert colour (not per-ingredient) is the point.</summary>
+        private void ApplyColor(Color c)
+        {
+            ApplyOrbColor(c);
+            foreach (var m in _gaugeSegmentMats) SetMatColor(m, c);
         }
 
         private void SetVisible(bool on)

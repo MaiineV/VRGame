@@ -22,5 +22,30 @@ namespace UI
             var ing = db.GetIngredient(id);
             return ing != null ? ing.LiquidColor : Color.white;
         }
+
+        /// <summary>One entry per recipe ingredient: its LiquidColor and its share of the recipe's
+        /// total targetMl. Same proportion math as <see cref="Gameplay.Liquid.RecipeMatcher"/>, so the
+        /// segments a UI draws from this always match what actually counts as "correct" when poured.
+        /// Falls back to a single white, full-ratio segment when the recipe can't be resolved.</summary>
+        public static (Color color, float ratio)[] Segments(RecipeId recipe)
+        {
+            var fallback = new[] { (Color.white, 1f) };
+            if (!ServiceLocator.TryGet<IDatabaseService>(out var db)) return fallback;
+            var r = db.GetRecipe(recipe);
+            if (r == null || r.Steps == null || r.Steps.Length == 0) return fallback;
+
+            float total = 0f;
+            for (int i = 0; i < r.Steps.Length; i++) total += r.Steps[i].targetMl;
+            if (total <= 0f) return fallback;
+
+            var segments = new (Color, float)[r.Steps.Length];
+            for (int i = 0; i < r.Steps.Length; i++)
+            {
+                var ing = db.GetIngredient(r.Steps[i].id);
+                Color c = ing != null ? ing.LiquidColor : Color.white;
+                segments[i] = (c, r.Steps[i].targetMl / total);
+            }
+            return segments;
+        }
     }
 }
