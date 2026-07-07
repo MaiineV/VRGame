@@ -395,7 +395,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484167e684014224c9a8bff92b293c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hmd: {fileID: 191718688}
+  _hmd: {fileID: 337411174}
 --- !u!114 &32373226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2107,6 +2107,60 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &184984323 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7350404373303264100, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5e48d93b64a9ae4f9fd5a728c8f51af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!137 &184984324 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 1080765416388131987, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &184984325 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1080765417406942151, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af9ea683544b184083cef283557012d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &184984326 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3793792547573587993, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5e48d93b64a9ae4f9fd5a728c8f51af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!137 &184984327 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 2552062183350373003, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &184984328 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2552062183821691431, guid: bf187b68367fbbc4680e2f3a3677e9a5, type: 3}
+  m_PrefabInstance: {fileID: 1459791540}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9af9ea683544b184083cef283557012d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &185184422
 GameObject:
   m_ObjectHideFlags: 0
@@ -2211,6 +2265,18 @@ PrefabInstance:
       propertyPath: _centerEyeCamera
       value: 
       objectReference: {fileID: 319949051}
+    - target: {fileID: 3903482226883268832, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: _controller
+      value: 
+      objectReference: {fileID: 741723366}
+    - target: {fileID: 3903482226883268833, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: _hmd
+      value: 
+      objectReference: {fileID: 337411174}
+    - target: {fileID: 3903482226883268834, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+      propertyPath: _controller
+      value: 
+      objectReference: {fileID: 741723363}
     - target: {fileID: 4148778239110795873, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
       propertyPath: m_Name
       value: '[BuildingBlock] OVRInteractionComprehensive'
@@ -2268,7 +2334,16 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 954913582}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 3792157181917169878, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 2139185334, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 813447375, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 9170937211371257168, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 5106417804157790012, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 6147449420076126351, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 8702425413754196323, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 8839895569409382208, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
+    - {fileID: 1168042863143544391, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4148778239110795873, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
@@ -2303,17 +2378,6 @@ MonoBehaviour:
   installationRoutineCheckpoint:
     _installationRoutineId: 2063f481-1b63-4eda-9ee8-a00df98536bc
     _installationVariants: []
---- !u!114 &191718688 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2922565180446635899, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
-  m_PrefabInstance: {fileID: 191718684}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2606bf2f0c914a7aba4390f29ba2eb6e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &191718689 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5801245061754409418, guid: 0a7d2469f24041c4284c66706f84c45e, type: 3}
@@ -4037,6 +4101,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 334720016}
   m_CullTransparentMesh: 1
+--- !u!114 &337411174 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5598423577652438831, guid: 2f94427b8dd14ea498fd92aee3ec9f0f, type: 3}
+  m_PrefabInstance: {fileID: 2044753610}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2606bf2f0c914a7aba4390f29ba2eb6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &337480102
 GameObject:
   m_ObjectHideFlags: 0
@@ -5604,7 +5679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484167e684014224c9a8bff92b293c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hmd: {fileID: 191718688}
+  _hmd: {fileID: 337411174}
 --- !u!4 &450468982
 Transform:
   m_ObjectHideFlags: 0
@@ -6567,7 +6642,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484167e684014224c9a8bff92b293c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hmd: {fileID: 191718688}
+  _hmd: {fileID: 337411174}
 --- !u!4 &579540402
 Transform:
   m_ObjectHideFlags: 0
@@ -10127,7 +10202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484167e684014224c9a8bff92b293c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _hmd: {fileID: 191718688}
+  _hmd: {fileID: 337411174}
 --- !u!114 &921679672
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12788,7 +12863,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1203411606
 Transform:
   m_ObjectHideFlags: 0
@@ -12817,17 +12892,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _handGrabInteractor: {fileID: 1988696486}
-  _handVisual: {fileID: 0}
-  _handRenderer: {fileID: 0}
-  _materialEditor: {fileID: 0}
-  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 0}
-  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0}
+  _handVisual: {fileID: 184984328}
+  _handRenderer: {fileID: 184984327}
+  _materialEditor: {fileID: 184984326}
+  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 1}
+  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0.6}
   _colorChangeSpeed: 0.5
   _glowFadeStartTime: 0.2
   _glowStrengthChangeSpeed: 0.5
   _fadeOut: 0
   _gradientLength: 0.85
-  _glowType: 28
+  _glowType: 29
 --- !u!1 &1208839893
 GameObject:
   m_ObjectHideFlags: 0
@@ -16376,6 +16451,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Gameplay.Interactions.GlassDispenser
   _glassPrefab: {fileID: 6653518702084505019, guid: ae95ce5878435e64f801ebc3cff2d32b, type: 3}
   _spawnPoint: {fileID: 0}
+  _spawnPoints: []
   _buffer: 2
   _seatCountOverride: 0
   _maxGlasses: 12
@@ -19174,7 +19250,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1788630317
 Transform:
   m_ObjectHideFlags: 0
@@ -19203,17 +19279,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _handGrabInteractor: {fileID: 450468980}
-  _handVisual: {fileID: 0}
-  _handRenderer: {fileID: 0}
-  _materialEditor: {fileID: 0}
-  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 0}
-  _glowColorHover: {r: 0.7254902, g: 0.7254902, b: 0.7254902, a: 0}
+  _handVisual: {fileID: 184984325}
+  _handRenderer: {fileID: 184984324}
+  _materialEditor: {fileID: 184984323}
+  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 1}
+  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0.6}
   _colorChangeSpeed: 0.5
   _glowFadeStartTime: 0.2
   _glowStrengthChangeSpeed: 0.5
   _fadeOut: 0
   _gradientLength: 0.85
-  _glowType: 28
+  _glowType: 29
 --- !u!1 &1791771684
 GameObject:
   m_ObjectHideFlags: 0
@@ -21713,7 +21789,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2062989323
 Transform:
   m_ObjectHideFlags: 0
@@ -21742,17 +21818,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _handGrabInteractor: {fileID: 2042975589}
-  _handVisual: {fileID: 0}
-  _handRenderer: {fileID: 0}
-  _materialEditor: {fileID: 0}
-  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 0}
-  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0}
+  _handVisual: {fileID: 184984325}
+  _handRenderer: {fileID: 184984324}
+  _materialEditor: {fileID: 184984323}
+  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 1}
+  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0.6}
   _colorChangeSpeed: 0.5
   _glowFadeStartTime: 0.2
   _glowStrengthChangeSpeed: 0.5
   _fadeOut: 0
   _gradientLength: 0.85
-  _glowType: 28
+  _glowType: 29
 --- !u!1 &2068824023
 GameObject:
   m_ObjectHideFlags: 0
@@ -22636,7 +22712,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &2142048399
 Transform:
   m_ObjectHideFlags: 0
@@ -22665,17 +22741,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _handGrabInteractor: {fileID: 579540400}
-  _handVisual: {fileID: 0}
-  _handRenderer: {fileID: 0}
-  _materialEditor: {fileID: 0}
-  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 0}
-  _glowColorHover: {r: 0.7254902, g: 0.7254902, b: 0.7254902, a: 0}
+  _handVisual: {fileID: 184984328}
+  _handRenderer: {fileID: 184984327}
+  _materialEditor: {fileID: 184984326}
+  _glowColorGrabing: {r: 1, g: 1, b: 1, a: 1}
+  _glowColorHover: {r: 0.7264151, g: 0.7264151, b: 0.7264151, a: 0.6}
   _colorChangeSpeed: 0.5
   _glowFadeStartTime: 0.2
   _glowStrengthChangeSpeed: 0.5
   _fadeOut: 0
   _gradientLength: 0.85
-  _glowType: 28
+  _glowType: 29
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
